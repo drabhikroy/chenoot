@@ -1,408 +1,497 @@
 # Chenoot
 
-Named for ṯnwt, the ancient Egyptian word for a census or a reckoning of
-people. The application counts nothing itself, but it builds the instrument
-that does, and it keeps a record of how.
+Chenoot is a desktop application for creating draft psychometric survey
+instruments with AI. A psychometric instrument is a questionnaire designed to
+measure a construct, such as an attitude, belief, behavior, or other concept.
 
-A desktop application that builds psychometric survey instruments through a
-nine-step pipeline and documents every decision it made along the way.
+Tell Chenoot what you want to measure, who will answer the survey, how the
+results will be used, and about how long the instrument should be. Chenoot then
+breaks the construct into dimensions, creates a larger pool of candidate items,
+reviews each item against a fixed rubric, rewrites items that do not pass,
+removes near-duplicates, selects a response scale, assembles the instrument, and
+records each decision in an audit trail. Once a run starts, Chenoot can complete
+the pipeline without further input.
+
+Chenoot takes its name from ṯnwt, an ancient Egyptian term used for a census or
+a reckoning of people. The name reflects the application's focus on building
+instruments for collecting information about people while keeping a record of
+how each instrument was produced.
 
 ![The Chenoot landing page](docs/images/landing-dark.png)
 
-Give it a construct name, who will answer it, what the results are for, and a
-target length. It scopes the construct into dimensions, drafts an oversized item
-pool, critiques every item against a fixed rubric, rewrites what fails, removes
-near-duplicates, selects a response scale, and assembles a finished instrument
-with a full audit trail. It runs unattended once started.
+By default, Chenoot runs on your computer with a local AI model through Ollama.
+Your survey content stays on your computer, and you do not need an account, API
+key, or internet connection. Chenoot also has an optional remote API mode. When
+you choose that mode, survey content is sent to the provider you select. More
+detail appears in [Remote API mode](#remote-api-mode).
 
-Everything runs on your machine against a local model. No account, no API key,
-and no network connection are required.
+## Downloading Chenoot
 
-## What the audit trail is for
+The macOS version is currently available. Windows and Linux versions are coming
+soon.
 
-The point of this application is not that a model can write survey items. It is
-that every decision behind the finished instrument is recorded, attributable,
-and checkable afterwards. Each entry in the trail carries its basis:
+**[Download the latest release](https://github.com/drabhikroy/chenoot/releases/latest)**
 
-- **Measured** comes from something computed off the text itself, such as a
-  Flesch-Kincaid grade or a cosine similarity. It is reproducible.
-- **Model judgment** comes from an assessment against a stated criterion, such
-  as whether an item leads the respondent. It is not reproducible, but it is
-  grounded in text the model was shown.
-- **Unverified recall** comes from the model's own memory with no source
-  available to check it. Scale names, authors, and years in this category are
-  frequently invented, and they are marked everywhere they appear.
+Choose the version that matches your Mac:
 
-That third category is why literature grounding is off by default.
+- **Apple Silicon (ARM64, M1/M2/M3/M4)**:
+  [Chenoot-arm64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.dmg)
+- **Intel (x64)**:
+  [Chenoot-x64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.dmg)
 
-## Dependencies
+The downloaded application does not need Node.js or a copy of this repository.
 
-Two, and both are deliberate. Electron provides the desktop shell. The `docx`
-library, MIT licensed, produces Word documents; the format is open enough to
-write by hand, but doing so would mean maintaining a ZIP writer and a
-schema-conformant XML generator to produce a file a well maintained library
-already produces correctly.
+### Opening Chenoot on macOS
 
-Nothing else is pulled in at runtime. The renderer bundles React and nothing
-more, and no asset is fetched from a network at any point.
+Chenoot has not yet been verified through Apple's paid developer signing and
+notarization process. Because of this, macOS may block the application or show a
+warning the first time you open it.
+
+On macOS Sequoia and later:
+
+1. Try to open Chenoot once.
+2. Open **System Settings**.
+3. Open **Privacy & Security**.
+4. Scroll to the security message that names Chenoot.
+5. Choose **Open Anyway**.
+
+That option appears only after macOS has blocked an opening attempt.
+
+On earlier versions of macOS, right-click Chenoot, choose **Open**, then choose
+**Open** again in the dialog.
+
+The developer section below explains the separate code-signing requirement for
+Apple Silicon builds and how Chenoot handles builds created outside macOS.
+
+Building and tagging a release is described in `RELEASING.md`.
 
 ## Requirements
 
+For the current macOS release:
+
+- macOS 11 or later
 - [Ollama](https://ollama.com) installed and running
-- Roughly 8 GB of free memory for a 7 to 8 billion parameter model
-- Node.js 20 or later, to build from source
+- About 16 GB of system memory as a practical starting point for a 7 to 8
+  billion parameter model, with roughly 8 GB free for the model
+- More memory for larger models
+
+To build Chenoot from source, you also need Node.js 20 or later.
 
 ## Setup
 
 Install Ollama, then pull a generation model and an embedding model:
 
-```
+```bash
 ollama pull llama3.1:8b
 ollama pull nomic-embed-text
 ```
 
-`qwen2.5:7b-instruct` also works and can be set in Settings.
+`qwen2.5:7b-instruct` also works and can be selected in Settings.
 
-If a model is missing, Settings offers to pull it with a progress bar, so the
-terminal commands above are a convenience, not a requirement.
+If a model is missing, Settings can download it and display progress. The
+terminal commands above are optional.
 
-### Optional but worth doing
+### Using a separate critique model
 
-Pull a second model and name it as the critique model in Settings:
+You can pull a second model and select it as the critique model in Settings:
 
-```
+```bash
 ollama pull qwen2.5:7b-instruct
 ```
 
-A model reviewing its own writing shares the assumptions that produced it and
-passes work it should catch. Using a different model for the critique and
-revision steps costs one extra pull and measurably improves what gets flagged.
+Using the same model to write and review an item can cause the review to repeat
+the assumptions behind the original item. A different model gives the critique
+and revision steps another source of judgment. It requires one additional model
+download and, in Chenoot's testing, catches more problems.
 
-## Running from source
+## What the audit trail records
 
-```
+Chenoot does more than generate survey items. It records why decisions were
+made so you can review them later. Each audit entry identifies the basis for the
+decision.
+
+- **Measured** means Chenoot calculated something directly from the text. Examples
+  include a Flesch-Kincaid grade level or cosine similarity. The same calculation
+  can be repeated.
+- **Model judgment** means the AI model assessed an item against a stated
+  criterion, such as whether the wording leads the respondent. The audit trail
+  records the text and criterion used for that judgment.
+- **Unverified recall** means the model supplied information from its own memory
+  without a source that Chenoot can check. Scale names, authors, and years in
+  this category may be invented by the model, so Chenoot marks them wherever
+  they appear.
+
+This last category is why literature grounding is off by default.
+
+## What Chenoot can do
+
+Chenoot includes the full survey-development pipeline, the process that runs the
+steps in order, the audit trail, the local Ollama connection, and the input,
+pipeline, results, and settings screens.
+
+Completed instruments can be exported to Word, PDF, JSON, CSV, and plain text.
+
+### Word export
+
+The Word export is designed for sharing the instrument with someone who did not
+run the pipeline. It places the instrument in reading order and adds the audit
+trail as an appendix on a new page.
+
+Reverse-keyed items are marked. The document also states when administration
+order differs from reading order.
+
+### PDF export
+
+The PDF is created from the results view that you see on screen rather than from
+a separately written document layout. Before the PDF is created, Chenoot opens
+the audit panel so the file contains the complete audit trail instead of a
+picture of a closed panel.
+
+## Past runs
+
+Chenoot automatically saves every completed run in the application's data
+folder for the current user. You can open the archive from **Past runs** on the
+first screen.
+
+Opening a saved run restores the full results view, the audit trail, and all
+export options. You can return to an older run and export it again later.
+
+Chenoot also keeps runs that stop before completion. For example, if a run stops
+during Step 5, the saved record still contains Steps 1 through 4. That partial
+record can help explain where the problem occurred.
+
+The time estimate on the input screen comes from previous runs on the same
+computer. Run time depends on the model, the hardware, the number of dimensions
+created in Step 1, and the number of items that need revision. Those values are
+not known before a run starts. After the first completed run, Chenoot uses the
+median rate recorded on that computer and states that basis in the estimate.
+
+## Remote API mode
+
+Remote API mode is off by default. It is the one mode in which Chenoot sends
+survey content outside your computer.
+
+When you turn it on, Chenoot sends the construct, population, purpose, and every
+generated item to the provider you select. Settings displays a prominent
+warning before you use this mode.
+
+Chenoot supports Anthropic and OpenAI. It can also connect to a gateway that
+uses the OpenAI chat completions format through the endpoint setting.
+
+For structured output, Chenoot requests a tool call from Anthropic and uses
+OpenAI's response-format option. This asks the provider to return data in the
+format Chenoot expects rather than relying only on instructions written in the
+prompt.
+
+If a provider reports a rate limit, Chenoot waits and tries again. When the
+provider supplies a `retry-after` value, Chenoot uses that value.
+
+Anthropic does not provide an embeddings endpoint. When Anthropic is selected,
+the Step 6 redundancy check does not run. The coverage check still runs, and the
+audit trail records that the redundancy check was skipped.
+
+## Current limitations
+
+The current public release is available for macOS only. Windows and Linux builds
+are planned but are not yet available for download. The points below describe
+other limits to keep in mind when using Chenoot.
+
+- **The pipeline was developed and tested primarily with `llama3.1:8b`.** Models
+  of a similar size can work, but the prompts have not been compared
+  systematically across many models. The model you choose can change the quality
+  of the items it produces.
+- **Chenoot does not validate an instrument by generating it.** The pipeline
+  produces a draft that still needs testing with respondents. Reliability and
+  factor structure depend on data collected from people, so piloting remains
+  necessary.
+- **Semantic differential scales are documented but not offered as a response
+  format.** They require a separate bipolar adjective pair for each item rather
+  than one shared set of response labels.
+- **The current macOS build has not been verified through Apple's paid developer
+  program.** This is why macOS may show a warning when the application is opened.
+  Windows and Linux builds are not yet part of the public release.
+
+## For developers
+
+The sections below describe the code, tests, packaging process, and platform
+details for people working on Chenoot itself.
+
+### Dependencies
+
+Chenoot keeps its runtime dependencies small.
+
+Electron provides the desktop application shell. The MIT-licensed `docx` library
+creates Word documents. Writing `.docx` files directly would require Chenoot to
+maintain its own ZIP packaging and Word-compatible XML generation, so the
+application uses a maintained library instead.
+
+The renderer bundles React. Chenoot does not fetch interface assets or
+additional runtime libraries from the network. Network communication occurs
+only when you choose a feature that needs it, such as downloading an Ollama
+model or using Remote API mode.
+
+### Running from source
+
+```bash
 npm install
 npm start
 ```
 
-`npm start` builds the renderer bundle and launches Electron.
+`npm start` builds the renderer bundle and starts Electron.
 
-For iterative work on the interface, run the bundler in watch mode in one
+For interface development, run the renderer bundler in watch mode in one
 terminal and Electron in another:
 
-```
+```bash
 npm run watch:renderer
 npx electron .
 ```
 
-## Tests and the standards gate
+### Tests and the standards gate
 
-```
+Run the main test command with:
+
+```bash
 npm test
 ```
 
-This runs the standards gate first and the unit tests after it. The gate is not
-a linter. It checks the project's writing standards across every source file:
-the banned lexicon including every lexeme variation, em and en dashes,
-contractions, and a comment density floor. It also audits all four color-vision
-palettes against WCAG 2.2 AA contrast thresholds and against a perceptual
-separation floor under the matching dichromat simulation.
+This runs Chenoot's standards gate before the unit tests. The standards gate is
+a custom set of project checks rather than a general-purpose linter.
 
-Both gates run again before any packaging command. A build cannot be produced
-from source that does not pass them.
+It checks every source file for the project's writing rules, including the
+banned word list and related word forms, em and en dashes, contractions, and a
+minimum level of explanatory comments.
 
-```
+It also checks all four color-vision palettes against WCAG 2.2 AA contrast
+thresholds and a perceptual separation threshold under the matching dichromat
+simulation.
+
+These checks run again before packaging. A package is not produced when the
+source fails them.
+
+Run the standards gate by itself with:
+
+```bash
 npm run standards
 ```
 
-### Contract tests
+#### Contract tests
 
-`test/contracts.test.js` checks that what the interface offers is backed by code
-that exists. It compares the channels the preload invokes against the handlers
-registered for them, the backends the settings screen lists against the modules
-behind them, the export formats the results screen offers against the writers
-that produce them, the capabilities each backend declares against the methods
-implementing them, and the step labels the renderer holds against the pipeline
-registry.
+`test/contracts.test.js` checks that options shown in the interface have working
+code behind them.
 
-It exists because three bugs reached a working build during development and all
-three were the same shape: the interface offering something the code did not do.
-A settings option for a backend whose module was never written. A pull button
-calling a method that did not exist. A Word export that threw by design. Each
-was found by reading instead of by failing, which is the least reliable way to
-find anything.
+It compares:
 
-```
+- channels called by the preload code with the handlers registered for them
+- backends listed in Settings with the modules that implement them
+- export formats offered on the results screen with the writers that create
+  those files
+- capabilities declared by each backend with the methods implemented by that
+  backend
+- step labels in the renderer with the pipeline registry
+
+This test exists because three defects reached otherwise working builds during
+development. One Settings option referred to a backend module that had not been
+written. One download button called a method that did not exist. One Word export
+failed by design. All three were found by reading the code rather than by a test
+failure. Contract tests turn that kind of mismatch into an automatic failure.
+
+Run them with:
+
+```bash
 npm run contracts
 ```
 
-### Launch and screen checks
+#### Launch and screen checks
 
-Two checks run the assembled application instead of reading it.
+Two checks start the assembled application instead of only reading or testing
+individual pieces of code.
 
-`npm run smoke` starts Electron, watches everything it prints for twelve
-seconds, and fails on anything that looks like a renderer fault. It exists
-because a build once shipped that rendered nothing at all: the check in use at
-the time filtered output for a handful of phrases, and a renderer exception
-arrives as a CONSOLE line, which was not one of them. A blank window and a
-healthy one produced identical output.
+`npm run smoke` starts Electron, watches its output for twelve seconds, and
+fails when the renderer reports a fault. This check was added after a build
+opened to a blank window while the earlier check still reported success. The
+renderer error appeared as a `CONSOLE` line that the old check did not inspect.
 
-`npm run screens` goes further and drives the interface. It attaches over the
-DevTools protocol, clicks through every destination in the shell, opens each
-dialog, and asserts that something legible arrived in each. It then drags all
-eight resize handles on two different dialogs and measures which edges moved.
+`npm run screens` goes further. It connects through the Electron DevTools
+protocol, opens every destination in the application shell, opens each dialog,
+and checks that readable content appears. It also drags all eight resize handles
+on two dialogs and measures which edges move.
 
-The second check exists because the first one cannot see most of the
-application. Nearly everything here is behind a click, and a screen that throws
-only when it is opened is invisible to a check that opens nothing. Each of the
-two dialogs it exercises had a defect that survived a passing smoke run.
+The screen check exists because many parts of Chenoot appear only after a
+click. A problem that occurs only when a dialog opens cannot be found by a check
+that never opens it. Two dialog defects survived a passing smoke check before
+this test was added.
 
-The resize measurement is there for a related reason. That bug was not in the
-resize handler at all: the panel is centered by its backdrop, so setting a width
-grew it from the middle and every drag moved two edges in opposite directions.
-Nothing in the code looked wrong. A measurement catches that and an inspection
-does not.
+The resize measurement checks behavior that code inspection alone did not
+reveal. Because the panel is centered by its backdrop, changing its width once
+caused both sides to move when only one side should have moved. Measuring the
+edges catches that problem directly.
 
-```
+Run these checks with:
+
+```bash
 npm run smoke
 npm run screens
-npm run verify    # standards, tests, and both of the above
+npm run verify    # standards, tests, smoke check, and screen check
 ```
 
-`npm run screens` sets `CHENOOT_FORCE_SUPPORTED`, which is the only environment
-hook in the application. The managed Ollama install exists on macOS and Windows
-and not on Linux, and the download notice sits behind it, so without the hook
-that dialog could not be reached by a check at all. It changes which button
-appears and nothing else.
+`npm run screens` sets `CHENOOT_FORCE_SUPPORTED`, the application's only
+environment hook. The managed Ollama installation option exists on macOS and
+Windows but not Linux. Without the hook, the test could not open the download
+notice on Linux. The hook changes which button appears and nothing else.
 
-### The application icon
+#### Application icon
 
-`npm run build:icon` regenerates `build/icon.png` from `scripts/build-icon.js`.
-The icon is the same graduated rule the interface uses as its mark, described in
-coordinates and is not kept as a binary, so the two cannot drift apart and the
-shape can be adjusted by editing numbers. It is rebuilt automatically before any
-packaging command.
+`npm run build:icon` rebuilds `build/icon.png` from `scripts/build-icon.js`.
 
-## Downloading a build
+The icon uses the same graduated rule as the application mark. Its shape is
+described in coordinates instead of being stored only as a separate binary
+source, which keeps the application mark and generated icon tied to the same
+definition. The icon is rebuilt before packaging.
 
-Take the `.dmg` on macOS, the `.exe` on Windows, or the `.AppImage` on Linux.
-None of them need Node or a checkout of this repository.
+### Building distributable packages
 
-**[Download the latest release](https://github.com/drabhikroy/chenoot/releases/latest)**
+Use the platform commands below:
 
-These links always point at the newest build, so they keep working after the
-next release without being edited:
-
-- [macOS, Apple silicon](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.dmg)
-- [macOS, Intel](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.dmg)
-- [Windows](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-Setup.exe)
-- [Linux](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot.AppImage)
-
-For those links to resolve, the artifacts have to carry those exact names, which
-is what the `artifactName` settings in the build configuration are for. Rename a
-target and the link in this file dies quietly.
-
-Nothing is signed, so the first launch needs one extra step.
-
-- **macOS**: right-click the application, choose Open, then Open again.
-- **Windows**: More info, then Run anyway, at the SmartScreen warning.
-- **Linux**: `chmod +x Chenoot-*.AppImage` before running it.
-
-Building and tagging a release is described in `RELEASING.md`.
-
-## Building distributable packages
-
-```
+```bash
 npm run dist:linux    # .AppImage
 npm run dist:win      # .exe, NSIS installer
 npm run dist:mac      # .dmg and .zip, arm64 and x64. Needs macOS.
-npm run dist:mac:zip  # .zip only. Builds from any host.
-npm run dist          # all three
+npm run dist:mac:zip  # .zip only. Can be built from any host.
+npm run dist          # all three targets
 ```
 
-Output lands in `dist/`.
+Output is written to `dist/`. The `dist/` directory contains generated release
+files and is not committed to the repository. Release files belong on the
+GitHub Releases page.
 
-Cross-compilation has real limits, and they are worth knowing before planning a
-release.
+The build hosts have platform limits.
 
-A `.dmg` can only be produced on macOS, because it depends on `hdiutil`. From
-any other host the macOS target has to be a `.zip` of the application bundle
-instead, which is what `dist:mac:zip` produces. That is a legitimate
-distributable, but see the signing note below, because a bundle built off-Mac
-carries no signature at all.
+A `.dmg` can be created only on macOS because it depends on `hdiutil`. On other
+systems, the macOS target must be a `.zip` of the application bundle, which is
+what `dist:mac:zip` creates.
 
-A `.exe` can be built on Linux or macOS only with Wine installed. An `.AppImage`
-builds on Linux without additional tooling.
+A Windows `.exe` can be built on Linux or macOS only when Wine is installed. An
+`.AppImage` can be built on Linux without additional packaging software.
 
-One machine producing all three signed and installer-wrapped in practice means
-building on macOS with Wine present.
+A single computer that creates all three installer formats therefore needs to
+be a Mac with Wine installed.
 
-### Unsigned builds
+The macOS build produces:
 
-These packages are not code signed, because signing requires an Apple Developer
-account and a Windows code signing certificate.
+- `Chenoot-arm64.dmg` for Apple Silicon Macs
+- `Chenoot-x64.dmg` for Intel Macs
+- matching `.zip` files when that target is requested
 
-**macOS.** Two separate things go wrong, and only one of them is the familiar
-one.
+The disk image opens at 540 by 380 pixels with Chenoot on the left and an
+Applications shortcut on the right.
 
-Quarantine produces the "cannot be opened because the developer cannot be
-verified" dialog. That is the well-known step and it is not sufficient on its
-own.
+### Developer verification and code signing
 
-The signature requirement is the one that catches people. Since Big Sur, arm64
-executables on Apple Silicon must carry a valid code signature or the kernel
-refuses to run them. There is no dialog. The application appears to launch and
-immediately dies, which reads as a crash, not a permissions problem. An
-ad-hoc signature satisfies the requirement, proves nothing about origin, and
-costs no developer account. It also cannot be applied from Linux, so it has to
-happen on the Mac.
+The current public build is for macOS only. It is not signed with an Apple
+Developer identity or notarized through Apple's paid developer program.
 
-Unzip, then run the bundled script from the same folder:
+The Windows and Linux sections below describe how those planned builds behave
+during development and packaging. They do not mean that Windows or Linux
+downloads are currently available.
 
-```
+On macOS, developer verification and executable code signing are separate
+issues.
+
+Downloaded applications receive a quarantine marker, which can lead macOS to
+say that the developer cannot be verified. The opening steps in
+[Opening Chenoot on macOS](#opening-chenoot-on-macos) address that warning.
+
+Apple Silicon has an additional requirement. Since macOS Big Sur, ARM64
+executables must carry a valid code signature before the operating system will
+run them. An ad-hoc signature satisfies that technical requirement but does not
+verify who published the application.
+
+A macOS `.zip` created outside macOS cannot receive that signature during the
+build. After moving the bundle to a Mac, unzip it and run the included script
+from the same folder:
+
+```bash
 ./prepare-macos.sh Chenoot.app
 ```
 
-Do not use `codesign --deep` by hand. Apple discourages it, and on a bundle with
-four frameworks and four helper applications it usually produces a signature
-that fails validation. macOS reports a broken signature far more harshly than a
-missing one, with wording about malware that alarms people much more than the
-situation deserves. The script signs from the inside out instead: libraries,
-then frameworks, then helpers, then the application.
+Do not run `codesign --deep` manually. On Chenoot's bundle, which contains four
+frameworks and four helper applications, that approach can produce a signature
+that fails validation. The supplied script signs the nested libraries,
+frameworks, helper applications, and then Chenoot itself in the required order.
 
-**On macOS Sequoia and later**, the right-click and Open bypass no longer
-exists. Even correctly ad-hoc signed, the first launch is refused. After it is
-blocked, open System Settings, then Privacy and Security, and scroll to the
-bottom. A message naming Chenoot will be there with an Open Anyway button.
-That message only appears after a blocked attempt, so try to open the
-application first. This is required once.
+On macOS Sequoia and later, the older right-click and Open path no longer
+provides the bypass described for earlier versions. After macOS blocks Chenoot,
+open **System Settings**, then **Privacy & Security**, and choose **Open Anyway**
+for Chenoot. The option appears only after an opening attempt has been blocked.
 
-Intel Macs do not enforce the signature requirement, so on those the quarantine
-step alone is enough. Running the script is harmless either way.
+Intel Macs do not have the Apple Silicon executable-signature requirement. The
+quarantine warning can still appear.
 
-### If it is blocked anyway
+If a macOS build remains blocked, running from source avoids this issue because
+the Electron binary installed by npm is already signed and notarized by its
+publisher:
 
-Running from source sidesteps Gatekeeper entirely, because the Electron binary
-that npm installs is already signed and notarized by its publisher:
-
-```
+```bash
 npm install
 npm start
 ```
 
-This needs Node.js but no developer account, and it is the most reliable way to
-get the application running on a Mac today.
+This method requires Node.js.
 
-**Windows.** SmartScreen will show a blue "Windows protected your PC" panel.
-Choose More info, then Run anyway.
+When the Windows version is released, an unverified build may trigger a blue
+**Windows protected your PC** SmartScreen panel. Choose **More info**, then
+**Run anyway**.
 
-**Linux.** Mark the AppImage executable and run it:
+When the Linux version is released, mark the AppImage as executable before
+starting it:
 
+```bash
+chmod +x Chenoot-*.AppImage
+./Chenoot-*.AppImage
 ```
-chmod +x Chenoot-0.1.0.AppImage
-./Chenoot-0.1.0.AppImage
-```
 
-To sign properly, add `mac.identity` and `win.certificateFile` to the `build`
-block in `package.json`.
+For paid developer signing, add `mac.identity` and `win.certificateFile` to the
+`build` block in `package.json`.
 
-## What is implemented
+### Release file names
 
-All eight pipeline steps, the orchestrator, the audit trail, the Ollama
-backend, the Electron shell, and the input, pipeline, results, and settings
-screens. Export to PDF, JSON, CSV, and plain text.
+The direct download links in this README depend on exact artifact names. The
+`artifactName` settings in the build configuration control those names. If an
+artifact name changes, its direct download link must be updated too.
 
-Word is the export written for someone other than the person who ran the
-pipeline. It lays the instrument out as a document, in reading order, with the
-audit trail as an appendix on a fresh page. Reverse keyed items are marked, and
-the note about administration order being different from reading order is
-carried on the page and never left implicit.
+Release preparation is documented in `RELEASING.md`. Version-specific public
+notes are stored in files such as `docs/RELEASE-NOTES-1.0.0.md`.
 
-PDF is produced by printing the results view instead of composing a document
-separately, so the layout on paper is the layout that was reviewed on screen and
-there is no second implementation to drift away from the first. The audit panel
-is opened before capture, so the printed document is the whole trail and not
-a picture of a collapsed panel.
+### Project layout
 
-## Past runs
-
-Every finished run is written to the per-user application data directory
-automatically, and the archive is reachable from Past runs on the first screen.
-Opening one restores the full results view, including the audit trail and every
-export, so a run can be revisited or exported again months later.
-
-Runs that failed partway are kept too. A run that died at Step 5 still
-documents Steps 1 through 4, and that partial trail is usually what explains
-the failure.
-
-The runtime estimate on the input screen is measured from these records rather
-than modeled. How long a run takes depends on the model, the hardware, how many
-dimensions Step 1 produces, and how many items fail critique, none of which can
-be known in advance. After the first completed run the estimate uses the median
-rate this machine has actually achieved, and it says which basis it is using.
-
-## The remote API backend
-
-Off by default, and the one mode where the application stops being local. In it
-the construct, the population, the purpose, and every generated item are sent to
-the chosen provider. The settings screen states that in the error color rather
-than as a hint.
-
-Anthropic and OpenAI are supported, along with any gateway that speaks the
-OpenAI chat completions format through the endpoint override. Structured output
-is requested as a forced tool call on Anthropic and through response format on
-OpenAI, so the schema is enforced by the provider instead of asked for in
-prose.
-
-Rate limits are retried with a widening delay and the provider's own
-`retry-after` header is honoured when it sends one.
-
-One asymmetry is worth knowing before choosing a provider. Anthropic publishes
-no embeddings endpoint, so in that mode the Step 6 redundancy check does not
-run. Coverage checking still does, and the audit trail records that redundancy
-was skipped.
-
-## What is not
-
-Everything the build specification asked for is implemented. What follows is
-what a second version would address, not what is missing from this one.
-
-- **The pipeline is tuned against llama3.1:8b.** Other models of a similar size
-  work, but the prompts have not been compared systematically across them, and
-  the item quality a given model produces is the largest uncontrolled variable
-  in the whole application.
-- **No instrument is validated by running it.** The pipeline produces a
-  defensible draft. Reliability and factor structure are empirical questions
-  that need respondents, and nothing here substitutes for piloting.
-- **Semantic differential is documented, not offered**, since it needs a
-  bipolar adjective pair per item instead of one shared anchor set.
-- **Builds are unsigned.** See the note above on what that costs.
-
-## Project layout
-
-```
-src/main/            Main process. No renderer code reaches any of this.
+```text
+src/main/            Main process. Renderer code does not reach this directly.
   backends/          The AIBackend interface and its implementations.
-  pipeline/          The eight steps, the orchestrator, and the audit trail.
-    rubric/          The measured half of the Step 4 rubric.
-  prompts/           One prompt template per step, kept apart from step logic.
-src/renderer/        Sandboxed interface. No Node access.
-  tokens/            Palettes and the spacing, type, and motion scales.
-standards/           The lexicon and the checkers that enforce it.
-test/                Unit tests, the standards gate, and the palette audit.
+  pipeline/          Pipeline steps, the orchestrator, and the audit trail.
+    rubric/          The measured part of the Step 4 rubric.
+  prompts/           One prompt template per step, separate from step logic.
+src/renderer/        Sandboxed interface with no Node access.
+  tokens/            Palettes plus spacing, type, and motion scales.
+standards/           Writing rules and the checks that apply them.
+test/                Unit tests, standards checks, and palette checks.
 design/              Visual direction sketches. Not part of the build.
 ```
 
-## A note on the response scale
+### Response scale selection
 
-The model chooses which kind of scale suits the construct and says why. It does
-not write the anchor labels. Those come from a balanced catalog, because a local
-model asked for seven balanced anchors will routinely return six, or place the
-midpoint off center. That is a lookup problem, not a judgment call.
+The model chooses the type of response scale that fits the construct and records
+why it selected that type. It does not write the response labels itself.
+
+Response labels come from a balanced catalog. This avoids common model errors,
+such as returning six labels when seven were requested or placing the midpoint
+off center. Chenoot treats balanced labels as a fixed lookup rather than an AI
+judgment.
 
 ## License
 
-PolyForm Noncommercial License 1.0.0. Copyright Abhik Roy. See `LICENSE`.
+Chenoot is released under the PolyForm Noncommercial License 1.0.0. Copyright
+Abhik Roy. See `LICENSE`.
 
-Lexend, Fraunces, and Spline Sans Mono are used under the SIL Open Font License. See
-`src/renderer/fonts/OFL.txt`.
+Lexend, Fraunces, and Spline Sans Mono are used under the SIL Open Font License.
+See `src/renderer/fonts/OFL.txt`.

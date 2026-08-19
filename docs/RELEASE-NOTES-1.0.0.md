@@ -66,21 +66,22 @@ A run takes minutes rather than seconds. The estimate on the New screen is a
 rough figure until a few runs have finished, after which it is measured from
 what your machine has actually done.
 
-## Requirements
-
-- macOS 11 or later, Windows 10 or later, or a modern Linux distribution.
-- About 16 GB of memory for a 7B model, more for larger ones.
-- Around 10 GB of disk for the runtime and one model.
-
 ## Installing
 
-Take the `.dmg` on macOS, the `.exe` on Windows, or the `.AppImage` on Linux.
+At this time, the macOS version is available.
+
+Download the version that matches your Mac:
+
+- **Apple Silicon (ARM64, M1/M2/M3/M4)**: Download `Chenoot-arm64.dmg`.
+- **Intel (x64)**: Download `Chenoot-x64.dmg`.
+
+Open the `.dmg` file and move Chenoot to Applications.
 
 Nothing is signed, so the first launch needs one extra step.
 
-- **macOS**: right-click the application, choose Open, then Open again.
-- **Windows**: More info, then Run anyway.
-- **Linux**: `chmod +x Chenoot-*.AppImage` before running it.
+- **macOS**: Right-click the application, choose Open, then Open again.
+
+Windows and Linux versions are coming soon.
 
 ## What comes next
 
