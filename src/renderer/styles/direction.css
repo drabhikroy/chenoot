@@ -1,0 +1,3537 @@
+/* Visual direction: metrology.
+   The other sense of the word instrument. The application measures things and
+   reports what it measured, so the interface borrows from the objects that do
+   that: graduated rules, hairline tick marks, readouts set in a face where a
+   figure cannot be mistaken for another figure.
+
+   Boldness is spent in exactly one place, the graduated rule that carries
+   pipeline progress and reappears at the bottom of the results screen as the
+   similarity calibration. Everything else stays quiet so that element reads. */
+
+/* Lexend carries all reading text.
+   It was designed to reduce visual stress and improve reading performance, with
+   generous apertures and wide sidebearings, and unlike most faces designed for
+   that purpose it does not look like a face designed for that purpose. It
+   replaces the face used before it, which had the same justification and read
+   as institutional: correct, and cold enough that the whole interface
+   inherited the coldness. All three families ship with the application,
+   because the content security policy permits no remote origin. */
+@font-face {
+  font-family: 'Lexend';
+  src: url('../fonts/lexend.woff2') format('woff2-variations');
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('../fonts/fraunces.woff2') format('woff2-variations');
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+/* Spline Sans Mono for every number, identifier, and graduation label. A
+   distinctive mono matters more here than in most interfaces, because readings
+   are the content: run serials, cosine values, item counts, and tick marks all
+   sit in it. */
+@font-face {
+  font-family: 'Spline Sans Mono';
+  src: url('../fonts/spline-mono.woff2') format('woff2-variations');
+  font-weight: 300 600;
+  font-display: swap;
+}
+
+:root {
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Lexend', ui-sans-serif, system-ui, sans-serif;
+  --font-data: 'Spline Sans Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* An engraved setting: large optical size, no softening, no wonk. Applied
+     wherever the display face is used, so the register never drifts. */
+  --display-variation: 'opsz' 96, 'SOFT' 0, 'WONK' 0;
+
+  /* The scale gains a step at the top. The previous ratio topped out at 31px,
+     which was as large as the old display face could carry without looking
+     stretched. Fraunces holds a real display size, so the top of the scale is
+     now a size. */
+  --text-display: 50px;
+  --text-heading-1: 36px;
+  --text-heading-2: 27px;
+  --text-heading-3: 22px;
+}
+
+body {
+  font-family: var(--font-body);
+  /* Lexend sits wide by design. A touch of negative tracking at reading sizes
+     keeps lines from running long without closing the apertures that make it
+     readable in the first place. */
+  letter-spacing: -0.006em;
+}
+
+/* Headings are set in the display face at its engraved setting. They were
+   previously uppercase and letterspaced, which is what a text face needs when
+   it is asked to do display work. With a face that carries the size, the
+   letterforms do the job and the shouting can stop. */
+h1, h2, h3 { margin: 0; font-weight: 400; }
+h1 {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-variation);
+  font-weight: 500;
+  font-size: var(--text-heading-1);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin-bottom: var(--space-4);
+}
+
+/* The certificate title. One per screen at most, and only where the screen is
+   presenting a finished thing. */
+.title-display {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 0;
+  font-weight: 600;
+  font-size: var(--text-display);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+/* Section headings stay small, spaced, and quiet. They are structural labels
+   not titles, so they keep the utility face and the uppercase
+   treatment that now marks structure and nothing else. */
+h2 {
+  font-family: var(--font-data);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: var(--space-6) 0 var(--space-3);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+.dimension h2, .anchor-row + h2 { border-bottom: 0; padding-bottom: 0; }
+h3 { font-size: var(--text-body); }
+
+/* The eyebrow names what kind of screen this is. In the data face it reads as
+   a stamp on a document. */
+.eyebrow {
+  font: 500 var(--text-caption)/1 var(--font-data);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+}
+
+/* Every number in the interface is set in the data face, so a figure never has
+   to be read twice. */
+.value { font-family: var(--font-data); font-size: var(--text-caption); letter-spacing: 0.04em; }
+
+.screen {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-10);
+}
+
+/* ---- The graduated rule -------------------------------------------------
+   Nine segments, each a step, filled as the run passes through them. The
+   previous version was nine hairlines on one track: accurate, quiet, and
+   almost invisible at the size it renders. Progress is now a quantity of
+   color, not a change in a two pixel mark.
+
+   The minor graduations inside each segment are what keep this reading as an
+   instrument, not a loading bar, which is the whole reason it is here
+   and not a progress bar. */
+.rule { margin: var(--space-4) 0 var(--space-3); }
+/* Nine segments across one row. Each carries a label in the data face, and
+   below about five hundred pixels those labels are wider than the ninth of the
+   row they are given, so the track pushes past the screen and takes the whole
+   document with it. Minimum width zero lets the columns compress, and the
+   labels are hidden at the point where they would be unreadable anyway. */
+.rule-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+}
+@media (max-width: 560px) {
+  .rule-segment .rule-label { display: none; }
+  .rule-track { gap: 4px; }
+}
+.rule-segment {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  animation: settle 380ms var(--ease-enter) both;
+}
+.rule-label {
+  font: 500 10px/1 var(--font-data);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--motion-step) var(--ease-enter);
+}
+.rule-bar {
+  position: relative;
+  display: block;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: background var(--motion-step) var(--ease-enter),
+              border-color var(--motion-step) var(--ease-enter);
+}
+.rule-minor {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--color-border-strong);
+  opacity: 0.5;
+}
+
+.rule-segment.done .rule-bar { background: var(--status-complete); border-color: var(--status-complete); }
+.rule-segment.done .rule-minor { background: var(--color-background); opacity: 0.35; }
+.rule-segment.done .rule-label { color: var(--status-complete); }
+
+.rule-segment.now .rule-bar { background: var(--status-running); border-color: var(--status-running); }
+.rule-segment.now .rule-minor { background: var(--color-background); opacity: 0.35; }
+.rule-segment.now .rule-label { color: var(--status-running); }
+
+.rule-segment.failed .rule-bar { background: var(--status-error); border-color: var(--status-error); }
+.rule-segment.failed .rule-label { color: var(--status-error); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rule-segment { animation: none; }
+}
+
+/* ---- Form ---------------------------------------------------------------- */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-3); }
+/* Field labels are sentence case at body size.
+   They were previously uppercase, letterspaced, and caption sized, matching the
+   treatment used for screen titles, section headings, metadata, and status
+   readouts. Nine separate things shared one voice, so nothing could be louder
+   than anything else and the eye had no order to follow. Uppercase now marks
+   structure only: the screen you are on, and the sections within it. */
+.field label {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* Width signals expected input. A number field stretched across eight hundred
+   pixels invites a sentence, and a field that invites the wrong thing is a
+   defect regardless of what validation catches afterwards. */
+.field { max-width: 62ch; }
+.field.narrow input, .field.narrow select { max-width: 12ch; }
+.field.medium input, .field.medium select { max-width: 34ch; }
+
+.field input, .field textarea, .field select {
+  min-height: var(--target-minimum);
+  padding: 10px var(--space-2);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-small);
+  font: inherit;
+}
+.field textarea { min-height: 88px; resize: vertical; }
+.field-hint { font-size: var(--text-caption); color: var(--color-text-secondary); }
+.field-error { font-size: var(--text-caption); color: var(--status-error); }
+.field.invalid input, .field.invalid textarea { border-color: var(--status-error); }
+
+/* Advanced settings sit behind a disclosure so the first screen presents four
+   fields, not eight. */
+details.advanced { margin: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+details.advanced summary {
+  min-height: var(--target-minimum);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--text-caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+details.advanced[open] summary { color: var(--color-text-primary); }
+
+/* ---- Actions ------------------------------------------------------------- */
+/* Space on both sides. An action row is followed by a form field often enough
+   that a top margin alone leaves the next label sitting on the button. */
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+button {
+  min-height: var(--target-minimum);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-small);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background var(--motion-base) var(--ease-enter);
+}
+button:hover:not(:disabled) { background: var(--color-surface-alt); }
+button:disabled { opacity: 0.45; cursor: default; }
+/* The primary action is filled. Against a warm ground an
+   outlined control reads as one option among several, which is the wrong
+   signal for the single thing each screen exists to do. Ink on paper in dark
+   mode and the reverse in light, so it inverts the page and cannot be mistaken
+   for anything else on it. */
+button.primary {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-background);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  padding: 0 var(--space-4);
+  letter-spacing: 0.01em;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--color-text-secondary);
+  border-color: var(--color-text-secondary);
+}
+button.primary:disabled { background: none; color: var(--color-text-secondary); }
+
+/* ---- Banner -------------------------------------------------------------- */
+.banner {
+  border-left: 3px solid var(--status-flagged);
+  padding: var(--space-2);
+  background: var(--color-surface);
+  margin: var(--space-3) 0;
+  font-size: var(--text-body);
+}
+.banner.error { border-left-color: var(--status-error); }
+.banner .value { display: block; margin-top: 4px; color: var(--color-text-secondary); }
+
+/* ---- Shell ---------------------------------------------------------------
+   One bar on every screen. It carries navigation, which previously existed only
+   on the input screen, and the macOS drag region, which was previously a
+   separate empty strip above it. */
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  height: 52px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.bar-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-primary);
+}
+.bar-wordmark {
+  font: 400 var(--text-caption)/1 var(--font-data);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.mark-glyph { flex: 0 0 auto; }
+
+/* The bar gives way before the page does.
+   At around seven hundred pixels the navigation ran seven pixels past the
+   window and put a horizontal scrollbar under every screen in the application,
+   and Past runs wrapped onto a second line, which pushed the bar taller than
+   its own height and left one item sitting lower than the rest. Neither had
+   anything to do with the pages: the content fits, and the chrome above it did
+   not.
+   The wordmark yields its space first, since it is identification in place of
+   navigation and the icon beside it keeps saying the same thing. The
+   destinations hold their labels on one line and give up their padding before
+   they give up their words. */
+/* The wordmark is a button now, so it has to be told not to look like one. It
+   arrived with a border, a background, and the padding every other button
+   carries, which put a box around the application name and squeezed the
+   wordmark until it truncated to an ellipsis. */
+.bar-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: var(--target-minimum);
+  color: var(--color-text-primary);
+}
+.bar-mark:hover { background: none; color: var(--color-text-primary); }
+.bar-mark:hover .bar-wordmark { color: var(--status-running); }
+/* The wordmark holds its full width while there is room for it. It shares a
+   container with the version now, and letting both shrink together clipped the
+   name to an ellipsis on a window wide enough to show everything twice. Below
+   the narrow breakpoint the wordmark is hidden outright and the icon carries
+   identification on its own. */
+.bar-wordmark { white-space: nowrap; flex: 0 0 auto; }
+
+/* The version beside the name. Smaller and quieter, centered against the
+   wordmark so the pair reads as one lockup, with a little more space than the
+   letter spacing of the wordmark already provides. */
+.bar-version {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  align-self: center;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .bar-version { display: none; }
+}
+.bar-nav {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.bar-item { white-space: nowrap; }
+
+/* Below this the wordmark has nothing left to give, so the gaps close and the
+   labels sit closer together. The bar stays on one line down to the narrowest
+   window the application can be opened at. */
+@media (max-width: 860px) {
+  .bar { gap: var(--space-2); padding: 0 var(--space-2); }
+  .bar-nav { gap: 0; }
+  .bar-item { padding: 0 6px; }
+  .bar-divider { margin: 0 var(--space-1); }
+}
+@media (max-width: 700px) {
+  /* The wordmark goes and the icon carries identification on its own, which is
+     what an icon is for. */
+  .bar-wordmark { display: none; }
+
+  /* Past the point where six destinations fit at any padding, the bar scrolls
+     itself and not letting the document scroll. The window cannot be
+     dragged below nine hundred pixels, but display scaling reaches these
+     widths: a nine hundred pixel window at one and a half times gives a six
+     hundred pixel viewport. Hiding a destination would be worse than a short
+     sideways reach for it. */
+  .bar { overflow: hidden; }
+  .bar-nav { overflow-x: auto; scrollbar-width: none; }
+  .bar-nav::-webkit-scrollbar { display: none; }
+}
+
+/* Navigation is text with a state underline, not a row of outlined
+   buttons. Three bordered controls in the chrome compete with the primary
+   action on whichever screen is below them. */
+.bar-item {
+  border: 0;
+  background: none;
+  min-height: var(--target-minimum);
+  padding: 0 var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+}
+.bar-item:hover { background: none; color: var(--color-text-primary); }
+.bar-item.current {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--status-running);
+}
+.bar-item.live { color: var(--status-running); display: flex; align-items: center; gap: 6px; }
+.bar-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-running);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.shell-body { flex: 1; }
+
+/* ---- Results ------------------------------------------------------------
+   The end of the experience, and the screen that shapes the memory of the whole
+   run, so it carries the most careful spacing in the application. */
+
+.scale-block { padding: var(--space-2) 0 var(--space-3); }
+.scale-name { margin: 0 0 var(--space-2); font-size: var(--text-body-large); }
+.anchors { list-style: none; margin: 0 0 var(--space-2); padding: 0; display: grid; gap: 6px; }
+.anchors li { display: flex; gap: var(--space-2); align-items: baseline; }
+.anchors .value { color: var(--color-text-secondary); min-width: 1.4em; }
+
+/* Dimensions are separated by whitespace and a single hairline, not by
+   boxes. Common region marked out with borders competes with the graduated rule for
+   attention, and the rule has to win. */
+.itemlist { list-style: none; margin: var(--space-2) 0 0; padding: 0; }
+.itemlist li {
+  display: grid;
+  /* Position, keying, text. The identifier used to occupy the first column and
+     wrapped to three lines on any dimension with a long name. */
+  grid-template-columns: 28px 20px 1fr;
+  gap: var(--space-2);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  align-items: baseline;
+}
+.itemid { color: var(--color-text-secondary); }
+
+/* ---- Audit table --------------------------------------------------------
+   Borrowed from the technical manual direction. The audit trail is a document
+   not an instrument panel, and tabular data reads better with rules
+   than with the hairline restraint used everywhere else. */
+.audit-panel summary { color: var(--color-text-primary); }
+table.audit { width: 100%; border-collapse: collapse; margin-top: var(--space-2); }
+table.audit th {
+  text-align: left;
+  font: 400 var(--text-caption)/1 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-text-primary);
+  padding: 6px 12px 6px 0;
+}
+table.audit td {
+  padding: 8px 12px 8px 0;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  font-size: var(--text-body);
+}
+table.audit td.num { font-family: var(--font-data); font-size: var(--text-caption); color: var(--color-text-secondary); white-space: nowrap; }
+
+/* Provenance is the column a reader scans, so unverified recall is the one
+   value in the table that carries color. */
+td.provenance-measured { color: var(--color-text-secondary); }
+td.provenance-judged { color: var(--color-text-secondary); }
+
+.provenance-recalled-unverified { color: var(--status-flagged); }
+
+.export-actions { flex-wrap: wrap; }
+
+/* Visually hidden, still announced. The graduated rule is hidden from assistive
+   technology, so this carries the same progress in words. */
+.sr-status {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Window chrome ------------------------------------------------------
+   macOS hides the title bar and draws its window controls over the top-left of
+   the content. Two consequences follow, and both are handled here, not
+   by branching the layout in JavaScript.
+
+   The window needs somewhere to be dragged from, because a hidden title bar
+   takes its drag region with it. The top bar becomes that region, and every
+   control inside it opts back out so buttons stay clickable.
+
+   The top bar also needs to start clear of the traffic lights. Seventy-eight
+   pixels is the width they occupy plus the margin Apple leaves around them.
+
+   Windows and Linux keep their native title bars, so neither rule applies there
+   and neither is emitted for them. */
+/* The bar is the drag region on macOS, inset to clear the traffic lights.
+   Controls inside it opt back out so they stay clickable. */
+/* Clearance for the window controls. Seventy-eight pixels covers the buttons
+   themselves; the mark needs room beyond that or it reads as a fourth control
+   in the same cluster. */
+[data-platform="darwin"] .bar {
+  -webkit-app-region: drag;
+  padding-left: 104px;
+}
+/* Every control in the bar opts out of the drag region, not only the buttons.
+   The palette select was left inside it, so clicking it dragged the window
+   instead of opening the menu and the control appeared inert. */
+[data-platform="darwin"] .bar button,
+[data-platform="darwin"] .bar select,
+[data-platform="darwin"] .bar input {
+  -webkit-app-region: no-drag;
+}
+
+/* The screens themselves are never draggable. A window that moves when someone
+   tries to select an item is worse than one that is awkward to move. */
+.screen { -webkit-app-region: no-drag; }
+
+/* ---- Run parameters -----------------------------------------------------
+   A compact record of what was asked for, carried across every screen after
+   the request. Set in the data face at caption size so it reads as instrument
+   labeling, not body copy competing with the results. */
+.run-parameters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+}
+.run-parameters div { display: flex; gap: var(--space-1); align-items: baseline; }
+.run-parameters dt {
+  font: 400 var(--text-caption)/1.4 var(--font-data);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.run-parameters dd {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+}
+
+/* ---- Response scale preview ---------------------------------------------
+   Anchors laid out along a horizontal run with a tick above each, so the shape
+   of the scale is visible at a glance: whether it is balanced, where the
+   midpoint sits, whether the ends are symmetric. The graduated rule elsewhere
+   in the application reads pipeline progress the same way, and using one visual
+   grammar for both is why the scale preview needs no explanation. */
+.anchor-row {
+  list-style: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 var(--space-3);
+  padding: 0;
+  border-top: 1px solid var(--color-border-strong);
+}
+.anchor-row li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  padding-top: 0;
+}
+.anchor-mark {
+  width: 2px;
+  height: 10px;
+  background: var(--color-border-strong);
+}
+.anchor-row .value { color: var(--color-text-secondary); }
+.anchor-label {
+  font-size: var(--text-caption);
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+/* Eleven-point scales cannot hold eleven readable labels across one row, so
+   they wrap to a column layout instead of shrinking the type. */
+.anchor-row[data-points="11"] {
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+}
+
+/* The scale properties line is a reading. It says bipolar,
+   five points, midpoint, fully labeled, and every one of those is content
+   someone needs to take in. Uppercase was borrowed from the structural labels
+   around it, which made a sentence read as a heading. */
+.scale-properties {
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+  font-size: var(--text-caption);
+  margin: 0 0 var(--space-2);
+}
+
+/* ---- Item rows --------------------------------------------------------- */
+.itemlist .itemid { text-align: right; }
+.keying {
+  font: 400 var(--text-caption)/1.5 var(--font-data);
+  color: var(--status-flagged);
+  text-align: center;
+}
+.keying-blank { visibility: hidden; }
+.item-text { font-size: var(--text-body); }
+
+/* ---- Calibration scale ---------------------------------------------------
+   The signature element, and the only place in the application where measured
+   data is plotted. Same grammar as the graduated rule: a
+   marked axis with values along it, so neither needs a legend. */
+.calibration { margin: var(--space-2) 0 var(--space-3); }
+.calibration-track {
+  position: relative;
+  height: 34px;
+  border-bottom: 1px solid var(--color-border);
+}
+.calibration-tick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 6px;
+  background: var(--color-border);
+}
+.calibration-tick-label {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 400 10px/1 var(--font-data);
+  color: var(--color-text-secondary);
+}
+
+/* Where the bulk of the pairs sit. Rendered as a quiet band, not an
+   outline, since it is context for the cutoff and not a reading in its
+   own right. */
+.calibration-band {
+  position: absolute;
+  bottom: 8px;
+  height: 12px;
+  background: var(--color-surface-alt);
+  border-radius: 2px;
+}
+.calibration-median {
+  position: absolute;
+  bottom: 8px;
+  width: 1px;
+  height: 12px;
+  background: var(--color-text-secondary);
+}
+.calibration-cutoff {
+  position: absolute;
+  bottom: 4px;
+  width: 2px;
+  height: 22px;
+  background: var(--status-flagged);
+}
+.calibration-removed {
+  position: absolute;
+  bottom: 22px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-flagged);
+  transform: translateX(-50%);
+}
+.calibration-caption {
+  color: var(--color-text-secondary);
+  margin: var(--space-2) 0 0;
+}
+
+/* ---- Provenance bar ------------------------------------------------------
+   How much of the run was measured against how much was judged. Measured uses
+   the complete color and judged the pending color, so the reading matches the
+   status vocabulary used everywhere else. Unverified recall takes the flagged
+   color, which is the one band that should catch the eye. */
+.provenance { margin: var(--space-2) 0 var(--space-3); }
+.provenance-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--color-surface-alt);
+}
+.provenance-band { display: block; height: 100%; }
+.provenance-measured { background: var(--status-complete); }
+.provenance-judged { background: var(--status-pending); }
+.provenance-recalled-unverified { background: var(--status-flagged); }
+.provenance-user-supplied { background: var(--status-running); }
+
+.provenance-key {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.provenance-key li { display: flex; align-items: center; gap: 6px; }
+.provenance-swatch { width: 10px; height: 10px; border-radius: 2px; }
+.provenance-key .value { color: var(--color-text-primary); }
+
+/* ---- Dimension grouping --------------------------------------------------
+   Common region marked by a left rule and quiet indentation, no box.
+   A box competes with the graduated rule and the calibration plots for
+   attention; a single hairline groups just as reliably and stays quiet. */
+.dimension {
+  padding: 0 0 var(--space-4) var(--space-3);
+  border-left: 1px solid var(--color-border);
+  margin-bottom: var(--space-3);
+}
+.dimension-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.dimension-head h2 { margin: var(--space-4) 0 var(--space-1); }
+.dimension-count { color: var(--color-text-secondary); white-space: nowrap; }
+
+/* ---- Disclosure ----------------------------------------------------------
+   The audit panel summary previously gave no sign it could be opened. A
+   rotating marker is the smallest honest affordance. */
+details.advanced summary { list-style: none; gap: var(--space-1); }
+details.advanced summary::-webkit-details-marker { display: none; }
+.disclosure {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  margin-right: var(--space-1);
+  transition: transform var(--motion-base) var(--ease-enter);
+}
+details.advanced[open] .disclosure { transform: rotate(90deg); }
+
+
+
+/* ---- Paper --------------------------------------------------------------
+   The PDF export prints this stylesheet instead of composing a document
+   separately, so what lands on paper is the layout that was approved on
+   screen. The rules below are the differences paper actually requires.
+
+   The printing class is applied by the results screen for the moment of
+   capture. Duplicating each rule under @media print as well means the same
+   output comes from the operating system print dialog, which someone will
+   eventually use instead. */
+@media print {
+  .topbar, .titlebar-strip, .actions, .export-actions, .field-hint.export-note {
+    display: none !important;
+  }
+  .screen { max-width: none; padding: 0; }
+}
+
+/* Dark on paper wastes ink and reads worse, so the capture forces the light
+   neutrals regardless of which mode the person is using on screen. Status
+   colors are left alone: they carry meaning, and the light-mode values already
+   clear contrast against white. */
+.printing,
+.printing .screen {
+  --color-background: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #D9E1EA;
+  --color-border: #D4DCE4;
+  --color-border-strong: #7C8A97;
+  --color-text-primary: #141D27;
+  --color-text-secondary: #4C5B6B;
+  background: #FFFFFF;
+  color: #141D27;
+}
+.printing .topbar,
+.printing .titlebar-strip,
+.printing .actions,
+.printing .export-actions {
+  display: none;
+}
+
+/* Sections are kept whole where they fit. A dimension split across a page break
+   with its heading orphaned on the previous page is the most common failure of
+   printing a screen layout unaltered. */
+.printing .dimension,
+.printing .timeline-step,
+.printing .calibration {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.printing h2 { break-after: avoid; page-break-after: avoid; }
+
+/* On screen the item identifier is hidden behind a hover title, because
+   repeating the dimension name on every row wrapped to three lines. Paper has
+   no hover, so the identifier comes back. */
+.printing .itemlist li { grid-template-columns: 148px 20px 1fr; }
+.printing .itemlist .itemid { font-size: 11px; text-align: left; }
+.printing .itemlist li .itemid::after { content: attr(data-full); }
+
+/* The audit table is the part that benefits most from paper, since it is long
+   and tabular and nobody reads it on screen. Its header repeats across pages. */
+.printing table.audit thead { display: table-header-group; }
+.printing table.audit tr { break-inside: avoid; page-break-inside: avoid; }
+
+/* ---- Run archive --------------------------------------------------------
+   Each row is a run someone spent half an hour producing, so the construct
+   name is the largest thing in it and is itself the control that opens it.
+   Metadata sits underneath in the data face, and destructive actions sit at
+   the far end where they cannot be hit on the way to opening something. */
+.history-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.history-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* The name is a button styled as text, not text beside a button. The
+   whole reason someone is on this screen is to open one of these. */
+.history-open {
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: auto;
+  text-align: left;
+  font-size: var(--text-body-large);
+  color: var(--color-text-primary);
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.history-open:hover { color: var(--status-running); background: none; }
+.history-meta { color: var(--color-text-secondary); }
+.history-stat { white-space: nowrap; }
+
+.history-remove {
+  min-height: var(--target-minimum);
+  padding: 0 var(--space-2);
+  border-color: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+.history-remove:hover { border-color: var(--status-error); color: var(--status-error); }
+.history-confirm { display: flex; gap: var(--space-1); }
+.history-confirm button { font-size: var(--text-caption); padding: 0 var(--space-2); }
+.history-confirm button:first-child { border-color: var(--status-error); color: var(--status-error); }
+
+/* The runtime estimate. Set apart from the field hints above it, since it is
+   about committing to a run, not about filling in a box. */
+.estimate {
+  border-left: 2px solid var(--color-border-strong);
+  padding-left: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* ---- Model pull ---------------------------------------------------------
+   A pull is a multi-gigabyte download that can run for twenty minutes, so it
+   gets a real bar, not a spinner. Ollama reports byte counts only during
+   the download phase; manifest reads and verification report a phase and
+   nothing else, and those show an indeterminate sweep with no percentage
+   invented to fill the space. */
+.pull { margin: var(--space-2) 0 var(--space-4); }
+.pull-track {
+  display: block;
+  height: 4px;
+  margin: var(--space-1) 0;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.pull-fill {
+  display: block;
+  height: 100%;
+  background: var(--status-running);
+  transition: width var(--motion-base) linear;
+}
+.pull-indeterminate {
+  width: 34%;
+  animation: sweep 1.4s var(--ease-enter) infinite;
+}
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+/* Banners can carry an action. A message that names a problem and offers no way
+   to reach the screen that fixes it leaves the person to work that out. */
+.banner-action { display: block; margin-top: var(--space-2); }
+.banner-action button { min-height: var(--target-minimum); }
+
+/* ---- Settings bands ------------------------------------------------------
+   Heading on the left, controls on the right. Settings was one twelve-field
+   column roughly three screens tall, where the only thing marking a section was
+   a heading that scrolled away as soon as you reached the fields under it.
+   Putting the heading beside its controls means the grouping stays visible for
+   the whole length of the group, and it halves the vertical run.
+
+   Below the breakpoint it collapses back to a single column, since a narrow
+   window has no room to spend on a label gutter. */
+.group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 var(--space-5);
+  padding-bottom: var(--space-4);
+}
+.group > h2 {
+  margin: var(--space-5) 0 var(--space-3);
+}
+.group-body > .field:last-child { margin-bottom: 0; }
+
+@media (min-width: 720px) {
+  .group {
+    grid-template-columns: 180px 1fr;
+  }
+  .group > h2 {
+    grid-column: 1;
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-top: var(--space-5);
+    /* Set to the first label, not to the top of the block, so the
+       heading and the control it introduces sit on the same line. */
+    padding-top: 4px;
+  }
+  .group-body { grid-column: 2; min-width: 0; }
+}
+
+/* Save stays reachable. A settings screen long enough to scroll otherwise puts
+   its commit control off screen at the moment someone finishes editing. */
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  /* The panel's own tone, not the page's. Using the page color here painted a
+     band of the wrong shade across the foot of the panel, which read as a
+     rendering fault, not a fixed bar. */
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) 0 var(--space-2);
+  margin: var(--space-4) 0 0;
+}
+
+
+
+/* ---- Wide window behavior ----------------------------------------------
+   The column stays at its reading measure and does not stretch. A results
+   screen at eighteen hundred pixels wide would otherwise run survey items to
+   two hundred characters a line, which is unreadable regardless of how much
+   room the window has. */
+@media (min-width: 1100px) {
+  .screen { padding-left: var(--space-6); padding-right: var(--space-6); }
+}
+
+/* Focus is visible against the raised surface as well as the background. The
+   ring color was checked against the page, and a control sitting on a lifted
+   panel is the case that was not. */
+.group-body :focus-visible {
+  outline-offset: 3px;
+}
+
+/* The mode toggle is a glyph, since it sits beside three
+   text destinations and a fourth word would read as a fourth place to go. */
+.bar-theme {
+  font-size: 15px;
+  padding: 0 var(--space-2);
+  border-bottom-color: transparent;
+}
+.bar-theme:hover { color: var(--color-text-primary); }
+
+/* The build stamp is deliberately quiet. It answers a question that only gets
+   asked when something looks wrong, and should not draw attention otherwise. */
+
+
+/* ---- Specification intake -----------------------------------------------
+   Sixteen fields is a wall if presented at once, so the sections collapse and
+   the first opens. What a collapsed section is hiding stays visible on its
+   summary, since a disclosure that conceals the reason a run cannot start is
+   worse than no disclosure. */
+.spec-section {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-1) 0 var(--space-2);
+}
+.spec-section summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-minimum);
+  cursor: pointer;
+  list-style: none;
+}
+.spec-section summary::-webkit-details-marker { display: none; }
+.spec-section-title {
+  font-size: var(--text-body-large);
+  color: var(--color-text-primary);
+}
+.spec-section-count {
+  margin-left: auto;
+  font: 400 var(--text-caption)/1 var(--font-data);
+  /* Secondary text, since the amber measured 4.37 against the light surface and
+     needs 4.5. The word already says optional; the color was adding emphasis
+     to something that wants the opposite. */
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+}
+.spec-section-lead {
+  margin: 0 0 var(--space-3);
+  max-width: 62ch;
+}
+.spec-section > .field { margin-left: var(--space-3); }
+
+/* Required fields are marked by a word, not an asterisk. An asterisk
+   needs a legend somewhere else on the page to mean anything. */
+.required-mark {
+  margin-left: var(--space-1);
+  font: 400 10px/1 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  /* Amber at ten pixels measured 4.37 against the light surface, just under the
+     threshold. The status palette cannot be darkened to fix it without pulling
+     the state colors too close for the color-blind separation check, which is
+     a different job for the same token. The word carries the meaning here, so
+     this takes the text color and the palette is left alone. */
+  color: var(--color-text-secondary);
+  vertical-align: 1px;
+}
+.field.incomplete input,
+.field.incomplete textarea,
+.field.incomplete select {
+  border-color: var(--status-flagged);
+}
+
+/* The consequence of leaving a required field empty, shown only while it is
+   empty. This is the methodology's own argument rendered where it applies:
+   these fields change what should be measured, and a person deciding whether
+   to bother filling one in deserves to know which. */
+.field-why {
+  font-size: var(--text-caption);
+  color: var(--status-flagged);
+  border-left: 2px solid var(--status-flagged);
+  padding-left: var(--space-2);
+  margin-top: 4px;
+  max-width: 62ch;
+}
+
+/* A select in the chrome, sized to its content and not to a form field.
+   It carries a display preference, so it should read as part of the bar rather
+   than as a control someone is expected to fill in. */
+.bar-select {
+  min-height: var(--target-minimum);
+  padding: 0 var(--space-1);
+  background: none;
+  border: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.bar-select:hover { color: var(--color-text-primary); }
+
+/* ---- Form column --------------------------------------------------------
+   A single column at a comfortable measure. Eye-tracking work on form
+   completion finds this faster than side-by-side fields: one column gives an
+   uninterrupted vertical path, where a row forces the eye to break and
+   re-acquire on each line. An earlier version of the input screen used rows
+   for density, which traded completion time for space nobody needed. */
+.screen-narrow { max-width: 620px; }
+.screen-narrow .field { max-width: none; }
+
+/* The optional half of the specification. Grouped inside the disclosure so it
+   is navigable once opened without being imposed while closed. */
+.spec-advanced { border-top: 1px solid var(--color-border); margin-top: var(--space-5); }
+.spec-advanced summary { min-height: var(--target-minimum); }
+.advanced-group { padding: var(--space-2) 0 0; }
+.advanced-group h3 {
+  font-size: var(--text-caption);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+/* ---- Opening ------------------------------------------------------------
+   The first screen states what the application does before asking for
+   anything. The graduated rule beneath it is the same component that reports
+   progress during a run, shown at rest, so the vocabulary is established
+   before it has to carry information. */
+.opening {
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+.opening-thesis {
+  font-size: var(--text-body-large);
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+  max-width: 46ch;
+  margin: 0 0 var(--space-3);
+}
+.opening .rule { margin-bottom: 0; }
+.opening h1 { margin-bottom: var(--space-3); }
+
+/* ---- Certificate --------------------------------------------------------
+   Provenance before content. A calibration certificate names the serial, the
+   date, the reference instrument, and the tolerance before it reports a single
+   reading, on the reasoning that a reading is worth nothing without them. The
+   same argument applies to a questionnaire built by a model. */
+.certificate {
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 2px solid var(--color-text-primary);
+}
+.certificate h1 { margin-bottom: var(--space-4); }
+
+.certificate-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+.certificate-meta > div { display: flex; flex-direction: column; gap: 3px; }
+.certificate-meta dt {
+  font: 500 10px/1 var(--font-data);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.certificate-meta dd {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+
+/* The lede sits at reading size. It is the one line
+   that answers what was produced, and it should be readable across a desk. */
+.lede {
+  font-size: var(--text-body-large);
+  line-height: 1.45;
+  margin: var(--space-3) 0 0;
+  max-width: 52ch;
+}
+
+/* ---- Motion -------------------------------------------------------------
+   One orchestrated moment instead of scattered effects. A screen settles into
+   place on arrival, which gives the application a sense of moving between
+   places instead of redrawing in one. Everything else that moves is reporting
+   a state change: the running graduation, the pull bar, the live pip.
+
+   Suppressed under reduced motion by the duration collapse in tokens.css, and
+   the transform is written so a collapsed duration lands on the final state
+   instead of skipping the element. */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.screen { animation: settle var(--motion-step) var(--ease-enter) both; }
+
+/* The rule fills in on the opening screen, segment by segment. Nine graduations
+   arriving in sequence says what the interface is about to do more economically
+   than a sentence, and it happens once, on the screen that has nothing else
+   moving. The stagger is set on the segments themselves in the component. */
+
+
+/* An unsatisfied primary action looks unavailable but stays operable, so
+   pressing it can say what is outstanding. A disabled control that refuses
+   silently makes the person hunt for the reason. */
+button.primary.unsatisfied {
+  background: none;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+button.primary.unsatisfied:hover { background: var(--color-surface); }
+
+/* ---- Warmth and depth ---------------------------------------------------
+   The interface was accurate and cold. These are the smallest changes that
+   make it feel worked on and not assembled, and none of them add color:
+   the palette is spoken for by status and stays that way.
+
+   Radius goes up a step. Four pixels reads as a rectangle with a chamfer;
+   eight reads as an intended shape, and softening the corners is most of what
+   separates an interface that feels considered from one that feels drafted. */
+:root {
+  --radius-small: 5px;
+  --radius-medium: 9px;
+  --radius-large: 14px;
+}
+
+/* Surfaces get a hairline of their own instead of sitting as flat fills. A
+   single top highlight is how a physical panel catches light, and it is enough
+   to give a card an edge without a shadow. */
+/* Inside a recessed panel, a lifted element goes lighter,
+   which is the ordinary direction again. */
+.banner,
+.provenance-bar,
+.calibration-band {
+  box-shadow: none;
+}
+[data-mode="light"] .banner {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%), 0 1px 2px rgb(30 28 24 / 6%);
+}
+
+/* The appearance is declared to the browser, not only painted by hand.
+   Select boxes, scrollbars, the select's own popup list, and focus rings are
+   painted by the engine, and without this declaration it paints them against
+   whatever it guesses. In light appearance that produced a black dropdown
+   sitting beside a cream text field in the same form, and a dark scrollbar
+   down the side of a light panel: the CSS background on the select was
+   correct the whole time and was simply not what the engine was drawing.
+   One line each, and every native control follows the application. */
+[data-mode="dark"] { color-scheme: dark; }
+[data-mode="light"] { color-scheme: light; }
+
+/* Inputs sit on the surface, not on the page, which makes a form read as
+   a set of places to write instead of outlines cut into a wall. */
+.field input,
+.field textarea,
+.field select {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: var(--radius-small);
+  transition: border-color var(--motion-base) var(--ease-enter),
+              background var(--motion-base) var(--ease-enter);
+}
+.field input:hover,
+.field textarea:hover,
+.field select:hover { border-color: var(--color-border-strong); }
+.field input:focus,
+.field textarea:focus,
+.field select:focus { background: var(--color-surface-alt); }
+
+/* Dividers soften. A full-strength rule between every row turns a list into a
+   grid, and the rows already group by weight. */
+
+.itemlist li { border-bottom-color: var(--color-border); }
+
+/* Buttons get the same treatment as inputs, so controls read as one family. */
+button { border-radius: var(--radius-small); }
+
+/* The bar sits on the page, but gains a hairline
+   under its border so it reads as the top edge of the window, not as a
+   strip that happens to be there. */
+.bar { box-shadow: 0 1px 0 rgb(0 0 0 / 18%); }
+[data-mode="light"] .bar { box-shadow: 0 1px 0 rgb(30 28 24 / 5%); }
+
+/* ---- Panel --------------------------------------------------------------
+   Content sits on a surface. This is most of
+   what separates an application from a web page: a page runs its rules edge to
+   edge and lets the browser hold it, while an application puts its content on
+   something. The panel gives the window an inside.
+
+   Everything inside it loses its own edge-to-edge framing as a result, since
+   the panel is doing the containing now. */
+/* No frame. The page and the reading surface are one tone, so a border and a
+   fill would be marking a boundary that is not there. Structure comes from the
+   timeline, the type, and the spacing. */
+.screen {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-10);
+}
+.screen-narrow { max-width: 720px; }
+
+/* Corners go up again. This is the third increase and the last: at fourteen
+   pixels a panel reads as an object, which is the point, and beyond that it
+   starts reading as a toy. */
+:root {
+  --radius-small: 6px;
+  --radius-medium: 10px;
+  --radius-large: 16px;
+}
+
+/* Controls sit on the alt tone inside the panel, since the panel has taken the
+   surface tone. Without this the fields and their container are the same
+   color and the form has no places to write. */
+.field input,
+.field textarea,
+.field select {
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus { background: var(--color-background); }
+
+/* Rows lose their full-width rules. The container marks the group, and a rule
+   under every row turns a list back into a table. */
+.itemlist li:last-child { border-bottom: 0; }
+
+/* Section headings drop their rule for the same reason. */
+h2 { border-bottom: 0; padding-bottom: 0; }
+
+/* The bar becomes the window's own edge, not a strip on a page. */
+.bar {
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: none;
+}
+
+/* ---- Walkthrough --------------------------------------------------------
+   Anchored in a corner instead of covering the interface. Someone reading
+   about a field should be able to see the field. It is the one element allowed
+   to sit above the panel, so it carries a real shadow where nothing else does. */
+.walkthrough {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  width: 380px;
+  max-width: calc(100vw - var(--space-6));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-large);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 38%), inset 0 1px 0 rgb(255 255 255 / 5%);
+  z-index: 40;
+  animation: settle 320ms var(--ease-enter) both;
+}
+[data-mode="light"] .walkthrough { box-shadow: 0 18px 44px rgb(40 34 24 / 16%); }
+
+.walkthrough-count {
+  color: var(--color-text-secondary);
+  letter-spacing: 0.14em;
+  margin: 0 0 var(--space-1);
+}
+.walkthrough-title {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-variation);
+  font-weight: 500;
+  font-size: var(--text-heading-3);
+  line-height: 1.15;
+  margin: 0 0 var(--space-1);
+}
+.walkthrough-body {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+.walkthrough-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.walkthrough-dots { display: flex; gap: 5px; }
+.walkthrough-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  transition: background var(--motion-base) var(--ease-enter);
+}
+.walkthrough-dot.current { background: var(--color-text-primary); }
+.walkthrough-actions { display: flex; gap: var(--space-1); align-items: center; }
+.walkthrough-skip {
+  border: 0;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  padding: 0 var(--space-2);
+}
+.walkthrough-skip:hover { background: none; color: var(--color-text-primary); }
+.walkthrough-skip:empty { display: none; }
+.walkthrough .primary { font-size: var(--text-caption); padding: 0 var(--space-3); min-height: 38px; }
+
+/* ---- Help ---------------------------------------------------------------
+   Long-form reading, so the measure narrows and the rhythm opens up. */
+.help-para {
+  max-width: 64ch;
+  margin: 0 0 var(--space-3);
+  line-height: var(--leading-body);
+}
+.help-list { margin: 0 0 var(--space-4); padding: 0; }
+.help-list > div {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.help-list > div:last-child { border-bottom: 0; }
+.help-list dt {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body-large);
+  margin-bottom: 4px;
+}
+.help-list dd { margin: 0; color: var(--color-text-secondary); max-width: 64ch; }
+
+.help-steps { list-style: none; margin: 0 0 var(--space-4); padding: 0; counter-reset: none; }
+.help-steps li {
+  display: grid;
+  grid-template-columns: 2.6em 1fr;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.help-steps li:last-child { border-bottom: 0; }
+.help-step-number { color: var(--color-text-secondary); padding-top: 2px; }
+.help-step-body { display: flex; flex-direction: column; gap: 3px; max-width: 60ch; }
+.help-step-body strong { font-weight: var(--weight-medium); }
+.help-step-body span { color: var(--color-text-secondary); font-size: var(--text-caption); line-height: 1.5; }
+
+/* ---- Clocks -------------------------------------------------------------
+   Three readings across the top of a running pipeline. Elapsed total answers
+   how long this has been going; the step clock answers whether the current one
+   has stalled, which is the question that actually occurs to someone twenty
+   minutes in and which a single total cannot answer. */
+.clocks {
+  display: flex;
+  gap: var(--space-6);
+  padding: var(--space-3) 0 var(--space-2);
+}
+.clock { display: flex; flex-direction: column; gap: 2px; }
+.clock-label {
+  font: 500 11px/1 var(--font-data);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.clock-value {
+  font-family: var(--font-data);
+  font-size: var(--text-heading-3);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+  letter-spacing: 0.01em;
+}
+/* The live clock is the one that is moving, so it takes the running color.
+   Tabular figures keep the digits from shifting as the seconds tick. */
+.clock-live { color: var(--status-running); }
+
+/* ---- Per-item format ----------------------------------------------------
+   A control on every row would turn a finished questionnaire back into a form,
+   so it sits quiet until hovered or focused and opens only when asked. */
+.item-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.item-options {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  font-family: var(--font-data);
+}
+.item-format { position: relative; }
+.item-format-toggle {
+  min-height: 30px;
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+  transition: opacity var(--motion-base) var(--ease-enter), color var(--motion-base) var(--ease-enter);
+}
+.itemlist li:hover .item-format-toggle,
+.item-format-toggle:focus-visible,
+.item-format-toggle[aria-expanded="true"] { opacity: 1; color: var(--color-text-primary); }
+.item-format-toggle::after { content: ' \2304'; opacity: 0.6; }
+
+/* The menu is grouped by response dimension. Twenty
+   scales plus five open formats is too many to scan as one column, and the
+   grouping is the same one the selection step reasons about. */
+.item-format-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 340px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-medium);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 40%);
+  animation: settle 180ms var(--ease-enter) both;
+}
+[data-mode="light"] .item-format-menu { box-shadow: 0 16px 40px rgb(40 34 24 / 16%); }
+
+.item-format-family { padding-bottom: var(--space-2); }
+.item-format-family-name {
+  display: flex;
+  align-items: center;
+  font: 500 11px/1 var(--font-data);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  /* The same left padding an option carries, so the two marks share a column,
+     not sitting a couple of pixels apart. */
+  padding: var(--space-1) var(--space-1) 6px;
+}
+.item-format-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 38px;
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-small);
+}
+.item-format-option:hover { background: var(--color-surface-alt); }
+.item-format-option.current { color: var(--status-complete); }
+
+/* What a choice will cost, stated before it is made. A control that sometimes
+   returns instantly and sometimes takes a model call feels broken unless it
+   says which is about to happen. */
+.item-format-cost {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.item-format-note { margin: 4px 0 0; }
+
+/* A measure's documented weakness, set apart from its description so the two
+   are not read as one paragraph of endorsement. */
+.measure-caution {
+  border-left: 2px solid var(--color-border-strong);
+  padding-left: var(--space-2);
+  margin-top: 4px;
+}
+
+/* A confirm pair sits where the single control was, so the answer is given in
+   the place the question was asked, not in a dialog over the top. */
+.confirm-pair { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+
+/* The action area of a model card holds up to three things at once: a line
+   saying the model is in use, a pair of confirm buttons, and a sentence about
+   what removing it costs. They were laid out as a single flex row, so each was
+   squeezed into its own narrow column and the words broke one or two to a line
+   and ran out through the side of the card.
+   Rows, not columns. The sentences take a line each and the buttons keep their
+   own row, which is the only place the pair belongs. */
+.model-card .actions {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--space-2);
+}
+.model-card .actions > p {
+  flex: 1 0 100%;
+  margin: 0;
+  min-width: 0;
+}
+.model-card .actions > .confirm-pair { flex: 0 1 auto; }
+.model-card .actions button { flex: 0 1 auto; min-width: 0; }
+
+/* The colophon closes the help screen. Quiet, and the last thing on the page
+   never a footer that follows people around. */
+.colophon {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* ---- Model catalog ----------------------------------------------------
+   Cards, not a list, since choosing a model is a comparison across
+   several dimensions at once and a table would flatten the prose that carries
+   most of the difference. */
+.model-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface-alt);
+}
+/* A model that cannot run recedes. Someone on an
+   eight gigabyte machine should still be able to see what a larger one would
+   offer before deciding whether to work elsewhere. */
+.model-card.band-insufficient { opacity: 0.62; }
+
+.model-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.model-head h3 { font-size: var(--text-body-large); margin: 0; }
+.model-id { color: var(--color-text-secondary); margin: 2px 0 0; font-size: var(--text-caption); }
+.model-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.model-badge {
+  font: 500 11px/1 var(--font-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px var(--space-1);
+  border-radius: var(--radius-small);
+  white-space: nowrap;
+}
+.model-badge.suggested { background: var(--status-complete); color: var(--color-background); }
+/* Installed and in use are states of this machine, not advice, so they
+   are shown as facts: one filled, one outlined. Advice is the badge that
+   recedes when a fact is available to show instead. */
+.model-badge.in-use { background: var(--status-running); color: var(--color-background); }
+/* Named in settings and absent from the machine. Its own state because it is
+   the one that used to be reported as running: the shipped default names a
+   model nobody has downloaded yet, and calling that in use is how a card came
+   to offer no way to get it. */
+.model-badge.wanted {
+  border: 1px solid var(--status-flagged);
+  color: var(--status-flagged);
+}
+
+.model-badge.installed {
+  border: 1px solid var(--status-complete);
+  color: var(--status-complete);
+}
+/* The card the pipeline is actually running gets an edge.
+   A filled card among ten reads as selected in a list, which is not the claim:
+   the claim is that this one is in use whether or not anything is selected. */
+.model-card.in-use { border-color: var(--status-running); }
+
+/* Already downloaded and already chosen leaves nothing to click, so the space
+   the button occupied says why instead of holding a disabled control. */
+.model-current {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  min-height: var(--target-minimum);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+.model-current-mark { color: var(--status-running); font-size: var(--text-body); }
+
+/* ---- Memory fit ---------------------------------------------------------
+   The fit band with its arithmetic shown. The track is the memory this machine
+   reports, the fill is what the model wants, and the two rules mark where the
+   machine runs out and where it stops having anything spare. */
+.memfit { margin: 0 0 var(--space-2); }
+.memfit-track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.memfit-need {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background: var(--status-complete);
+}
+.band-tight .memfit-need { background: var(--status-flagged); }
+.band-insufficient .memfit-need { background: var(--status-error); }
+.band-unknown .memfit-need { background: var(--color-border-strong); }
+/* Where the machine ends. Laid over the fill, since the whole question is
+   whether one has passed the other. */
+.memfit-limit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-text-primary);
+}
+/* And where it stops being comfortable, which is the line the middle band is
+   decided by. Lighter, because it is a recommendation and not a limit. */
+.memfit-headroom {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-text-secondary);
+  opacity: 0.7;
+}
+.memfit-legend {
+  margin: 6px 0 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+/* A download that has finished, stated once. Two lines of the progress readout
+   printed the same sentence, so success was announced twice under a bar that
+   still looked as though it were moving. */
+.pull-settled {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-body);
+}
+.pull-settled-mark { font-size: var(--text-body-large); }
+
+/* The interval between the runtime answering and the model step opening, said
+   out loud. A dimmed heading with nothing under it is the shape of an
+   application that has stopped working. */
+.setup-waiting { display: flex; align-items: center; gap: var(--space-1); }
+/* The estimate, set apart from the three clocks above it. Same column, lighter
+   weight, because it is a forecast standing next to measurements and giving it
+   equal treatment would make it read as a fourth measurement. */
+.run-remaining {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0 0 var(--space-4);
+}
+.run-remaining-value {
+  font: 400 var(--text-body)/1.3 var(--font-data);
+  color: var(--color-text-primary);
+}
+
+.setup-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-running);
+  animation: pulse 1.6s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+.fit-comfortable { color: var(--status-complete); }
+.fit-tight { color: var(--status-flagged); }
+.fit-insufficient { color: var(--status-error); }
+.fit-unknown { color: var(--color-text-secondary); }
+
+.model-spec { display: flex; gap: var(--space-4); margin: 0 0 var(--space-2); padding: 0; }
+.model-spec > div { display: flex; flex-direction: column; gap: 2px; }
+.model-spec dt {
+  font: 500 10px/1 var(--font-data);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.model-spec dd { margin: 0; }
+.model-note { color: var(--color-text-secondary); font-size: var(--text-caption); margin: 0 0 var(--space-2); }
+.model-prose p { margin: 0 0 var(--space-1); font-size: var(--text-caption); line-height: 1.5; max-width: 68ch; }
+.model-label {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-right: 6px;
+}
+.model-command {
+  font-family: var(--font-data);
+  background: var(--color-surface-alt);
+  padding: var(--space-2);
+  border-radius: var(--radius-small);
+  border: 1px solid var(--color-border);
+  display: inline-block;
+}
+
+/* ---- Consent ------------------------------------------------------------
+   Given the weight of a section. What is
+   read is listed before the button that reads it. */
+.consent {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-medium);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.consent-list {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+  color: var(--color-text-primary);
+  font-size: var(--text-caption);
+  line-height: 1.9;
+}
+.machine-read {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.machine-read h2 { margin-top: 0; }
+
+/* The branch step. Two choices presented as what they lead to, not as a
+   yes and a no, since neither is the default and neither is wrong. */
+.walkthrough-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+.walkthrough-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-2);
+  min-height: var(--target-minimum);
+  text-align: left;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-small);
+  background: none;
+}
+.walkthrough-choice:hover { background: var(--color-surface-alt); border-color: var(--status-running); }
+.walkthrough-choice-label { font-size: var(--text-caption); color: var(--color-text-primary); }
+.walkthrough-choice-hint { font-size: 11px; color: var(--color-text-secondary); }
+
+/* Family marks in the format menu. Set in the data face at a fixed width so the
+   labels beside them stay in a column. */
+/* One column for the marks, the same width everywhere.
+   The mark was an em and a half wide, so it measured against whatever font size
+   it sat in: eleven pixels on a family heading and thirteen on the options
+   under it. The two marks landed at different places and so did the words after
+   them, which left the menu looking like two lists printed on top of each
+   other. Pixels give every row the same gutter regardless of what size the text
+   beside it is. */
+.item-format-mark {
+  font-family: var(--font-data);
+  font-size: 12px;
+  flex: 0 0 18px;
+  width: 18px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin-right: 8px;
+}
+.item-format-option-label { display: flex; align-items: center; min-width: 0; }
+.item-format-option.current .item-format-mark { color: var(--status-complete); }
+
+
+/* The opt-in beside a confirmation.
+   The class it carries had no rule behind it at all, so the box and its label
+   fell back to the browser defaults: a thirteen pixel checkbox sitting on the
+   text baseline with the label pushed hard against it and a line of its own
+   above nothing. Given a row of its own, a box large enough to hit, and space
+   between the two so they read as one control. */
+/* Several options stacked, each its own row with a rule between them so the
+   labels and their consequences stay paired. */
+.confirm-options { margin-top: var(--space-3); }
+.confirm-options .switch { margin-top: 0; }
+.confirm-options .switch + .switch { border-top: 1px solid var(--color-border); }
+.switch-body { display: flex; flex-direction: column; gap: 2px; }
+.switch-label { font-size: var(--text-body); color: var(--color-text-primary); }
+.switch-hint {
+  font-size: var(--text-caption);
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-height: var(--target-minimum);
+  margin-top: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+.switch input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  /* The forty-four pixel floor every other input carries is a touch target
+     rule, and a checkbox stretched to forty-four tall is not a bigger target,
+     it is a tall thin box beside its label. The label is the target here and it
+     already carries the floor. */
+  min-height: 0;
+  /* Nudged down so the box lines up with the first line of the label rather
+     than with the middle of a two line block. */
+  margin: 3px 0 0;
+  accent-color: var(--status-error);
+  cursor: pointer;
+}
+.switch:hover { color: var(--color-text-primary); }
+
+/* The two per item controls sit on one line. The format picker and the scale
+   direction are both adjustments to the same row, so putting them in a column
+   would make one look like a property of the other. */
+.item-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.item-flip { font-size: var(--text-caption); }
+
+/* A control that destroys work looks different from one that does not. Outlined
+   in the error color in place of filled with it: filled would make it the
+   loudest thing on a screen whose subject is not deletion. */
+.destructive {
+  border-color: var(--status-error);
+  color: var(--status-error);
+}
+.destructive:hover { border-color: var(--status-error); background: var(--color-surface-alt); }
+
+/* ---- Item type icons ----------------------------------------------------
+   Hairline strokes and unfilled shapes, with the accent used once per icon on
+   whatever the respondent supplies. The outline weight matches the interface
+   borders so the icons sit on a card without shouting at the text beside them. */
+.type-glyph { display: block; }
+.tg-ink { stroke: var(--color-text-secondary); stroke-width: 1.6; fill: none; stroke-linecap: round; }
+.tg-outline { stroke: var(--color-text-secondary); stroke-width: 1.4; fill: none; opacity: 0.75; }
+.tg-mark { stroke: var(--status-running); stroke-width: 1.8; fill: none; stroke-linecap: round; }
+.tg-reverse { stroke: var(--color-background); stroke-width: 1.4; }
+/* Circles default to filled and rings to outlined, which is the difference
+   between a chosen radio button and an empty one. */
+circle.tg-ink { fill: var(--color-text-secondary); stroke: none; }
+circle.tg-mark { fill: var(--status-running); stroke: none; }
+circle.tg-ring { fill: none; }
+circle.tg-ring.tg-ink { stroke: var(--color-text-secondary); stroke-width: 1.4; }
+circle.tg-ring.tg-mark { stroke: var(--status-running); stroke-width: 1.8; }
+rect.tg-mark { fill: var(--status-running); stroke: none; opacity: 0.85; }
+rect.tg-ink { fill: var(--color-text-secondary); stroke: none; opacity: 0.55; }
+.tg-stroke { fill: none; }
+
+.type-card-glyph {
+  display: block;
+  padding: 2px 0 var(--space-1);
+}
+/* The type cards carry a fixed icon instead of a full-width shape, so they can
+   sit closer together than the response format cards. */
+/* Every type card the same height, whichever group it is in. Each group is its
+   own grid, so equal rows only levels a group against itself: the roles group
+   has short questions and the subtype group has long ones, and the two ended up
+   thirty pixels apart. Reserving three lines for the question levels them all,
+   at the cost of some air on the short ones. */
+.type-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.type-card .format-card-name { min-height: 44px; }
+.type-card .format-card-asks { min-height: 58px; }
+/* And a floor under the card itself, which is what finally levels them.
+   Reserving lines inside the card got three of the seven groups to agree and
+   left the rest a dozen pixels apart, because the content varies in more than
+   one place at once. A floor set to the tallest card is blunt and it is exact,
+   and equal rows inside each group take care of anything taller appearing
+   later. */
+.type-card { min-height: 226px; }
+.type-detail-shape { padding: var(--space-1) 0 var(--space-2); }
+
+/* ---- Worked classifications ---------------------------------------------
+   The point of the whole screen: one question, and every property it carries. */
+.worked {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+.worked-question {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-body-large);
+  color: var(--color-text-primary);
+  max-width: 60ch;
+}
+.worked-properties {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+.worked-properties dt {
+  font: 400 11px/1.4 var(--font-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.worked-properties dd { margin: 0 0 6px; font-size: var(--text-caption); }
+
+/* Examples keep their spacing, since several of them draw a grid or a set of
+   response options out of ordinary characters. */
+.type-example {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2);
+  border-left: 2px solid var(--color-border-strong);
+  background: var(--color-surface-alt);
+  font: 400 var(--text-caption)/1.6 var(--font-data);
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+/* ---- Format reference ---------------------------------------------------
+   Cards first, reading matter behind them. The screen's job is comparison, and
+   comparison needs the options beside each other and not stacked down a
+   column with a paragraph between each pair. */
+.formats .lede { margin-bottom: var(--space-5); }
+.format-group { margin-bottom: var(--space-5); }
+.format-group-title { margin: 0 0 4px; }
+.format-group-summary {
+  margin: 0 0 var(--space-3);
+  max-width: 62ch;
+  color: var(--color-text-secondary);
+}
+
+.format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: var(--space-2);
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+}
+
+/* The card is a button. Everything on it is one target, since there is nothing
+   on it to interact with separately and a card with a link buried in it makes
+   people hunt for the part that responds. */
+.format-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  height: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-alt);
+  text-align: left;
+}
+.format-card:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+}
+.format-card.current { border-color: var(--status-running); }
+.format-card-shape {
+  display: block;
+  width: 100%;
+  padding: 6px 0 var(--space-2);
+}
+/* Two lines reserved for the name and two for the question, whether or not this
+   particular card uses them. Each group is its own grid, so a long name in one
+   group cannot level the cards in another the way equal rows do within a group:
+   Comparison and change wraps to two lines and made its whole group taller than
+   the rest of the screen. Reserving the space makes every card the same height
+   everywhere, at the cost of a little air on the shorter ones. */
+.format-card-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 56px;
+}
+.format-card-mark {
+  flex: 0 0 16px;
+  font-family: var(--font-data);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+.format-card-name { font-size: var(--text-body); color: var(--color-text-primary); }
+.format-card-asks {
+  font-size: var(--text-caption);
+  line-height: 1.45;
+  min-height: 44px;
+  color: var(--color-text-secondary);
+}
+.format-card-flag {
+  margin-top: auto;
+  padding-top: 6px;
+  font: 400 11px/1 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--status-running);
+}
+
+/* ---- The response shapes -------------------------------------------------
+   Cells for scales, a ruled line for the numeric format. The silhouettes differ
+   from each other, so the four shapes stay distinguishable in the palette with
+   no hue in it and on a printed page. */
+.glyph-cell { fill: var(--color-text-secondary); opacity: 0.42; }
+.glyph-cell.role-end { fill: var(--color-text-primary); opacity: 0.72; }
+/* The midpoint of a two-sided scale is the thing the literature argues about,
+   so it is the one cell that carries the accent. */
+.glyph-cell.role-centre { fill: var(--status-running); opacity: 1; }
+.glyph-rule { stroke: var(--color-text-secondary); stroke-width: 1.5; opacity: 0.5; }
+.glyph-tick { stroke: var(--color-text-secondary); stroke-width: 1.5; opacity: 0.5; }
+.glyph-tick.major { stroke: var(--color-text-primary); stroke-width: 2; opacity: 0.85; }
+
+/* The shape opens the panel with nothing else competing for the top of it. The
+   rule that used to sit under it separated a picture from a paragraph, which
+   needed no separating. */
+.format-detail-shape { padding: var(--space-1) 0 var(--space-3); }
+
+/* Good for and watch for, side by side where there is room. They are a pair and
+   were reading as two unrelated sections stacked down the panel. */
+.format-detail-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+}
+/* Sentence case at reading size. These were uppercase in the data face, which
+   is the treatment this interface uses for machine output and section eyebrows,
+   and four of them inside one small panel shouted. */
+.format-detail-label {
+  margin: 0 0 6px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+/* The example is set in the data face so it reads as a specimen of an item,
+   not as more explanation. */
+.ref-example {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2);
+  border-left: 2px solid var(--color-border-strong);
+  background: var(--color-surface-alt);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+.ref-heading {
+  margin: var(--space-3) 0 6px;
+  font: 500 11px/1 var(--font-data);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.ref-list { margin: 0; padding-left: var(--space-3); }
+.ref-list li { margin-bottom: 6px; line-height: 1.5; }
+/* Cautions are marked by an edge, not by a color alone, so the distinction
+   from the list above survives a palette without hue. */
+.ref-list-caution { border-left: 2px solid var(--status-flagged); padding-left: var(--space-3); }
+.ref-cites {
+  margin: var(--space-2) 0 0;
+  font: 400 var(--text-caption)/1.4 var(--font-data);
+  color: var(--color-text-secondary);
+}
+.ref-cross { margin-bottom: var(--space-3); max-width: 68ch; }
+.ref-sources {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  max-width: 72ch;
+}
+.ref-sources li { margin-bottom: 8px; line-height: 1.5; }
+.ref-section { margin: var(--space-4) 0 var(--space-2); }
+.ref-cross { margin-bottom: var(--space-3); }
+.ref-sources {
+  margin: 0;
+  padding-left: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.ref-sources li { margin-bottom: 8px; line-height: 1.5; }
+
+/* The two controls under the scale. Quiet text, since neither is the primary
+   thing to do on this screen and a pair of filled buttons here would compete
+   with the export controls further down. */
+.scale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* The overridden-format note sits under the scale block, marked as a caveat
+   and not as more description. */
+.scale-overridden {
+  border-left: 2px solid var(--status-flagged);
+  padding-left: var(--space-2);
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+/* ---- Layout picker ------------------------------------------------------
+   A segmented control directly above what it governs, so the relationship
+   needs no label. */
+.layout-picker {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin: var(--space-2) 0 var(--space-4);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-medium);
+}
+.layout-option {
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-small);
+}
+.layout-option:hover { background: var(--color-surface); color: var(--color-text-primary); }
+.layout-option.current {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+
+/* ---- Grouped ------------------------------------------------------------
+   Each dimension is a bounded region.
+   A set of five items inside a container is held as one thing; the same five in
+   a continuous list are held as five, which is why a short instrument could
+   still feel like a lot. */
+.instrument-grouped .dimension {
+  border: 1px solid var(--color-border);
+  border-left-width: 1px;
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-alt);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.instrument-grouped .dimension-head h2 { margin-top: 0; }
+.instrument-grouped .itemlist li { border-bottom-color: var(--color-border); }
+.instrument-grouped .itemlist li:last-child { border-bottom: 0; }
+
+/* ---- Continuous ---------------------------------------------------------
+   The previous behavior. Sequential reading of a whole instrument is a real
+   task and containers interrupt it. */
+.instrument-continuous .dimension {
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  background: none;
+  padding: 0 0 var(--space-4) var(--space-3);
+}
+
+/* ---- Compact ------------------------------------------------------------
+   Position, keying, text. For checking a draft against notes, where the
+   question is what is present, not how it reads. */
+.instrument-compact .dimension { border: 0; background: none; padding: 0 0 var(--space-3); }
+.instrument-compact .itemlist li { padding: 5px 0; align-items: baseline; }
+.instrument-compact .item-text { font-size: var(--text-caption); }
+.instrument-compact .dimension-head h2 { margin: var(--space-3) 0 var(--space-1); }
+
+/* ---- Respondent ---------------------------------------------------------
+   Each item above the scale it will be answered on. This is the layout that
+   catches what the others hide: an item reading well in a list and badly above
+   its own anchors is a common failure and invisible until the two are put
+   together. */
+.instrument-respondent .dimension {
+  border: 0;
+  background: none;
+  padding: 0 0 var(--space-5);
+}
+.instrument-respondent .itemlist li {
+  border-bottom: 0;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+.instrument-respondent .item-text { font-size: var(--text-body-large); line-height: 1.35; }
+
+.preview-anchors {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+.preview-anchors li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+/* An outline. These are not answerable and should
+   not invite a click. */
+.preview-radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-strong);
+}
+
+.instrument-item { display: grid; grid-template-columns: 28px 20px 1fr; gap: var(--space-2); padding: 10px 0; border-bottom: 1px solid var(--color-border); align-items: baseline; }
+
+/* ---- Activity log -------------------------------------------------------
+   Newest first, so the current line is always at the top and reading it does
+   not require following a scroll. Fixed height with its own scroll, because it
+   should not push the step list around as it fills. */
+.activity { margin-top: var(--space-4); }
+.activity-log {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border-left: 1px solid var(--color-border);
+}
+.activity-log li {
+  display: grid;
+  grid-template-columns: 2.4em 1fr;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+}
+.activity-log li:first-child { color: var(--color-text-primary); }
+.activity-step { color: var(--color-text-secondary); }
+.activity-text { color: var(--color-text-secondary); }
+.activity-log li:first-child .activity-text { color: var(--color-text-primary); }
+
+/* ---- Modal --------------------------------------------------------------
+   A layer over the current screen, not a place to navigate to. Settings
+   is somewhere people go, change one thing, and leave, and as a screen that
+   meant losing their place and finding the way back. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 55%);
+  animation: settle 160ms var(--ease-enter) both;
+}
+[data-mode="light"] .modal-backdrop { background: rgb(40 34 24 / 32%); }
+
+/* Resizable and scrollable. A modal fixed at one size is fine until its
+   contents are longer than the window it opened in, and then it is a box with
+   content nobody can reach. The body scrolls, and the panel itself can be
+   dragged larger from its corner. */
+.modal {
+  /* Border included in the measurement.
+     The panel is pinned to its own measured rectangle on the first resize drag,
+     and that measurement includes the border while a content-box width does
+     not. The difference is two pixels an axis, which showed up as the far edge
+     creeping outward every time the near edge was dragged. Set here and not
+     globally, since the rest of the stylesheet was written against the content
+     box and changing that underneath it would move a great deal more than this. */
+  box-sizing: border-box;
+  width: min(860px, 100%);
+  height: min(760px, calc(100vh - var(--space-8)));
+  min-width: 420px;
+  min-height: 320px;
+  max-width: 100%;
+  max-height: calc(100vh - var(--space-6));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-large);
+  box-shadow: 0 32px 80px rgb(0 0 0 / 50%);
+  outline: none;
+}
+[data-mode="light"] .modal { box-shadow: 0 32px 80px rgb(40 34 24 / 20%); }
+
+/* ---- Resize handles -----------------------------------------------------
+   Eight invisible strips along the edges and corners. The browser's own resize
+   property offers one corner and renders a hatched triangle that reads as
+   damage instead of an affordance, so the cursor does the telling instead,
+   which is the convention every window in the operating system already uses. */
+/* Handles sit inside the panel instead of straddling its border.
+   They were placed three pixels outside it, and the panel clips its overflow so
+   that the rounded corners hold. Half of every handle was therefore cut away
+   before it could be clicked, which is why an edge was sometimes hard to catch
+   and sometimes not: whether the pointer landed on the surviving half was a
+   matter of a pixel or two. Fully inside, at ten pixels for an edge and twenty
+   for a corner, every one of them is reachable on the first attempt. */
+.modal-grip { position: absolute; z-index: 3; touch-action: none; }
+.modal-grip-n { top: 0; left: 18px; right: 18px; height: 10px; cursor: ns-resize; }
+.modal-grip-s { bottom: 0; left: 18px; right: 18px; height: 10px; cursor: ns-resize; }
+.modal-grip-e { right: 0; top: 18px; bottom: 18px; width: 10px; cursor: ew-resize; }
+.modal-grip-w { left: 0; top: 18px; bottom: 18px; width: 10px; cursor: ew-resize; }
+.modal-grip-ne { top: 0; right: 0; width: 20px; height: 20px; cursor: nesw-resize; }
+.modal-grip-nw { top: 0; left: 0; width: 20px; height: 20px; cursor: nwse-resize; }
+.modal-grip-se { bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; }
+.modal-grip-sw { bottom: 0; left: 0; width: 20px; height: 20px; cursor: nesw-resize; }
+
+/* The close control has to stay above the corner handle it shares a corner
+   with. Without this the top right twenty pixels of the panel start a resize
+   instead of closing the dialog. */
+.modal-close { position: relative; z-index: 4; }
+
+.modal { position: relative; }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.modal-head h1 { font-size: var(--text-heading-2); margin: 0; }
+.modal-close {
+  border: 0;
+  background: none;
+  min-height: var(--target-minimum);
+  min-width: var(--target-minimum);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+.modal-close:hover { background: var(--color-surface); color: var(--color-text-primary); }
+
+/* The body is the only part that scrolls, so the title and the actions stay
+   put while the content moves under them. */
+/* min-height zero is what actually lets this scroll.
+   A flex child defaults to min-height auto, which refuses to shrink below its
+   content, so overflow-y had nothing to act on and the panel grew instead of
+   the body scrolling. This is the one declaration standing between a long
+   dialog and an unreachable one. */
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+}
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+/* ---- Settings sections --------------------------------------------------
+   A rail on the left, so a screen that scrolled three times becomes four short
+   panels. Appearance is separated from the rest because nothing in it changes
+   what the pipeline produces, and mixing it with settings that do made the
+   whole thing read as one undifferentiated list of knobs. */
+.settings-layout { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 680px) {
+  .settings-layout { grid-template-columns: 220px 1fr; }
+  .settings-tabs { border-right: 1px solid var(--color-border); border-bottom: 0; }
+}
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+  gap: 2px;
+  border-bottom: 1px solid var(--color-border);
+}
+.settings-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: var(--space-2);
+  min-height: var(--target-minimum);
+  border-radius: var(--radius-small);
+}
+.settings-tab:hover { background: var(--color-surface); }
+.settings-tab.current { background: var(--color-surface); }
+.settings-tab-label { font-size: var(--text-caption); color: var(--color-text-primary); }
+.settings-tab.current .settings-tab-label { color: var(--status-running); }
+.settings-tab-hint { font-size: 11px; color: var(--color-text-secondary); line-height: 1.3; }
+
+.settings-panel { padding: var(--space-3) var(--space-4) var(--space-4); min-width: 0; }
+/* Inside the modal a section is already the only thing showing, so its heading
+   band and two column layout are unnecessary. */
+.settings-panel .group { display: block; padding-bottom: 0; }
+.settings-panel .group > h2 { margin-top: 0; }
+
+/* ---- Step timeline -----------------------------------------------------
+   A spine with nodes on it. A pipeline is a sequence with a position in it, and
+   the picture of that is a line, not nine rows and a separate bar above them
+   saying the same thing.
+
+   The spine is filled above the current node and hollow below, so where the run
+   has reached reads at a glance from across a desk without the status column
+   being read at all. */
+.timeline {
+  list-style: none;
+  margin: var(--space-4) 0 var(--space-5);
+  padding: 0;
+}
+.timeline-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-4);
+}
+/* The connecting line, running behind the node and stopping at the last step so
+   the sequence has a visible end. */
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 20px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--color-border);
+}
+.timeline-step:last-child::before { display: none; }
+.timeline-step.reached::before { background: var(--status-complete); }
+.timeline-step.state-pending::before { background: var(--color-border); }
+
+/* ---- Nodes --------------------------------------------------------------
+   State by shape as well as by color, so the sequence survives every palette
+   and reads without one. */
+.node {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  background: var(--color-background);
+  display: grid;
+  place-items: center;
+  z-index: 1;
+}
+.node-complete, .node-flagged { border-color: var(--status-complete); }
+.node-flagged { border-color: var(--status-flagged); }
+.node-fill {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-complete);
+}
+.state-flagged .node-fill { background: var(--status-flagged); }
+
+.node-running { border-color: var(--status-running); }
+/* The running node has a moving center, not a pulsing outline, so it
+   reads as working, not as alarming. */
+.node-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-running);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.node-error { border-color: var(--status-error); }
+.node-cross { width: 8px; height: 2px; background: var(--status-error); }
+.node-pending { border-color: var(--color-border-strong); opacity: 0.6; }
+
+/* ---- Step body ---------------------------------------------------------
+   The number, the name, and the status each hold their own column, which is
+   what the previous list failed at: the three ran together into one string. */
+.timeline-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: 24px;
+}
+.timeline-number {
+  font: 500 var(--text-caption)/1 var(--font-data);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+  min-width: 2.4em;
+}
+.timeline-name {
+  font-size: var(--text-body-large);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+.timeline-status {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  font-size: var(--text-caption);
+}
+
+/* A waiting step recedes to a node and a name. It has nothing to report and
+   giving it the same weight as the step doing the work was most of why nine
+   rows felt like a wall. */
+.state-pending .timeline-name { color: var(--color-text-secondary); font-size: var(--text-body); }
+.state-pending { padding-bottom: var(--space-2); }
+.state-running .timeline-name { color: var(--color-text-primary); }
+
+.timeline-summary,
+.timeline-detail {
+  margin: 4px 0 0;
+  padding-left: calc(2.4em + var(--space-2));
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  max-width: 68ch;
+}
+.state-running .timeline-detail { color: var(--color-text-primary); }
+
+.timeline-progress {
+  display: block;
+  height: 2px;
+  margin: var(--space-2) 0 0 calc(2.4em + var(--space-2));
+  background: var(--color-border);
+  max-width: 320px;
+}
+.timeline-progress span {
+  display: block;
+  height: 100%;
+  background: var(--status-running);
+  transition: width var(--motion-step) var(--ease-enter);
+}
+
+/* ---- Appearance ---------------------------------------------------------
+   Choices as labeled cards, because each one needs a line
+   of explanation and a dropdown has nowhere to put it. */
+.appearance { padding: var(--space-3) var(--space-4) var(--space-4); }
+.appearance h2:first-child { margin-top: 0; }
+.choice-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+/* Two columns of five, with the sixth cell carrying the swatches. */
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+@media (max-width: 560px) {
+  .choice-grid { grid-template-columns: 1fr; }
+}
+/* Sized to their content. The palette cards were as tall
+   as the grid allowed, which wasted the space the swatches needed. */
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  text-align: left;
+  padding: 10px var(--space-2);
+  min-height: var(--target-minimum);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: none;
+}
+.choice-row .choice { flex: 1 1 200px; }
+.choice:hover { background: var(--color-surface-alt); border-color: var(--color-border-strong); }
+.choice.current { border-color: var(--status-running); background: var(--color-surface-alt); }
+.choice-label { font-size: var(--text-body); color: var(--color-text-primary); }
+/* The chosen one is named, not tinted.
+   Its label was set in the accent, which measured 4.05 against the card it sits
+   on in light appearance and so failed AA on the one screen whose whole subject
+   is legibility. It was also the only signal of the current choice that a
+   reader could see, which made the state color-only. The word carries it now,
+   the accent stays on the card edge, and the label keeps the text color every
+   other label has. */
+.choice.current .choice-label::after {
+  content: 'Current';
+  margin-left: var(--space-1);
+  font: 400 var(--text-caption)/1 var(--font-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  vertical-align: 1px;
+}
+.choice-hint { font-size: var(--text-caption); color: var(--color-text-secondary); line-height: 1.3; }
+
+.swatch-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 10px var(--space-2);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-small);
+}
+.swatch-cell-label {
+  font: 500 10px/1 var(--font-data);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* The six pipeline states in whichever palette is being previewed. Judging a
+   color-vision palette from a name is much harder than seeing it worn. */
+.swatches { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); }
+.swatch { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+.swatch-chip { width: 30px; height: 16px; border-radius: 3px; }
+.swatch-label {
+  font: 400 10px/1 var(--font-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.state-bg-pending { background: var(--status-pending); }
+.state-bg-running { background: var(--status-running); }
+.state-bg-complete { background: var(--status-complete); }
+.state-bg-flagged { background: var(--status-flagged); }
+.state-bg-error { background: var(--status-error); }
+.state-bg-dropped { background: var(--status-dropped); }
+
+/* ---- Platform targets ---------------------------------------------------
+   Separated from the general export formats because they answer a different
+   question: not what file do I want, but where is this going next. */
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.platform {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: left;
+  padding: var(--space-2);
+  min-height: var(--target-minimum);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: none;
+}
+.platform:hover:not(:disabled) {
+  background: var(--color-surface-alt);
+  border-color: var(--status-running);
+}
+.platform-label { font-size: var(--text-body); color: var(--color-text-primary); }
+.platform-hint { font-size: var(--text-caption); color: var(--color-text-secondary); line-height: 1.35; }
+
+/* ---- Download notice ----------------------------------------------------
+   Written to inform. The register of a warranty disclaimer
+   would make an ordinary and safe action look like a risk, so it reads as a
+   description with the liability paragraph set apart at the end never
+   leading. */
+/* The notice sits narrower than settings because it is read and not
+   operated, and shorter than its own content because that content is longer
+   than any screen.
+   Height was following the content, which is what stopped the body scrolling.
+   A flex column whose own height is auto grows to fit its children, so the
+   child with overflow set never had a height to overflow: the panel simply
+   became as tall as the text and ran off the bottom of the window with no way
+   to reach the end of it. A definite height gives the body something to scroll
+   inside, and the person can still drag the panel taller from any edge.
+   The resize declaration that used to be here turned the handles off, which is
+   what made this the one dialog in the application that could not be resized. */
+.notice {
+  width: min(620px, 100%);
+  height: min(560px, calc(100vh - var(--space-8)));
+  min-height: 280px;
+}
+.notice-body { padding: var(--space-3) var(--space-4); }
+.notice-body h2:first-child { margin-top: 0; }
+.notice-list {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1.8;
+  max-width: 64ch;
+}
+.notice-liability {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
+/* Numbered steps in help prose, for sequences that have to be done in order. */
+.help-step {
+  font-size: var(--text-body-large);
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--color-text-primary);
+}
+.model-actions-spacer { display: contents; }
+
+/* ---- Setup --------------------------------------------------------------
+   Two numbered steps with a check between them. Someone who has never run a
+   language model needs two things and has no reason to know that, which order
+   they go in, or that the first is a program and the second is a file it loads. */
+.setup-step {
+  border-left: 2px solid var(--color-border);
+  padding: 0 0 var(--space-3) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+/* The lede sat directly against the first step, so the sentence explaining
+   what the two steps are ran into the first of them with no seam. */
+.setup .lede { margin-bottom: var(--space-5); }
+
+/* The last control in a step ends the step.
+   Buttons carry a bottom margin so that a run of controls does not collide with
+   whatever follows, which is right in the middle of a screen and wrong at the
+   end of a bounded block: it left the colored rail running on for eighty empty
+   pixels past the last thing in it, which read as content that had failed to
+   load. */
+.setup-step > .actions:last-child,
+.setup-step > .pull:last-child { margin-bottom: 0; }
+.setup-step > *:last-child { margin-bottom: 0; }
+.setup-step.current { border-left-color: var(--status-running); }
+.setup-step.complete { border-left-color: var(--status-complete); }
+/* A step that cannot be started yet recedes instead of hiding, so the
+   shape of what is coming is visible from the first screen. */
+.setup-step.waiting { opacity: 0.55; }
+
+.setup-step-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.setup-step-head h2 {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-body-large);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+  border: 0;
+  padding: 0;
+}
+.setup-number {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  font: 500 var(--text-caption)/1 var(--font-data);
+  color: var(--color-text-secondary);
+  flex: 0 0 auto;
+}
+.setup-step.current .setup-number { border-color: var(--status-running); color: var(--status-running); }
+.setup-step.complete .setup-number { border-color: var(--status-complete); color: var(--status-complete); }
+
+.setup-check {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 var(--text-caption)/1 var(--font-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.setup-check.done { color: var(--status-complete); }
+.setup-check-mark { width: 1em; text-align: center; }
+
+.setup-manage {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* ---- Hints on demand ----------------------------------------------------
+   A small affordance beside the label, and the hint itself appearing while the
+   field has focus. Permanent help under every field roughly triples the height
+   of a form and is text people scroll past after the first use. */
+.hint-toggle {
+  min-height: 20px;
+  min-width: 20px;
+  padding: 0;
+  margin-left: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-secondary);
+  font: 500 11px/1 var(--font-data);
+  vertical-align: 1px;
+  opacity: 0.6;
+  transition: opacity var(--motion-base) var(--ease-enter);
+}
+.field:hover .hint-toggle,
+.hint-toggle:focus-visible { opacity: 1; }
+.hint-toggle.pinned {
+  opacity: 1;
+  border-color: var(--status-running);
+  color: var(--status-running);
+}
+/* Reserved. Without a floor the form jumps by a line every
+   time focus moves, which is worse than the height the hint costs. */
+.field .field-hint { min-height: 1.3em; }
+
+/* ---- Compact opening ----------------------------------------------------
+   Shown once anything has been built. The introduction has been read by then,
+   and repeating it turns the top third of the screen into furniture. */
+.opening-compact {
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.opening-compact h1 { margin-bottom: 0; }
+
+/* ---- Collapsible optional groups ---------------------------------------- */
+details.advanced-group {
+  border-top: 1px solid var(--color-border);
+  padding: 0;
+  margin: 0;
+}
+details.advanced-group summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-minimum);
+  cursor: pointer;
+  list-style: none;
+}
+details.advanced-group summary::-webkit-details-marker { display: none; }
+.advanced-group-title { font-size: var(--text-body); color: var(--color-text-primary); }
+.advanced-group-count {
+  margin-left: auto;
+  font: 400 var(--text-caption)/1 var(--font-data);
+  color: var(--color-text-secondary);
+}
+details.advanced-group > .field { margin-left: var(--space-3); }
+details.advanced-group[open] { padding-bottom: var(--space-2); }
+
+/* ---- Collapsible dimensions ---------------------------------------------
+   In grouped view a dimension closes to its heading, so a twenty-six item
+   instrument is four lines when closed and one dimension at a time when being
+   worked on. The other layouts never collapse: collapsing a continuous read or
+   a respondent preview would defeat the reason someone chose them. */
+.dimension-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: var(--target-minimum);
+  color: inherit;
+}
+.dimension-toggle:hover { background: none; }
+.dimension-toggle h2 { margin: 0; border: 0; padding: 0; }
+.dimension-toggle .disclosure { transform: rotate(90deg); }
+.dimension.collapsed .dimension-toggle .disclosure { transform: none; }
+.dimension.collapsed { padding-bottom: var(--space-1); }
+
+/* ---- Export panel -------------------------------------------------------
+   One section with two labeled rows, not three blocks each carrying a
+   heading. The distinction that matters is between a file you keep and a
+   format you send somewhere. */
+.export-panel { border-top: 1px solid var(--color-border); margin-top: var(--space-4); }
+.export-row-label {
+  font: 500 var(--text-caption)/1 var(--font-data);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: var(--space-3) 0 var(--space-1);
+}
+.export-panel .actions { margin-bottom: var(--space-2); }
+
+/* ---- Backend status -----------------------------------------------------
+   Its own layout instead of borrowing the step readout classes, which were
+   removed with the flat step list and left this rendering as one run of
+   characters. Three columns and a detail line beneath. */
+.backend-status {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+.backend-mark { font-family: var(--font-data); font-size: var(--text-body); }
+.backend-name { font-size: var(--text-body-large); color: var(--color-text-primary); }
+.backend-state {
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.backend-detail {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+/* Quiet, and inside the block it acts on. It is available:
+   the status refreshes itself on the screens that matter, and this is for the
+   person who has just fixed something in another window and wants to say so. */
+.backend-recheck {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  min-height: var(--target-minimum);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.backend-recheck:hover { color: var(--color-text-primary); background: none; }
+
+/* A rule between the destinations and the configuration, with room on both
+   sides. Everything left of it takes you somewhere; everything right of it
+   opens over what you are looking at. */
+.bar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 var(--space-3);
+  background: var(--color-border-strong);
+  opacity: 0.6;
+  align-self: center;
+}
+.bar-nav { align-items: center; }
+
+/* A finished download fills green instead of staying the working color, so
+   completion is visible without reading the line beneath it. */
+.pull-done { background: var(--status-complete); }
+
+/* Links, which the interface had none of until the download notice needed one.
+   Underlined, since color is spoken for by status. */
+a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-border-strong);
+}
+a:hover { text-decoration-color: var(--color-text-primary); }
+
+/* ---- Topic cards --------------------------------------------------------
+   Help was one column of headed sections, which reads at eight topics and does
+   not at twenty, and it will only accumulate. Picking from a grid is a choice
+   among nine things; scrolling past all of them is a chore repeated on every
+   visit. The grid stays visible with the open topic beneath it, so reading one
+   and wanting the next needs no step backwards. */
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  /* Every card the height of the tallest card on the screen, not the tallest in
+     its own row. Stretching within a row was the first attempt and it only
+     levelled each row against itself: a label wrapping to two lines made the
+     first row taller than the second, so the grid still read as a ragged pile
+     from a step back. Equal rows fixes it for the whole grid. */
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+}
+.topic {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* The label sits at the top and the hint at the bottom, so a one-line hint
+     and a two-line hint both leave the labels level across the row. */
+  justify-content: space-between;
+  gap: var(--space-1);
+  text-align: left;
+  padding: var(--space-2);
+  min-height: 84px;
+  height: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: none;
+}
+.topic:hover { background: var(--color-surface-alt); border-color: var(--color-border-strong); }
+.topic.current { border-color: var(--status-running); background: var(--color-surface-alt); }
+.topic-label { font-size: var(--text-body); color: var(--color-text-primary); }
+/* The open topic is marked by the card, not by tinting its label. The accent
+   measured 4.05 against the light surface, and the card already carries a
+   border and a mark to say which one is open. Weight does the rest. */
+.topic.current .topic-label { font-weight: 500; }
+.topic-hint { font-size: var(--text-caption); color: var(--color-text-secondary); line-height: 1.3; }
+
+.topic-body {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+  animation: settle var(--motion-base) var(--ease-enter) both;
+}
+.topic-body h2 {
+  font-family: var(--font-body);
+  font-size: var(--text-heading-3);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+  margin-top: 0;
+}
+
+/* ---- Settings fields ----------------------------------------------------
+   A continuous column, not a stack of cards.
+   Every field here was wrapped in its own bordered, tinted, rounded container.
+   The reasoning was that a container holds related fields together as one
+   thing, which is true of a container around several fields and false of a
+   container around one. What it produced was six boxes in a row, each holding
+   a single control, inside a seventh box that was the dialog: borders nested
+   three deep to separate things nobody was going to confuse. It read as a web
+   form, not as an application panel, and it pushed a short section into
+   two screens of scrolling.
+   Space separates them now. A field is its label, its control, and its hint,
+   with enough room after it that the next one is plainly a different question.
+   Grouping, where it is genuinely needed, is the section heading's job. */
+.settings-panel .field {
+  margin-bottom: var(--space-4);
+  max-width: 52ch;
+}
+.settings-panel .field label { margin-bottom: 2px; }
+.settings-panel .field input,
+.settings-panel .field textarea,
+.settings-panel .field select { background: var(--color-surface); }
+
+/* The one block that keeps a boundary. It is a status readout, not a
+   control, and running it into the fields below would make what the backend is
+   doing look like something to fill in. */
+.settings-panel .backend-status {
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--color-border-strong);
+  background: var(--color-surface-alt);
+  margin-bottom: var(--space-3);
+  border-radius: 0 var(--radius-small) var(--radius-small) 0;
+}
+.settings-panel .backend-status.ready { border-left-color: var(--status-complete); }
+.settings-panel .backend-status.faulted { border-left-color: var(--status-error); }
+
+/* ---- Model chooser ------------------------------------------------------
+   A grid. Ten cards read as a wall stacked and as a set
+   arranged, and the comparison people are making is across them and not
+   down them. */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.model-grid .model-card { margin-bottom: 0; }
+
+/* Strengths and weaknesses collapse. They are the reason to prefer one model
+   and they are also four lines each, which turned ten cards into a page nobody
+   reached the end of. */
+.model-detail summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 34px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.model-detail summary::-webkit-details-marker { display: none; }
+.model-detail p { margin: 0 0 var(--space-1); font-size: var(--text-caption); line-height: 1.5; }
+
+.machine-line { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: baseline; }
+/* A control that reads as prose, for an action that belongs inside a sentence
+   and not beside it. */
+.link-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-button:hover { background: none; color: var(--color-text-primary); }
+
+/* ==== Landing page =========================================================
+   The front door, built on the same tokens as everything behind it. No new
+   colors, no new type faces, and no surface treatment that does not already
+   exist elsewhere in the application: arriving at the product should be a
+   change of screen in place of a change of world.
+
+   The organizing motif is the geometry of a questionnaire, used structurally
+   in place of illustratively. Response circles set the rhythm of the specimen
+   sheet, hairlines divide sections in place of cards, and the item numbers are
+   set in the data face at the size a printed instrument would use. */
+
+.landing {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-8);
+}
+
+/* ---- Hero -----------------------------------------------------------------
+   Ranged left and measured, not centered and enormous. A centered headline
+   across a wide viewport gives the eye no start line, and the reader here is a
+   professional who wants the sentence, not the spectacle. */
+/* Two columns at desktop widths: the sentence, and the thing the sentence is
+   about. The headline column keeps its reading measure and not stretching
+   to fill half the window, which is what a forty character maximum is for. */
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-6) 0;
+}
+.landing-hero-text { max-width: 40ch; }
+.landing-hero-figure { justify-self: end; width: 100%; max-width: 340px; }
+
+/* The sketch. Ink at low presence, so it sits behind the headline in the
+   reading order without disappearing, and the chosen answer is the one place
+   the accent appears in the hero. */
+.hero-sketch { display: block; overflow: visible; }
+.sketch-stroke {
+  fill: none;
+  stroke: var(--color-text-primary);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.52;
+}
+/* The second pass of the pencil, lighter than the first. */
+.sketch-stroke.second { stroke-width: 1.5; opacity: 0.34; }
+.sketch-fill { fill: var(--status-running); stroke: none; opacity: 0.9; }
+.sketch-row.chosen .sketch-stroke { opacity: 0.75; }
+.sketch-label {
+  fill: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+.sketch-row.chosen .sketch-label { fill: var(--color-text-primary); }
+
+/* Below the two column threshold the drawing goes, not shrinking. A
+   five point scale reduced to phone width is five illegible circles, and the
+   specimen sheet further down shows the same thing properly. */
+@media (max-width: 900px) {
+  .landing-hero { grid-template-columns: minmax(0, 1fr); }
+  .landing-hero-figure { display: none; }
+}
+.landing-headline {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 4.4vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 400;
+}
+.landing-lede {
+  margin: var(--space-3) 0 0;
+  max-width: 52ch;
+  font-size: var(--text-body-large);
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.landing-primary { padding: 0 var(--space-4); }
+
+/* ---- Product preview ------------------------------------------------------
+   Two columns: what the person writes, and what comes back. The brief sits in
+   a quiet panel and the item sits on the page, because the item is the subject
+   and giving both a container would make them siblings. */
+/* A sequence, not two columns.
+   Side by side, the brief was three lines against an item and a property table
+   that ran four times as long, so the left column was empty for most of the
+   section and the page read as unfinished there. Stacked, it also reads in the
+   order it happens: you write this, it writes that, and here is what it
+   decided. */
+.landing-preview {
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--color-border);
+}
+.preview-prompt { max-width: 54ch; }
+.preview-item { margin-top: var(--space-5); }
+.preview-label {
+  margin: 0 0 var(--space-1);
+  font: 400 11px/1 var(--font-data);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.preview-prompt {
+  padding: var(--space-3);
+  border-left: 2px solid var(--color-border-strong);
+  background: var(--color-surface-alt);
+  border-radius: 0 var(--radius-small) var(--radius-small) 0;
+}
+.preview-brief {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+/* The assembly. Each part fades and lifts a little as it arrives, and the whole
+   sequence is under two seconds. Anything longer stops being a demonstration
+   and becomes something to sit through. */
+.preview-stem,
+.preview-scale,
+.preview-properties {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--motion-step) var(--ease-enter),
+    transform var(--motion-step) var(--ease-enter);
+}
+.preview-stem.shown,
+.preview-scale.shown,
+.preview-properties.shown { opacity: 1; transform: none; }
+
+.preview-stem {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-body-large);
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+/* The item number in the data face, small and unemphatic, the way it appears on
+   a printed instrument. */
+.preview-number {
+  flex: 0 0 auto;
+  padding-top: 3px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.preview-scale {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 0 0 0 26px;
+}
+.preview-scale li,
+.specimen-scale li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  opacity: 0;
+  transition: opacity var(--motion-step) var(--ease-enter);
+}
+.preview-scale.shown li { opacity: 1; }
+.specimen-scale li { opacity: 1; }
+
+/* The response circle, which is the page's recurring unit. Outlined by default
+   and filled when chosen, exactly as it behaves in an instrument. */
+.specimen-dot {
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 50%;
+}
+.specimen-dot.chosen {
+  border-color: var(--status-running);
+  box-shadow: inset 0 0 0 2.5px var(--color-background),
+    inset 0 0 0 11px var(--status-running);
+}
+.specimen-anchor { font-size: var(--text-caption); color: var(--color-text-secondary); }
+
+.preview-properties {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border);
+}
+.preview-properties dt {
+  font: 400 11px/1.5 var(--font-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.preview-properties dd { margin: 0 0 8px; font-size: var(--text-caption); }
+.preview-note {
+  margin: var(--space-3) 0 0;
+  max-width: 56ch;
+  font-size: var(--text-caption);
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+/* ---- Section heads --------------------------------------------------------
+   A rule and a measured column, repeated. Sections are separated by hairlines
+   in place of by putting each one in a box. */
+.landing-section-head { max-width: 46ch; margin-bottom: var(--space-4); }
+/* The application sets h2 in the data face, uppercase and tracked out, because
+   everywhere else an h2 is a section eyebrow above machine output. Here it is a
+   heading somebody reads, so the display face is restored and the tracking and
+   capitals are undone explicitly. */
+.landing-section-head h2,
+.landing-close h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--color-text-primary);
+}
+.landing-section-head p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+/* ---- Specimen sheet -------------------------------------------------------
+   Miniature items in place of icons with captions. Each one is a real question
+   with real response options, set at the size a specimen sheet would use. */
+.landing-specimens { padding: var(--space-6) 0; border-top: 1px solid var(--color-border); }
+.specimen-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 1px;
+  /* No background on the grid itself.
+     The rules between specimens were made by tinting the grid and letting it
+     show through one pixel gaps, which works for the gaps and also paints every
+     cell the grid has no specimen in. Nine items in a four column grid leaves
+     three of them, so the sheet ended with a gray block the width of three
+     cards, in both appearances. */
+  padding: 1px;
+}
+/* Each specimen carries its own hairline instead. Adjacent shadows meet inside
+   the one pixel gap and read as a single rule, and the outer edge of the grid
+   is closed by the same declaration. */
+.specimen {
+  padding: var(--space-3);
+  background: var(--color-background);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+.specimen-label {
+  margin: 0 0 var(--space-2);
+  font: 400 11px/1 var(--font-data);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--status-running);
+}
+.specimen-stem {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-body);
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+.specimen-scale, .specimen-choices, .specimen-ranking {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.specimen-choices li, .specimen-ranking li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.specimen-rule {
+  flex: 1;
+  height: 1px;
+  min-width: 34px;
+  background: var(--color-border-strong);
+}
+.specimen-rank {
+  width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-small);
+  font-size: 11px;
+  color: var(--color-text-primary);
+}
+.specimen-forced { width: 100%; border-collapse: collapse; font-size: var(--text-caption); }
+.specimen-forced th[scope="col"] {
+  font: 400 10px/1 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding-bottom: 6px;
+  width: 34px;
+}
+.specimen-forced th[scope="row"] {
+  font-weight: 400;
+  text-align: left;
+  color: var(--color-text-secondary);
+  padding: 3px 0;
+}
+.specimen-forced td { text-align: center; }
+.specimen-numeric { display: flex; align-items: center; gap: 8px; margin: 0; }
+.specimen-field {
+  width: 58px;
+  height: 26px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-small);
+}
+.specimen-unit { font-size: var(--text-caption); color: var(--color-text-secondary); }
+.specimen-open { display: flex; flex-direction: column; gap: 9px; margin: 4px 0 0; }
+.specimen-open span { height: 1px; background: var(--color-border-strong); }
+.specimen-open span:nth-child(2) { width: 88%; }
+.specimen-open span:nth-child(3) { width: 62%; }
+
+/* ---- Method ---------------------------------------------------------------
+   Two columns of prose at a reading measure. No cards, no icons, nothing to
+   look at: this section is meant to be read. */
+.landing-method { padding: var(--space-6) 0; border-top: 1px solid var(--color-border); }
+.method-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.method-columns p { margin: 0; line-height: 1.6; color: var(--color-text-secondary); }
+
+/* ---- Close ---------------------------------------------------------------- */
+.landing-close {
+  padding: var(--space-6) 0 var(--space-6);
+  border-top: 1px solid var(--color-border);
+  max-width: 44ch;
+}
+.landing-close h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.12; }
+.landing-close p {
+  margin: var(--space-2) 0 var(--space-4);
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+/* ---- Narrow viewports -----------------------------------------------------
+   Redesigned and not stacked: the preview becomes one column, the scale
+   becomes a vertical list because five anchors will not sit in a row on a
+   phone, and the specimen grid drops to one column so the miniature items stay
+   legible instead of shrinking. */
+@media (max-width: 880px) {
+  .landing { padding: 0 var(--space-3) var(--space-6); }
+  .landing-hero { padding: var(--space-6) 0 var(--space-5); }
+  .landing-preview { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .preview-scale { flex-direction: column; padding-left: 26px; }
+}
+@media (max-width: 560px) {
+  .specimen-sheet { grid-template-columns: minmax(0, 1fr); }
+  .landing-actions { gap: var(--space-2); }
+  .landing-primary { width: 100%; }
+}
+
+/* Entrance motion is a courtesy, so anyone who has asked for less gets the
+   finished state with nothing withheld. */
+@media (prefers-reduced-motion: reduce) {
+  .preview-stem, .preview-scale, .preview-properties, .preview-scale li {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

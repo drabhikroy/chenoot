@@ -1,0 +1,85 @@
+# Builds the three platforms on a version tag and attaches them to a draft
+# release.
+#
+# The draft is not published. A build nobody has opened is not a release, and
+# the one thing that cannot be checked from here is whether the artifact
+# actually starts on the machine it was built for.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  # The gate runs once, on the cheapest runner, before any platform is built.
+  # A tag pushed on a tree that fails its own checks should produce nothing.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The launch and screen checks need a display, which a headless runner
+      # does not have. xvfb provides one.
+      - run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: npm run verify
+
+  build:
+    needs: verify
+    strategy:
+      # One platform failing should not cancel the other two. A release with
+      # two of three artifacts is still worth publishing while the third is
+      # investigated.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            script: dist:mac
+          - os: windows-latest
+            script: dist:win
+          - os: ubuntu-latest
+            script: dist:linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ${{ matrix.script }}
+        env:
+          # electron-builder publishes on its own if this is unset, which would
+          # put artifacts on the release before anybody has opened one.
+          GH_TOKEN: ''
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+            dist/*.AppImage
+          if-no-files-found: error
+
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: artifacts/**/*
+          # Notes are written by hand from the changelog. Generated notes read
+          # like a commit log because that is what they are.
+          generate_release_notes: false

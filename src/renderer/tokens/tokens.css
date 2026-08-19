@@ -1,0 +1,129 @@
+/* Design tokens. Every spacing, size, duration, and type value in the app
+   resolves to something declared here. A component that needs a value not on
+   this sheet is a signal that the scale is incomplete, not a license for a
+   one-off number.
+
+   Color values are injected at runtime from palettes.js, which holds the four
+   color-vision sets and both modes. Keeping them out of this file means the
+   automated audit has one source of truth to check, not two. */
+
+:root {
+  /* Eight pixel grid. Named by step in place of by intended use, so that a
+     component is choosing a position on a scale instead of inheriting someone
+     else's idea of what "card padding" means. */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+
+  /* Type scale on a 1.25 ratio from a 16px body. Six steps is enough for the
+     four screens this app has, and a seventh would only invite ambiguity about
+     which of two near-identical sizes a given label should take. */
+  /* Raised from a 16px base. Sixteen is the web's default reading size, set for
+     a browser tab; this is a desktop application looked at across a desk for
+     forty minutes at a stretch, and the hints and labels at the old caption
+     size were genuinely hard to read. */
+  --text-caption: 15px;
+  --text-body: 18.5px;
+  --text-body-large: 22px;
+  --text-heading-3: 24px;
+  --text-heading-2: 29px;
+  --text-heading-1: 38px;
+
+  --leading-tight: 1.25;
+  --leading-body: 1.5;
+
+  --weight-regular: 400;
+  --weight-medium: 550;
+  --weight-bold: 680;
+
+  /* Interactive targets. Forty-four pixels is the floor for anything a person
+     clicks or taps, including inside dense lists. Where a control looks smaller
+     than that, the hit area is padded out to meet it and not the visible
+     control being grown. */
+  --target-minimum: 44px;
+
+  --radius-small: 4px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+
+  /* Motion. Entering elements ease out so they decelerate into place; exiting
+     elements ease in so they accelerate away. Durations sit inside the 200 to
+     400 millisecond band, which keeps a transition readable without making the
+     interface feel like it is waiting on itself.
+
+     The step duration is the slowest value in the system and is deliberately
+     under the Doherty threshold, so a step transition is fully resolved before
+     the moment a person would begin to wonder whether anything happened. */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-step: 320ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+
+  --focus-width: 3px;
+  --focus-offset: 2px;
+}
+
+/* Reduced motion is honored by collapsing duration, not removing the
+   transition, so state changes still land on the same code path and nothing
+   depends on a transitionend event that would never fire. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-step: 1ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-weight: var(--weight-regular);
+  background: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+/* A single focus treatment for the whole app. Using :focus-visible means the
+   ring appears for keyboard navigation and stays out of the way for pointer
+   users, and declaring it once prevents a component from quietly opting out. */
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-small);
+}
+
+button,
+[role='button'],
+input,
+select,
+summary {
+  min-height: var(--target-minimum);
+  font: inherit;
+}
+
+/* Primary actions are large targets in the position attention settles on,
+   following Fitts's Law: the cost of reaching a control falls as it grows and
+   as it moves closer to where the pointer already is. */
+.action-primary {
+  min-height: var(--target-minimum);
+  padding: 0 var(--space-3);
+  font-size: var(--text-body-large);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-medium);
+  transition: background var(--motion-base) var(--ease-enter);
+}

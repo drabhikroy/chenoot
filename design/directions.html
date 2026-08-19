@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" data-direction="sheet" data-mode="dark" data-palette="standard">
+<head>
+<meta charset="utf-8">
+<title>Chenoot visual directions</title>
+<style>
+/* Palette custom properties, generated from src/renderer/tokens/palettes.js so
+   these sketches use the exact values the audit already cleared. */
+[data-palette="standard"][data-mode="dark"]{
+  --c-background: #0F161F;
+  --c-surface: #17202B;
+  --c-surface-raised: #212C3A;
+  --c-border: #33414F;
+  --c-border-strong: #61707F;
+  --c-text-primary: #E9EEF4;
+  --c-text-secondary: #A9B7C6;
+  --c-focus-ring: #8FD0FF;
+  --s-pending: #B3C3D6;
+  --s-running: #45C8E8;
+  --s-complete: #4FD494;
+  --s-flagged: #F5B63F;
+  --s-error: #FF7F6E;
+  --s-dropped: #67727F;
+}
+[data-palette="standard"][data-mode="light"]{
+  --c-background: #F4F6F8;
+  --c-surface: #FFFFFF;
+  --c-surface-raised: #EDF1F5;
+  --c-border: #D4DCE4;
+  --c-border-strong: #7C8A97;
+  --c-text-primary: #141D27;
+  --c-text-secondary: #4C5B6B;
+  --c-focus-ring: #0B5FA5;
+  --s-pending: #4A5A6B;
+  --s-running: #0F7A96;
+  --s-complete: #15784F;
+  --s-flagged: #8A5B00;
+  --s-error: #B2382A;
+  --s-dropped: #79838D;
+}
+[data-palette="deuteranopia"][data-mode="dark"]{
+  --c-background: #0F161F;
+  --c-surface: #17202B;
+  --c-surface-raised: #212C3A;
+  --c-border: #33414F;
+  --c-border-strong: #61707F;
+  --c-text-primary: #E9EEF4;
+  --c-text-secondary: #A9B7C6;
+  --c-focus-ring: #8FD0FF;
+  --s-pending: #8C99A6;
+  --s-running: #3E92E0;
+  --s-complete: #CDEBFF;
+  --s-flagged: #F2C14E;
+  --s-error: #D4622A;
+  --s-dropped: #67727F;
+}
+[data-palette="deuteranopia"][data-mode="light"]{
+  --c-background: #F4F6F8;
+  --c-surface: #FFFFFF;
+  --c-surface-raised: #EDF1F5;
+  --c-border: #D4DCE4;
+  --c-border-strong: #7C8A97;
+  --c-text-primary: #141D27;
+  --c-text-secondary: #4C5B6B;
+  --c-focus-ring: #0B5FA5;
+  --s-pending: #4A5A6B;
+  --s-running: #1C6BAF;
+  --s-complete: #0A4374;
+  --s-flagged: #A67C00;
+  --s-error: #6B2A06;
+  --s-dropped: #79838D;
+}
+[data-palette="protanopia"][data-mode="dark"]{
+  --c-background: #0F161F;
+  --c-surface: #17202B;
+  --c-surface-raised: #212C3A;
+  --c-border: #33414F;
+  --c-border-strong: #61707F;
+  --c-text-primary: #E9EEF4;
+  --c-text-secondary: #A9B7C6;
+  --c-focus-ring: #8FD0FF;
+  --s-pending: #8C99A6;
+  --s-running: #4A9BE8;
+  --s-complete: #D2EEFF;
+  --s-flagged: #F6CE5C;
+  --s-error: #D2701F;
+  --s-dropped: #67727F;
+}
+[data-palette="protanopia"][data-mode="light"]{
+  --c-background: #F4F6F8;
+  --c-surface: #FFFFFF;
+  --c-surface-raised: #EDF1F5;
+  --c-border: #D4DCE4;
+  --c-border-strong: #7C8A97;
+  --c-text-primary: #141D27;
+  --c-text-secondary: #4C5B6B;
+  --c-focus-ring: #0B5FA5;
+  --s-pending: #4A5A6B;
+  --s-running: #1F72B8;
+  --s-complete: #0B4677;
+  --s-flagged: #AD8309;
+  --s-error: #6E2E06;
+  --s-dropped: #79838D;
+}
+[data-palette="tritanopia"][data-mode="dark"]{
+  --c-background: #0F161F;
+  --c-surface: #17202B;
+  --c-surface-raised: #212C3A;
+  --c-border: #33414F;
+  --c-border-strong: #61707F;
+  --c-text-primary: #E9EEF4;
+  --c-text-secondary: #A9B7C6;
+  --c-focus-ring: #8FD0FF;
+  --s-pending: #B7C1CA;
+  --s-running: #A87EF5;
+  --s-complete: #3FC97A;
+  --s-flagged: #F5A09E;
+  --s-error: #E05752;
+  --s-dropped: #67727F;
+}
+[data-palette="tritanopia"][data-mode="light"]{
+  --c-background: #F4F6F8;
+  --c-surface: #FFFFFF;
+  --c-surface-raised: #EDF1F5;
+  --c-border: #D4DCE4;
+  --c-border-strong: #7C8A97;
+  --c-text-primary: #141D27;
+  --c-text-secondary: #4C5B6B;
+  --c-focus-ring: #0B5FA5;
+  --s-pending: #4A5A6B;
+  --s-running: #6A3BC4;
+  --s-complete: #14804A;
+  --s-flagged: #C0453F;
+  --s-error: #6E1B18;
+  --s-dropped: #79838D;
+}
+
+
+:root {
+  --space-1: 8px; --space-2: 16px; --space-3: 24px; --space-4: 32px; --space-6: 48px;
+  --target: 44px;
+  --motion: 320ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0;
+  background: var(--c-background); color: var(--c-text-primary);
+  transition: background var(--motion) var(--ease-enter), color var(--motion) var(--ease-enter);
+}
+:focus-visible { outline: 3px solid var(--c-focus-ring); outline-offset: 2px; }
+
+/* Control bar sits outside the sketches so it does not read as part of any one
+   direction. */
+.controls {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--c-surface-raised);
+  border-bottom: 1px solid var(--c-border);
+  font: 500 13px/1.4 ui-sans-serif, system-ui, sans-serif;
+}
+.controls label { display: flex; flex-direction: column; gap: 4px; color: var(--c-text-secondary); }
+.controls select, .controls button {
+  min-height: var(--target); padding: 0 var(--space-2);
+  background: var(--c-surface); color: var(--c-text-primary);
+  border: 1px solid var(--c-border-strong); border-radius: 6px;
+  font: inherit; cursor: pointer;
+}
+
+.stage { padding: var(--space-4) var(--space-3) var(--space-6); max-width: 880px; margin: 0 auto; }
+.hidden { display: none !important; }
+
+/* ==========================================================================
+   DIRECTION ONE: ANSWER SHEET
+   The artifact this application produces. Registration marks, a faint form
+   grid, and a column of response bubbles standing in for stage progress, so
+   the process view speaks the same visual language as its own output.
+   ========================================================================== */
+[data-direction="sheet"] body, body[data-direction="sheet"] { }
+[data-direction="sheet"] .stage {
+  font: 400 16px/1.55 ui-sans-serif, system-ui, sans-serif;
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--c-border) 1px, transparent 0);
+  background-size: 24px 24px;
+  position: relative;
+}
+[data-direction="sheet"] .regmark {
+  position: absolute; width: 14px; height: 14px;
+  border: 2px solid var(--c-border-strong);
+}
+[data-direction="sheet"] .regmark.tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+[data-direction="sheet"] .regmark.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+[data-direction="sheet"] .regmark.bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+[data-direction="sheet"] .regmark.br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+[data-direction="sheet"] h1 {
+  font: 700 30px/1.1 "Archivo Narrow", "Roboto Condensed", "Arial Narrow", sans-serif;
+  letter-spacing: 0.01em; text-transform: uppercase; margin: 0 0 4px;
+}
+[data-direction="sheet"] .eyebrow {
+  font: 500 12px/1 ui-monospace, "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-text-secondary);
+}
+[data-direction="sheet"] .bubblerow {
+  display: grid; grid-template-columns: 40px 1fr; gap: var(--space-2);
+  align-items: start; padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--c-border);
+}
+[data-direction="sheet"] .bubble {
+  width: 34px; height: 22px; border-radius: 11px;
+  border: 2px solid var(--c-text-secondary);
+  display: grid; place-items: center;
+  font: 600 11px/1 ui-monospace, monospace; color: var(--c-text-secondary);
+}
+[data-direction="sheet"] .bubblerow[data-state="complete"] .bubble {
+  background: var(--s-complete); border-color: var(--s-complete); color: var(--c-surface);
+}
+[data-direction="sheet"] .bubblerow[data-state="running"] .bubble {
+  border-color: var(--s-running); color: var(--s-running);
+  background: linear-gradient(90deg, var(--s-running) 50%, transparent 50%);
+  animation: fill 1.4s var(--ease-enter) infinite alternate;
+}
+[data-direction="sheet"] .bubblerow[data-state="flagged"] .bubble {
+  background: var(--s-flagged); border-color: var(--s-flagged); color: var(--c-surface);
+}
+@keyframes fill { from { background-size: 30% 100%; } to { background-size: 100% 100%; } }
+[data-direction="sheet"] .bubblerow h3 { margin: 0; font-size: 16px; font-weight: 650; }
+[data-direction="sheet"] .bubblerow p { margin: 2px 0 0; color: var(--c-text-secondary); font-size: 14px; }
+[data-direction="sheet"] .itemline {
+  display: grid; grid-template-columns: 92px 1fr auto; gap: var(--space-2);
+  padding: 10px 0; border-bottom: 1px dotted var(--c-border);
+  font-size: 15px; align-items: baseline;
+}
+[data-direction="sheet"] .itemid { font: 500 12px ui-monospace, monospace; color: var(--c-text-secondary); }
+[data-direction="sheet"] .anchors { display: flex; gap: 6px; }
+[data-direction="sheet"] .anchors span {
+  width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--c-border-strong);
+}
+
+/* ==========================================================================
+   DIRECTION TWO: METROLOGY
+   The other sense of the word. Hairline tick rules, very little color, and the
+   Stage 6 similarity distribution plotted as a calibration scale so the adaptive
+   cutoff is the thing on screen rather than a number in a log.
+   ========================================================================== */
+[data-direction="rule"] .stage {
+  font: 400 16px/1.6 "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+}
+[data-direction="rule"] h1 {
+  font: 400 28px/1.15 "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 var(--space-1);
+}
+[data-direction="rule"] .eyebrow {
+  font: 400 11px/1 ui-monospace, monospace; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--c-text-secondary);
+}
+[data-direction="rule"] .tickrule {
+  position: relative; height: 62px; margin: var(--space-4) 0 var(--space-3);
+  border-bottom: 1px solid var(--c-border-strong);
+}
+[data-direction="rule"] .tick {
+  position: absolute; bottom: 0; width: 1px; background: var(--c-border-strong);
+}
+[data-direction="rule"] .tick.major { height: 22px; width: 2px; }
+[data-direction="rule"] .tick.minor { height: 9px; }
+[data-direction="rule"] .tick.done { background: var(--s-complete); }
+[data-direction="rule"] .tick.now  { background: var(--s-running); height: 34px; width: 3px; }
+[data-direction="rule"] .ticklabel {
+  position: absolute; bottom: 26px; transform: translateX(-50%);
+  font: 500 10px/1 ui-monospace, monospace; letter-spacing: 0.08em;
+  text-transform: uppercase; white-space: nowrap; color: var(--c-text-secondary);
+}
+[data-direction="rule"] .ticklabel.now { color: var(--s-running); }
+[data-direction="rule"] .readout {
+  display: grid; grid-template-columns: 1fr auto; gap: var(--space-2);
+  padding: var(--space-2) 0; border-bottom: 1px solid var(--c-border);
+}
+[data-direction="rule"] .readout .value {
+  font: 500 13px ui-monospace, monospace; color: var(--c-text-secondary); white-space: nowrap;
+}
+[data-direction="rule"] .calib { margin: var(--space-3) 0; }
+[data-direction="rule"] .calibtrack {
+  position: relative; height: 44px; border-bottom: 1px solid var(--c-border-strong);
+}
+[data-direction="rule"] .calibtick {
+  position: absolute; bottom: 0; width: 1px; height: 7px; background: var(--c-border);
+}
+[data-direction="rule"] .pairdot {
+  position: absolute; bottom: 14px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c-text-secondary); transform: translateX(-50%);
+}
+[data-direction="rule"] .pairdot.over { background: var(--s-flagged); }
+[data-direction="rule"] .cutoff {
+  position: absolute; bottom: 0; top: 0; width: 2px; background: var(--s-flagged);
+}
+[data-direction="rule"] .cutofflabel {
+  position: absolute; top: -18px; transform: translateX(-50%);
+  font: 500 10px ui-monospace, monospace; color: var(--s-flagged); white-space: nowrap;
+}
+
+/* ==========================================================================
+   DIRECTION THREE: TECHNICAL MANUAL
+   Buros-era test manual. Ruled tables, hanging indents, real section numbering.
+   The numbering is earned: the stages are a sequence and the order carries
+   information a reader needs.
+   ========================================================================== */
+[data-direction="manual"] .stage {
+  font: 400 16px/1.62 "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  max-width: 760px;
+}
+[data-direction="manual"] h1 {
+  font: 600 26px/1.2 "Source Serif 4", Georgia, serif; margin: 0 0 var(--space-1);
+}
+[data-direction="manual"] .runhead {
+  display: flex; justify-content: space-between;
+  font: 400 11px/1 ui-monospace, monospace; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--c-text-secondary);
+  padding-bottom: 6px; border-bottom: 2px solid var(--c-text-primary);
+  margin-bottom: var(--space-3);
+}
+[data-direction="manual"] .sec {
+  display: grid; grid-template-columns: 62px 1fr; gap: var(--space-2);
+  padding: var(--space-2) 0; border-bottom: 1px solid var(--c-border);
+}
+[data-direction="manual"] .secno {
+  font: 500 13px ui-monospace, monospace; color: var(--c-text-secondary); padding-top: 3px;
+}
+[data-direction="manual"] .sec h3 { margin: 0; font: 600 16px/1.3 inherit; }
+[data-direction="manual"] .sec p { margin: 3px 0 0; font-size: 15px; }
+[data-direction="manual"] .sec .status {
+  font: 500 11px ui-monospace, monospace; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-top: 5px; display: inline-block;
+}
+[data-direction="manual"] table { width: 100%; border-collapse: collapse; margin: var(--space-2) 0; }
+[data-direction="manual"] th {
+  text-align: left; font: 500 11px ui-monospace, monospace;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-text-secondary);
+  border-bottom: 1.5px solid var(--c-text-primary); padding: 6px 8px 6px 0;
+}
+[data-direction="manual"] td {
+  padding: 8px 8px 8px 0; border-bottom: 1px solid var(--c-border); font-size: 15px; vertical-align: top;
+}
+[data-direction="manual"] td.num { font: 400 14px ui-monospace, monospace; color: var(--c-text-secondary); white-space: nowrap; }
+
+/* Shared status text colors, used by all three directions. */
+.s-complete { color: var(--s-complete); }
+.s-running  { color: var(--s-running); }
+.s-flagged  { color: var(--s-flagged); }
+.s-pending  { color: var(--s-pending); }
+.note { color: var(--c-text-secondary); font-size: 14px; }
+h2 { font-size: 18px; margin: var(--space-4) 0 var(--space-2); }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <label>Direction
+    <select id="direction">
+      <option value="sheet">Answer sheet</option>
+      <option value="rule">Metrology</option>
+      <option value="manual">Technical manual</option>
+    </select>
+  </label>
+  <label>Mode
+    <select id="mode"><option value="dark">Dark</option><option value="light">Light</option></select>
+  </label>
+  <label>Color vision
+    <select id="palette">
+      <option value="standard">Standard</option>
+      <option value="deuteranopia">Deuteranopia</option>
+      <option value="protanopia">Protanopia</option>
+      <option value="tritanopia">Tritanopia</option>
+    </select>
+  </label>
+</div>
+
+<!-- ANSWER SHEET -->
+<div class="stage" id="v-sheet">
+  <span class="regmark tl"></span><span class="regmark tr"></span>
+  <span class="regmark bl"></span><span class="regmark br"></span>
+  <p class="eyebrow">Run 4kx91b &middot; llama3.1:8b</p>
+  <h1>Work engagement</h1>
+  <p class="note">Six items across two dimensions. Running unattended.</p>
+
+  <h2>Pipeline</h2>
+  <div class="bubblerow" data-state="complete"><span class="bubble">1</span>
+    <div><h3>Scoping</h3><p>Two dimensions covering 6 items: Vigor, Absorption.</p></div></div>
+  <div class="bubblerow" data-state="complete"><span class="bubble">2</span>
+    <div><h3>Grounding</h3><p>Skipped. Items written from the dimension definitions.</p></div></div>
+  <div class="bubblerow" data-state="complete"><span class="bubble">3</span>
+    <div><h3>Generation</h3><p>12 candidate items, 4 of them reverse keyed.</p></div></div>
+  <div class="bubblerow" data-state="flagged"><span class="bubble">4</span>
+    <div><h3>Critique</h3><p>2 of 12 items flagged, both by measurement.</p></div></div>
+  <div class="bubblerow" data-state="running"><span class="bubble">5</span>
+    <div><h3>Revision</h3><p>Rewriting 2 items, round 1 of 3.</p></div></div>
+  <div class="bubblerow" data-state="pending"><span class="bubble">6</span>
+    <div><h3>Coverage</h3><p class="s-pending">Waiting.</p></div></div>
+
+  <h2>Finished items</h2>
+  <div class="itemline"><span class="itemid">vigor-01</span><span>I feel strong at work.</span>
+    <span class="anchors"><span></span><span></span><span></span><span></span><span></span></span></div>
+  <div class="itemline"><span class="itemid">vigor-02 [R]</span><span>I run out of steam quickly.</span>
+    <span class="anchors"><span></span><span></span><span></span><span></span><span></span></span></div>
+  <div class="itemline"><span class="itemid">absorp-01</span><span>Time passes quickly for me here.</span>
+    <span class="anchors"><span></span><span></span><span></span><span></span><span></span></span></div>
+</div>
+
+<!-- METROLOGY -->
+<div class="stage hidden" id="v-rule">
+  <p class="eyebrow">Run 4kx91b / llama3.1:8b</p>
+  <h1>Work engagement</h1>
+  <p class="note">Six items across two dimensions. Running unattended.</p>
+
+  <div class="tickrule" id="rulebar"></div>
+
+  <div class="readout"><span>Scoping</span><span class="value s-complete">2 dimensions &middot; 0.4s</span></div>
+  <div class="readout"><span>Grounding</span><span class="value s-complete">skipped &middot; 0.0s</span></div>
+  <div class="readout"><span>Generation</span><span class="value s-complete">12 items &middot; 41.2s</span></div>
+  <div class="readout"><span>Critique</span><span class="value s-flagged">2 flagged &middot; 18.7s</span></div>
+  <div class="readout"><span>Revision</span><span class="value s-running">round 1 of 3</span></div>
+
+  <h2>Vigor similarity, 15 pairs</h2>
+  <div class="calib"><div class="calibtrack" id="calib"></div>
+    <p class="note">Median 0.71. Cutoff 0.89, set three deviations above the median and floored at 0.88.
+      One pair sits above it.</p></div>
+</div>
+
+<!-- TECHNICAL MANUAL -->
+<div class="stage hidden" id="v-manual">
+  <div class="runhead"><span>Chenoot &middot; audit trail</span><span>Run 4kx91b</span></div>
+  <h1>Work engagement</h1>
+  <p class="note">Six items across two dimensions. Local model llama3.1:8b. 17 decisions recorded.</p>
+
+  <div class="sec"><span class="secno">1.0</span><div><h3>Construct scoping</h3>
+    <p>Two dimensions covering 6 items: Vigor, Absorption.</p>
+    <span class="status s-complete">Complete &middot; 0.4s</span></div></div>
+  <div class="sec"><span class="secno">2.0</span><div><h3>Literature grounding</h3>
+    <p>Not requested. Items written from the dimension definitions alone.</p>
+    <span class="status s-complete">Complete &middot; 0.0s</span></div></div>
+  <div class="sec"><span class="secno">3.0</span><div><h3>Item generation</h3>
+    <p>12 candidate items, 4 of them reverse keyed.</p>
+    <span class="status s-complete">Complete &middot; 41.2s</span></div></div>
+  <div class="sec"><span class="secno">4.0</span><div><h3>Self-critique</h3>
+    <p>2 of 12 items flagged, both by measurement.</p>
+    <span class="status s-flagged">Flagged &middot; 18.7s</span></div></div>
+  <div class="sec"><span class="secno">5.0</span><div><h3>Revision</h3>
+    <p>Rewriting 2 items, round 1 of 3.</p>
+    <span class="status s-running">Running</span></div></div>
+
+  <h2>4.1 Measured findings</h2>
+  <table>
+    <tr><th>Item</th><th>Finding</th><th>Evidence</th></tr>
+    <tr><td class="num">vigor-03</td><td>Joins two propositions</td><td class="num">and</td></tr>
+    <tr><td class="num">vigor-03</td><td>Absolute term</td><td class="num">always</td></tr>
+    <tr><td class="num">absorp-03</td><td>Reads above grade 8</td><td class="num">11.4</td></tr>
+  </table>
+</div>
+
+<script>
+// Tick rule and calibration scale are computed rather than hand-written, so the
+// sketch shows the geometry the real component would produce.
+(function () {
+  var STAGES = ['Scope', 'Ground', 'Generate', 'Critique', 'Revise', 'Cover', 'Scale', 'Assemble'];
+  var CURRENT = 4;
+  var bar = document.getElementById('rulebar');
+  STAGES.forEach(function (name, i) {
+    var pct = (i / (STAGES.length - 1)) * 100;
+    var tick = document.createElement('span');
+    tick.className = 'tick major ' + (i < CURRENT ? 'done' : i === CURRENT ? 'now' : '');
+    tick.style.left = pct + '%';
+    bar.appendChild(tick);
+    var label = document.createElement('span');
+    label.className = 'ticklabel' + (i === CURRENT ? ' now' : '');
+    label.style.left = pct + '%';
+    label.textContent = name;
+    bar.appendChild(label);
+    if (i < STAGES.length - 1) {
+      for (var m = 1; m < 4; m += 1) {
+        var minor = document.createElement('span');
+        minor.className = 'tick minor';
+        minor.style.left = (pct + (m / 4) * (100 / (STAGES.length - 1))) + '%';
+        bar.appendChild(minor);
+      }
+    }
+  });
+
+  var track = document.getElementById('calib');
+  for (var t = 0; t <= 20; t += 1) {
+    var ct = document.createElement('span');
+    ct.className = 'calibtick';
+    ct.style.left = (t * 5) + '%';
+    track.appendChild(ct);
+  }
+  // Fifteen pair similarities on a 0.4 to 1.0 axis, one of them above cutoff.
+  var pairs = [0.52,0.58,0.61,0.63,0.66,0.68,0.70,0.71,0.72,0.74,0.77,0.79,0.82,0.85,0.94];
+  var lo = 0.4, hi = 1.0, cutoff = 0.89;
+  pairs.forEach(function (value) {
+    var dot = document.createElement('span');
+    dot.className = 'pairdot' + (value >= cutoff ? ' over' : '');
+    dot.style.left = (((value - lo) / (hi - lo)) * 100) + '%';
+    track.appendChild(dot);
+  });
+  var line = document.createElement('span');
+  line.className = 'cutoff';
+  line.style.left = (((cutoff - lo) / (hi - lo)) * 100) + '%';
+  track.appendChild(line);
+  var cl = document.createElement('span');
+  cl.className = 'cutofflabel';
+  cl.style.left = (((cutoff - lo) / (hi - lo)) * 100) + '%';
+  cl.textContent = 'cutoff 0.89';
+  track.appendChild(cl);
+
+  function apply() {
+    var d = document.getElementById('direction').value;
+    document.documentElement.dataset.direction = d;
+    document.documentElement.dataset.mode = document.getElementById('mode').value;
+    document.documentElement.dataset.palette = document.getElementById('palette').value;
+    ['sheet', 'rule', 'manual'].forEach(function (name) {
+      document.getElementById('v-' + name).classList.toggle('hidden', name !== d);
+    });
+    // The manual direction is light first, since its ground cannot be dark
+    // without becoming a different idea.
+    if (d === 'manual' && document.getElementById('mode').value === 'dark') {
+      document.getElementById('mode').value = 'light';
+      document.documentElement.dataset.mode = 'light';
+    }
+  }
+  ['direction', 'mode', 'palette'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', apply);
+  });
+  apply();
+}());
+</script>
+</body>
+</html>

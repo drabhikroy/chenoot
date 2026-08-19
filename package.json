@@ -1,0 +1,140 @@
+{
+  "name": "chenoot",
+  "version": "1.0.0",
+  "description": "Local-first desktop application that builds psychometric survey instruments through an auditable multi-step pipeline.",
+  "author": "Abhik Roy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drabhikroy/chenoot.git"
+  },
+  "homepage": "https://github.com/drabhikroy/chenoot",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "main": "src/main/main.js",
+  "scripts": {
+    "standards": "node test/standards-check.js && node test/audit-palettes.js",
+    "contracts": "node --test test/contracts.test.js",
+    "pretest": "npm run standards",
+    "test": "node --test test/*.test.js",
+    "build:icon": "node scripts/build-icon.js",
+    "build:svg": "node scripts/build-svg.js",
+    "build:renderer": "node scripts/build-palettes.js && esbuild src/renderer/main.jsx --bundle --outfile=src/renderer/app.js --loader:.jsx=jsx --jsx=automatic --format=iife --target=chrome120 --minify",
+    "watch:renderer": "npm run build:renderer -- --watch",
+    "start": "npm run build:renderer && electron .",
+    "prebuild": "npm run standards && npm run build:icon && npm run build:svg && npm run build:renderer",
+    "build": "electron-builder --mac --win --linux",
+    "dist:linux": "npm run prebuild && electron-builder --linux",
+    "dist:win": "npm run prebuild && electron-builder --win",
+    "dist:mac": "npm run prebuild && electron-builder --mac",
+    "dist:mac:zip": "npm run prebuild && electron-builder --mac zip",
+    "dist": "npm run prebuild && electron-builder --mac --win --linux",
+    "smoke": "xvfb-run -a node scripts/smoke.js",
+    "screens": "xvfb-run -a node scripts/screens.js",
+    "shots": "xvfb-run -a --server-args=\"-screen 0 1400x950x24\" node scripts/capture-screenshots.js",
+    "verify": "npm run standards && npm test && npm run smoke && npm run screens"
+  },
+  "build": {
+    "appId": "com.abhikroy.chenoot",
+    "productName": "Chenoot",
+    "copyright": "Copyright Abhik Roy",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/main/**/*",
+      "src/renderer/index.html",
+      "src/renderer/app.js",
+      "src/renderer/tokens/*.css",
+      "src/renderer/styles/*.css",
+      "src/renderer/fonts/*",
+      "LICENSE",
+      "node_modules/**/*"
+    ],
+    "asar": true,
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "darkModeSupport": true,
+      "identity": null,
+      "hardenedRuntime": false,
+      "artifactName": "Chenoot-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "${productName}",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "iconSize": 112,
+      "iconTextSize": 13,
+      "contents": [
+        {
+          "x": 150,
+          "y": 195,
+          "type": "file"
+        },
+        {
+          "x": 390,
+          "y": 195,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Chenoot-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Science",
+      "synopsis": "Auditable psychometric instrument construction",
+      "artifactName": "Chenoot.${ext}"
+    }
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  },
+  "devDependencies": {
+    "electron": "^43.0.0",
+    "electron-builder": "^24.13.3",
+    "esbuild": "0.23.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
