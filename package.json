@@ -71,12 +71,14 @@
       ],
       "category": "public.app-category.productivity",
       "darkModeSupport": true,
+      "minimumSystemVersion": "12.0",
       "identity": null,
       "hardenedRuntime": false,
       "artifactName": "Chenoot-${arch}.${ext}"
     },
     "dmg": {
       "title": "${productName}",
+      "background": "build/dmg-background.png",
       "window": {
         "width": 540,
         "height": 380
@@ -86,14 +88,21 @@
       "contents": [
         {
           "x": 150,
-          "y": 195,
+          "y": 180,
           "type": "file"
         },
         {
           "x": 390,
-          "y": 195,
+          "y": 180,
           "type": "link",
           "path": "/Applications"
+        },
+        {
+          "x": 270,
+          "y": 310,
+          "type": "file",
+          "path": "build/Installation Help.html",
+          "name": "Installation Help"
         }
       ]
     },

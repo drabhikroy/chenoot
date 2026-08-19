@@ -1,7 +1,7 @@
 # Chenoot
 
 Chenoot is a desktop application for creating draft psychometric survey
-instruments with AI. A psychometric instrument is a questionnaire designed to
+instruments with machine learning. A psychometric instrument is a questionnaire designed to
 measure a construct, such as an attitude, belief, behavior, or other concept.
 
 Tell Chenoot what you want to measure, who will answer the survey, how the
@@ -19,49 +19,62 @@ how each instrument was produced.
 
 ![The Chenoot landing page](docs/images/landing-dark.png)
 
-By default, Chenoot runs on your computer with a local AI model through Ollama.
-Your survey content stays on your computer, and you do not need an account, API
-key, or internet connection. Chenoot also has an optional remote API mode. When
+By default, Chenoot runs on your computer with a local language model through Ollama.
+Your survey content stays on your computer, and you do not need an account or
+API key. An internet connection is needed to download Ollama and your models.
+After they are installed, the local workflow can run without an internet
+connection. Chenoot also has an optional remote API mode. When
 you choose that mode, survey content is sent to the provider you select. More
 detail appears in [Remote API mode](#remote-api-mode).
 
-## Downloading Chenoot
+## Installation
 
-The macOS version is currently available. Windows and Linux versions are coming
-soon.
+The current public release is available for macOS. Windows and Linux versions
+are coming soon.
 
-**[Download the latest release](https://github.com/drabhikroy/chenoot/releases/latest)**
+### Download and install on macOS
 
-Choose the version that matches your Mac:
+1. Download the version that matches your Mac:
+   - **Apple Silicon (ARM64, M1/M2/M3/M4)**:
+     [Chenoot-arm64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.dmg)
+   - **Intel (x64)**:
+     [Chenoot-x64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.dmg)
+2. Open the downloaded `.dmg`.
+3. Drag Chenoot to the **Applications** folder.
+4. Open Chenoot from **Applications**.
 
-- **Apple Silicon (ARM64, M1/M2/M3/M4)**:
-  [Chenoot-arm64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.dmg)
-- **Intel (x64)**:
-  [Chenoot-x64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.dmg)
+You can also open the
+[latest release page](https://github.com/drabhikroy/chenoot/releases/latest)
+if you want to see all available downloads.
 
 The downloaded application does not need Node.js or a copy of this repository.
 
-### Opening Chenoot on macOS
+### If macOS blocks Chenoot
 
-Chenoot has not yet been verified through Apple's paid developer signing and
-notarization process. Because of this, macOS may block the application or show a
-warning the first time you open it.
+Chenoot is not yet verified through Apple's developer program, so macOS may show
+a warning the first time you open it. The disk image also includes an
+**Installation Help** file. Double-click it for these instructions.
 
-On macOS Sequoia and later:
+If macOS says it cannot check Chenoot, try to open Chenoot once, then open
+**System Settings > Privacy & Security**. Find the security message about
+Chenoot and choose **Open Anyway**.
 
-1. Try to open Chenoot once.
-2. Open **System Settings**.
-3. Open **Privacy & Security**.
-4. Scroll to the security message that names Chenoot.
-5. Choose **Open Anyway**.
+If macOS says **“Chenoot.app is damaged and can&rsquo;t be opened”** and does not show
+an **Open Anyway** option, use the following command only if you downloaded
+Chenoot from the official GitHub release:
 
-That option appears only after macOS has blocked an opening attempt.
+```bash
+xattr -dr com.apple.quarantine "/Applications/Chenoot.app"
+```
 
-On earlier versions of macOS, right-click Chenoot, choose **Open**, then choose
-**Open** again in the dialog.
+Then open Chenoot again from **Applications**.
 
-The developer section below explains the separate code-signing requirement for
-Apple Silicon builds and how Chenoot handles builds created outside macOS.
+This command removes the download restriction from Chenoot only. It does not
+change the security settings for your other apps.
+
+If Chenoot still will not open, see
+[Developer verification and code signing](#developer-verification-and-code-signing)
+for diagnostic commands and build details.
 
 Building and tagging a release is described in `RELEASING.md`.
 
@@ -69,34 +82,55 @@ Building and tagging a release is described in `RELEASING.md`.
 
 For the current macOS release:
 
-- macOS 11 or later
-- [Ollama](https://ollama.com) installed and running
+- macOS 12 Monterey or later
 - About 16 GB of system memory as a practical starting point for a 7 to 8
   billion parameter model, with roughly 8 GB free for the model
 - More memory for larger models
+
+Local use requires Ollama and downloaded models, but you can install them from
+inside Chenoot during setup. An internet connection is needed for the initial
+Ollama and model downloads. After that, the local workflow can run without an
+internet connection.
 
 To build Chenoot from source, you also need Node.js 20 or later.
 
 ## Setup
 
-Install Ollama, then pull a generation model and an embedding model:
+Chenoot needs Ollama, a language model for generating and reviewing items, and
+an embedding model for text comparisons. You can set these up inside Chenoot or
+manage them yourself outside the application.
 
-```bash
-ollama pull llama3.1:8b
-ollama pull nomic-embed-text
-```
+### Recommended: set up inside Chenoot
 
-`qwen2.5:7b-instruct` also works and can be selected in Settings.
+For most users, the in-app setup is the simplest option.
 
-If a model is missing, Settings can download it and display progress. The
-terminal commands above are optional.
+1. Open Chenoot and go to **Settings**.
+2. If Ollama is not installed, use the local setup option to download and
+   install it.
+3. Choose a generation model from the options Chenoot shows for your machine and download it.
+4. Choose an embedding model from the options Chenoot shows for your machine and download it.
 
-### Using a separate critique model
+This approach keeps the initial setup in one place and does not require Terminal
+commands.
 
-You can pull a second model and select it as the critique model in Settings:
+### Manual setup
+
+If you prefer to manage Ollama yourself, install
+[Ollama](https://ollama.com), make sure it is running, then pull a generation
+model and an embedding model. For example:
 
 ```bash
 ollama pull qwen2.5:7b-instruct
+ollama pull nomic-embed-text
+```
+
+### Using a separate critique model
+
+A separate critique model is optional but recommended. You can download one
+from inside Chenoot or install it manually. For example:
+
+```bash
+ollama pull granite3.3:2b
 ```
 
 Using the same model to write and review an item can cause the review to repeat
@@ -113,7 +147,7 @@ decision.
 - **Measured** means Chenoot calculated something directly from the text. Examples
   include a Flesch-Kincaid grade level or cosine similarity. The same calculation
   can be repeated.
-- **Model judgment** means the AI model assessed an item against a stated
+- **Model judgment** means the language model assessed an item against a stated
   criterion, such as whether the wording leads the respondent. The audit trail
   records the text and criterion used for that judgment.
 - **Unverified recall** means the model supplied information from its own memory
@@ -383,54 +417,62 @@ The macOS build produces:
 - `Chenoot-x64.dmg` for Intel Macs
 - matching `.zip` files when that target is requested
 
-The disk image opens at 540 by 380 pixels with Chenoot on the left and an
-Applications shortcut on the right.
+The disk image opens at 540 by 380 pixels with Chenoot on the left, an
+Applications shortcut on the right, and an Installation Help file below.
 
 ### Developer verification and code signing
 
-The current public build is for macOS only. It is not signed with an Apple
-Developer identity or notarized through Apple's paid developer program.
+The current public build is for macOS only. In `package.json`, the macOS build
+sets `identity` to `null` and turns off the hardened runtime. This tells
+electron-builder to skip Apple developer signing. The build is also not
+notarized by Apple.
 
-The Windows and Linux sections below describe how those planned builds behave
-during development and packaging. They do not mean that Windows or Linux
-downloads are currently available.
+That matters because macOS applies extra checks to applications downloaded from
+the internet. Depending on the macOS version and the build, the user may see a
+message that Apple cannot check the application or a message saying the
+application is damaged.
 
-On macOS, developer verification and executable code signing are separate
-issues.
+For a downloaded copy from the official Chenoot release, removing the quarantine
+marker is a temporary way to test the unsigned build:
 
-Downloaded applications receive a quarantine marker, which can lead macOS to
-say that the developer cannot be verified. The opening steps in
-[Opening Chenoot on macOS](#opening-chenoot-on-macos) address that warning.
+```bash
+xattr -dr com.apple.quarantine "/Applications/Chenoot.app"
+```
 
-Apple Silicon has an additional requirement. Since macOS Big Sur, ARM64
-executables must carry a valid code signature before the operating system will
-run them. An ad-hoc signature satisfies that technical requirement but does not
-verify who published the application.
+This applies only to Chenoot. Do not disable Gatekeeper system-wide.
 
-A macOS `.zip` created outside macOS cannot receive that signature during the
-build. After moving the bundle to a Mac, unzip it and run the included script
-from the same folder:
+If the application still does not open, check the bundle from Terminal:
+
+```bash
+codesign --verify --deep --strict --verbose=4 "/Applications/Chenoot.app"
+spctl --assess --type execute --verbose=4 "/Applications/Chenoot.app"
+```
+
+Because the current build deliberately skips Apple developer signing,
+`codesign` or `spctl` may report that no usable developer signature is present.
+These commands are still useful for distinguishing that expected state from a
+bundle that was changed or damaged after packaging.
+
+For normal public distribution without these extra opening steps, the macOS
+application should be signed with an Apple Developer ID certificate and
+notarized by Apple.
+
+A macOS `.zip` created outside macOS cannot receive Apple developer signing
+during that build. Chenoot also includes a preparation script for testing a
+bundle on a Mac:
 
 ```bash
 ./prepare-macos.sh Chenoot.app
 ```
 
-Do not run `codesign --deep` manually. On Chenoot's bundle, which contains four
-frameworks and four helper applications, that approach can produce a signature
-that fails validation. The supplied script signs the nested libraries,
-frameworks, helper applications, and then Chenoot itself in the required order.
+Do not run `codesign --deep` manually. Chenoot contains nested frameworks and
+helper applications, so signing only the outer application can leave the bundle
+in an invalid state. The supplied script works from the nested components
+outward.
 
-On macOS Sequoia and later, the older right-click and Open path no longer
-provides the bypass described for earlier versions. After macOS blocks Chenoot,
-open **System Settings**, then **Privacy & Security**, and choose **Open Anyway**
-for Chenoot. The option appears only after an opening attempt has been blocked.
-
-Intel Macs do not have the Apple Silicon executable-signature requirement. The
-quarantine warning can still appear.
-
-If a macOS build remains blocked, running from source avoids this issue because
-the Electron binary installed by npm is already signed and notarized by its
-publisher:
+If a macOS build remains blocked, running from source avoids the downloaded-app
+quarantine step because the Electron binary installed by npm comes from the
+Electron package:
 
 ```bash
 npm install
@@ -451,8 +493,8 @@ chmod +x Chenoot-*.AppImage
 ./Chenoot-*.AppImage
 ```
 
-For paid developer signing, add `mac.identity` and `win.certificateFile` to the
-`build` block in `package.json`.
+For paid developer signing, add the appropriate Apple and Windows signing
+credentials to the build configuration.
 
 ### Release file names
 
@@ -467,7 +509,7 @@ notes are stored in files such as `docs/RELEASE-NOTES-1.0.0.md`.
 
 ```text
 src/main/            Main process. Renderer code does not reach this directly.
-  backends/          The AIBackend interface and its implementations.
+  backends/          The backend interface and its implementations.
   pipeline/          Pipeline steps, the orchestrator, and the audit trail.
     rubric/          The measured part of the Step 4 rubric.
   prompts/           One prompt template per step, separate from step logic.
@@ -485,7 +527,7 @@ why it selected that type. It does not write the response labels itself.
 
 Response labels come from a balanced catalog. This avoids common model errors,
 such as returning six labels when seven were requested or placing the midpoint
-off center. Chenoot treats balanced labels as a fixed lookup rather than an AI
+off center. Chenoot treats balanced labels as a fixed lookup rather than a model
 judgment.
 
 ## License
