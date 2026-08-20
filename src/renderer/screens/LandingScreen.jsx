@@ -237,7 +237,7 @@ export function LandingScreen({ onEnter, onFormats }) {
     <div className="landing">
       <section className="landing-hero">
         <div className="landing-hero-text">
-        <p className="eyebrow">Survey instrument construction</p>
+        <p className="eyebrow">Auditable survey instrument construction</p>
         <h1 className="landing-headline">
           Questions designed the way a seasoned survey expert would
         </h1>

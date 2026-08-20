@@ -22,12 +22,12 @@
     "watch:renderer": "npm run build:renderer -- --watch",
     "start": "npm run build:renderer && electron .",
     "prebuild": "npm run standards && npm run build:icon && npm run build:svg && npm run build:renderer",
-    "build": "electron-builder --mac --win --linux",
-    "dist:linux": "npm run prebuild && electron-builder --linux",
-    "dist:win": "npm run prebuild && electron-builder --win",
-    "dist:mac": "npm run prebuild && electron-builder --mac",
-    "dist:mac:zip": "npm run prebuild && electron-builder --mac zip",
-    "dist": "npm run prebuild && electron-builder --mac --win --linux",
+    "build": "electron-builder --config electron-builder.config.cjs --mac --win --linux",
+    "dist:linux": "npm run prebuild && electron-builder --config electron-builder.config.cjs --linux",
+    "dist:win": "npm run prebuild && electron-builder --config electron-builder.config.cjs --win",
+    "dist:mac": "npm run prebuild && electron-builder --config electron-builder.config.cjs --mac",
+    "dist:mac:zip": "npm run prebuild && electron-builder --config electron-builder.config.cjs --mac zip",
+    "dist": "npm run prebuild && electron-builder --config electron-builder.config.cjs --mac --win --linux",
     "smoke": "xvfb-run -a node scripts/smoke.js",
     "screens": "xvfb-run -a node scripts/screens.js",
     "shots": "xvfb-run -a --server-args=\"-screen 0 1400x950x24\" node scripts/capture-screenshots.js",
@@ -80,29 +80,22 @@
       "title": "${productName}",
       "background": "build/dmg-background.png",
       "window": {
-        "width": 540,
-        "height": 380
+        "width": 820,
+        "height": 615
       },
       "iconSize": 112,
-      "iconTextSize": 13,
+      "iconTextSize": 14,
       "contents": [
         {
-          "x": 150,
-          "y": 180,
+          "x": 220,
+          "y": 217,
           "type": "file"
         },
         {
-          "x": 390,
-          "y": 180,
+          "x": 590,
+          "y": 217,
           "type": "link",
           "path": "/Applications"
-        },
-        {
-          "x": 270,
-          "y": 310,
-          "type": "file",
-          "path": "build/Installation Help.html",
-          "name": "Installation Help"
         }
       ]
     },
@@ -141,7 +134,7 @@
   },
   "devDependencies": {
     "electron": "^43.0.0",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.5.0",
     "esbuild": "0.23.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

@@ -59,7 +59,7 @@ If macOS says it cannot check Chenoot, try to open Chenoot once, then open
 **System Settings > Privacy & Security**. Find the security message about
 Chenoot and choose **Open Anyway**.
 
-If macOS says **“Chenoot.app is damaged and can’t be opened”** and does not show
+If macOS says **“Chenoot.app is damaged and can&rsquo;t be opened”** and does not show
 an **Open Anyway** option, use these steps only if you downloaded Chenoot from
 the official GitHub release:
 
