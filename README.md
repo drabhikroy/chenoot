@@ -1,16 +1,8 @@
 # Chenoot
 
-Chenoot is a desktop application for creating draft psychometric survey
-instruments with machine learning. A psychometric instrument is a questionnaire designed to
-measure a construct, such as an attitude, belief, behavior, or other concept.
+Chenoot is a desktop application for creating draft survey instruments with local machine learning. It is designed for questionnaires that measure constructs such as attitudes, beliefs, behaviors, and other concepts.
 
-Tell Chenoot what you want to measure, who will answer the survey, how the
-results will be used, and about how long the instrument should be. Chenoot then
-breaks the construct into dimensions, creates a larger pool of candidate items,
-reviews each item against a fixed rubric, rewrites items that do not pass,
-removes near-duplicates, selects a response scale, assembles the instrument, and
-records each decision in an audit trail. Once a run starts, Chenoot can complete
-the pipeline without further input.
+Tell Chenoot what you want to measure, who will answer the survey, how the results will be used, and about how long the instrument should be. Chenoot then breaks the construct into dimensions, creates a larger pool of candidate items, reviews each item against a fixed rubric, rewrites items that do not pass, removes near-duplicates, selects a response scale, assembles the instrument, and records each decision in an audit trail.
 
 Chenoot takes its name from ṯnwt, an ancient Egyptian term used for a census or
 a reckoning of people. The name reflects the application's focus on building
@@ -95,7 +87,7 @@ inside Chenoot during setup. An internet connection is needed for the initial
 Ollama and model downloads. After that, the local workflow can run without an
 internet connection.
 
-To build Chenoot from source, you also need Node.js 20 or later.
+To build Chenoot from source, you also need Node.js 22.12.0 or later.
 
 ## Setup
 
@@ -395,7 +387,7 @@ npm run dist:linux    # .AppImage
 npm run dist:win      # .exe, NSIS installer
 npm run dist:mac      # .dmg and .zip, arm64 and x64. Needs macOS.
 npm run dist:mac:zip  # .zip only. Can be built from any host.
-npm run dist          # all three targets
+npm run dist          # macOS .dmg and .zip, arm64 and x64
 ```
 
 Output is written to `dist/`. The `dist/` directory contains generated release
@@ -420,7 +412,7 @@ The macOS build produces:
 - `Chenoot-x64.dmg` for Intel Macs
 - matching `.zip` files when that target is requested
 
-The disk image opens at 540 by 380 pixels with Chenoot on the left, an
+The disk image opens at 820 by 587 pixels with Chenoot on the left, an
 Applications shortcut on the right, and an Installation Help file below.
 
 ### Developer verification and code signing
@@ -511,6 +503,8 @@ notes are stored in files such as `docs/RELEASE-NOTES-1.0.0.md`.
 ### Project layout
 
 ```text
+electron-builder.config.cjs
+                     Portable DMG configuration for installer file placement.
 src/main/            Main process. Renderer code does not reach this directly.
   backends/          The backend interface and its implementations.
   pipeline/          Pipeline steps, the orchestrator, and the audit trail.
