@@ -116,19 +116,20 @@
       "allowToChangeInstallationDirectory": true,
       "perMachine": false
     },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "category": "Science",
-      "synopsis": "Auditable psychometric instrument construction",
-      "artifactName": "Chenoot.${ext}"
-    }
+   "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "category": "Science",
+    "synopsis": "Auditable psychometric instrument construction",
+    "artifactName": "Chenoot-${arch}.${ext}"
+  }
   },
   "dependencies": {
     "docx": "^9.7.1"

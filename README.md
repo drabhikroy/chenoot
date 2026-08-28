@@ -46,8 +46,13 @@ Chenoot is available for macOS, Windows, and Linux.
 
 ### Linux
 
-1. Download [Chenoot.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot.AppImage).
-2. Make it executable with `chmod +x Chenoot.AppImage`.
+1. Download the version that matches your machine. Run `uname -m` if you are
+   unsure. It prints `x86_64` for the first and `aarch64` for the second.
+   - **Intel or AMD (x86_64)**:
+     [Chenoot-x64.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.AppImage)
+   - **ARM (aarch64)**:
+     [Chenoot-arm64.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.AppImage)
+2. Make it executable with `chmod +x`, using whichever file you downloaded.
 3. Run it directly. No installation step is required.
 
 Install Ollama yourself before opening Chenoot on Linux. The setup screen can

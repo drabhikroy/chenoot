@@ -20,6 +20,8 @@ Entries are written as changes land. Dates are the day the version was tagged.
 
 - Windows and Linux artifacts are published alongside macOS. Version 1.0.0 was
   released with the macOS build only.
+- The Linux build is published for ARM as well as for Intel and AMD. Both are
+  AppImages and each names its architecture.
 
 ## 1.0.0
 
