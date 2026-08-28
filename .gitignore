@@ -30,4 +30,5 @@ yarn-error.log*
 coverage/
 
 # Generated files
-src/renderer/build-stamp.js*.tar.gz
+src/renderer/build-stamp.js
+*.tar.gz
