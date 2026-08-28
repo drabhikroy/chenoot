@@ -1,6 +1,6 @@
 {
   "name": "chenoot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Local-first desktop application that builds psychometric survey instruments through an auditable multi-step pipeline.",
   "author": "Abhik Roy",
   "repository": {
