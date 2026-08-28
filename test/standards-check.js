@@ -73,8 +73,8 @@ const failures = [];
 const files = walk(ROOT, []);
 
 files.forEach(function (file) {
-  const relative = path.relative(ROOT, file);
-  if (GENERATED.has(relative.split(path.sep).join('/'))) {
+  const relative = path.relative(ROOT, file).split(path.sep).join('/');
+    if (GENERATED.has(relative)) {
     return;
   }
   const source = fs.readFileSync(file, 'utf8');
