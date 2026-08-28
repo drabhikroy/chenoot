@@ -61,8 +61,20 @@ On aarch64, or if the AppImage does not start, take the archive instead:
    [Chenoot-arm64.tar.gz](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.tar.gz)
    or
    [Chenoot-x64.tar.gz](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.tar.gz).
-2. Unpack it with `tar -xzf`, using whichever file you downloaded.
-3. Run the `chenoot` program inside the folder it creates.
+2. Unpack it with `tar -xzf`, using whichever file you downloaded. It creates a
+   folder named for the architecture.
+3. Give the sandbox helper the ownership it requires, replacing the folder name
+   with the one you have:
+
+   ```bash
+   sudo chown root:root Chenoot-arm64/chrome-sandbox
+   sudo chmod 4755 Chenoot-arm64/chrome-sandbox
+   ```
+
+   An archive cannot record file ownership, so this arrives owned by you rather
+   than by root. Chromium refuses to start without it, and running with the
+   sandbox turned off instead is worse than the two commands.
+4. Run the `chenoot` program inside the folder.
 
 Install Ollama yourself before opening Chenoot on Linux. The setup screen can
 download and manage Ollama on macOS and Windows, but Ollama publishes no Linux
