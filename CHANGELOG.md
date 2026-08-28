@@ -2,6 +2,20 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
+## [1.0.2] - 2026-08-28
+
+### Fixed
+
+- Setup and Help said the application could download and manage Ollama without
+  saying where that is true. It is offered on macOS and Windows only, and both
+  screens now say so and point at the download page instead.
+- The message shown where Ollama cannot be managed named the platform by its
+  build identifier, so a Linux user read something like "linux-arm64", and the
+  download address it gave was not a link.
+- Setup said both the runtime and the models are stored inside the application.
+  Models are kept where Ollama keeps them, which the same screen already said
+  further down.
+
 ## [1.0.1] - 2026-08-26
 
 ### Fixed

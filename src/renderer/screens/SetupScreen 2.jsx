@@ -10,32 +10,12 @@ import { ModelChooser } from '../components/ModelChooser.jsx';
 // not know that or which comes first. Showing two numbered steps with a clear
 // result after each makes that order visible without requiring prior knowledge.
 //
-// The first step can end in three ways. If Ollama is already installed and
-// running, nothing more is needed. If it is missing on a platform this
-// application can manage, it offers to install it. Where it cannot, Setup says
-// so and sends the person to the download page, rather than showing a button
-// that would fail.
-
-// The runtime reports a build identifier like linux-arm64, which is the right
-// shape for a log and the wrong one for a sentence somebody reads. This turns it
-// into the name they would use for their own computer. An unrecognized key is
-// passed through rather than guessed at, so a new platform reads awkwardly
-// instead of reading wrongly.
-function platformName(key) {
-  if (!key) {
-    return 'this platform';
-  }
-  if (key.indexOf('darwin') === 0) {
-    return 'macOS';
-  }
-  if (key.indexOf('win32') === 0) {
-    return 'Windows';
-  }
-  if (key.indexOf('linux') === 0) {
-    return 'Linux';
-  }
-  return key;
-}
+// The first steps can end in three ways. If Ollama is already installed and
+// running, nothing more is needed. If it is missing on a supported platform,
+// the app can install it. On platforms where the app cannot manage installation,
+// Setup explains this and points to the manual instructions instead of offering
+// a button that would fail. points at the manual
+// route, and not offering a button that would fail.
 
 // Each symbol is paired with a word. The label makes the meaning clear without
 // relying on the symbol alone.
@@ -98,9 +78,8 @@ export function SetupScreen({
       <p className="eyebrow">Setup</p>
       <h1 className="title-display">Two things to get going</h1>
       <p className="lede">
-        You will need two things to get started: a program that handles processing locally and a
-        model for it to use. Each only needs to be set up once. The models stay on your machine,
-        where other programs that connect to Ollama can use them too.
+        You will need to download two items to get started: a program that handles processing locally
+        and a model for it to use. Both are stored within the app, and each only needs to be set up once.
       </p>
 
       {/* ---- Step one ---- */}
@@ -172,25 +151,12 @@ export function SetupScreen({
             ) : null}
           </>
         ) : (
-          // No install button here, since this application has no route it could
-          // take on this platform. The download page is a button all the same:
-          // somebody who has to go there needs the way to get there more than
-          // somebody who is being offered an alternative.
-          <>
-            <p className="help-para">
-              This application cannot install Ollama for you on {platformName(state.platform)},
-              so you will need to install it yourself. Once it is running, this application finds
-              it and this step completes on its own. The second step works the same way either way.
-            </p>
-            <div className="actions">
-              <button
-                className="primary"
-                onClick={function () { window.open('https://ollama.com/download', '_blank'); }}
-              >
-                Get Ollama
-              </button>
-            </div>
-          </>
+          // Explain why no button is available instead of showing a control
+          // that cannot work.
+          <p className="help-para">
+                This application cannot manage Ollama on {state.platform}. However, you can install it
+                yourself from ollama.com/download. Once it is running, it will be detected automatically.
+          </p>
         )}
       </section>
 

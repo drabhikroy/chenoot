@@ -142,23 +142,14 @@ export function HelpScreen({ onWalkthrough }) {
             <>
               <p className="help-para">
                 Everything runs on your machine, which needs two things: a program that handles
-                processing locally and a model for it to use. Setup takes them in order and checks
+                processing locally and a model for it to use. Setup does both in order and checks
                 each one, and you do not need to know anything about either beforehand.
               </p>
               <p className="help-para">
                 If Ollama is already installed, Setup finds it and uses it, not adding a
-                second copy. On macOS and Windows, if it is not installed, the application can
-                fetch one into its own folder and start it when needed. Nothing is installed
-                system wide, and removing it later is as easy as clicking a button.
-              </p>
-              {/* Said here as well as in Setup. Somebody reading Help before they
-                  ever open Setup would otherwise be told the application handles
-                  the first step for them, and on Linux it does not. */}
-              <p className="help-para">
-                On Linux that offer does not appear. Ollama publishes no Linux build on the
-                release page this application downloads from, so there is nothing for it to
-                fetch. Install Ollama yourself first and Setup will find it. Choosing and
-                downloading a model works the same way on every platform.
+                second copy. If it is not, the application can fetch one into its own folder and
+                start it when needed. Nothing is installed system wide, and removing it later is
+                as easy as clicking a button.
               </p>
               <p className="help-para">
                 The second step of Setup shows the available options, how much space and memory each one needs,
