@@ -10,14 +10,9 @@
 
 </div>
 
-Chenoot is a desktop application for creating draft survey instruments with local machine learning. It is designed for questionnaires that measure constructs such as attitudes, beliefs, behaviors, and other concepts.
+Chenoot is a desktop application for creating draft survey instruments with local machine learning. It is intended for questionnaires that measure constructs such as attitudes, beliefs, behaviors, and other concepts.
 
-Tell Chenoot what you want to measure, who will answer the survey, how the results will be used, and about how long the instrument should be. Chenoot then breaks the construct into dimensions, creates a larger pool of candidate items, reviews each item against a fixed rubric, rewrites items that do not pass, removes near-duplicates, selects a response scale, assembles the instrument, and records each decision in an audit trail.
-
-Chenoot takes its name from ṯnwt, an ancient Egyptian term used for a census or
-a reckoning of people. The name reflects the application's focus on building
-instruments for collecting information about people while keeping a record of
-how each instrument was produced.
+To begin, describe what you want to measure, who will complete the survey, how the results will be used, and approximately how long the instrument should be. The application then breaks the construct into dimensions, develops a larger pool of candidate items, reviews each item against a fixed rubric, and revises items when needed. It also removes near-duplicates, selects an appropriate response scale, assembles the remaining items into a draft instrument, and keeps a record of the decisions made along the way.
 
 ![The Chenoot landing page](docs/images/landing-dark.png)
 
@@ -536,6 +531,13 @@ Response labels come from a balanced catalog. This avoids common model errors,
 such as returning six labels when seven were requested or placing the midpoint
 off center. Chenoot treats balanced labels as a fixed lookup rather than a model
 judgment.
+
+## What's in a Name?
+
+Chenoot takes its name from ṯnwt, an ancient Egyptian term used for a census or
+a reckoning of people. The name reflects the application's focus on building
+instruments for collecting information about people while keeping a record of
+how each instrument was produced.
 
 ## License
 
