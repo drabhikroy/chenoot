@@ -3,7 +3,9 @@
 # Rank & Folder
 
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
-[![Shiny](https://img.shields.io/badge/Shiny-R-276DC3?logo=r&logoColor=white)](#requirements)
+![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-black?logo=apple&logoColor=white)
+![Intel](https://img.shields.io/badge/Intel-x86__64-black?logo=apple&logoColor=white)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)](#requirements)
 [![Release](https://img.shields.io/github/v/release/drabhikroy/rank-and-folder)](https://github.com/drabhikroy/rank-and-folder/releases)
 
 </div>
