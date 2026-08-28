@@ -110,8 +110,8 @@ files.forEach(function (file) {
   // where the material came from and why it is kept separate from the formats
   // catalog.
   const isSource = path.extname(file) === '.js' || path.extname(file) === '.jsx';
-  const isTest = relative.endsWith('.test.js') || relative.startsWith('test' + path.sep);
-  const isReference = relative.startsWith(path.join('src', 'renderer', 'reference'));
+  const isTest = relative.endsWith('.test.js') || relative.startsWith('test/');
+  const isReference = relative.startsWith('src/renderer/reference');
   if (isSource && !isTest && !isReference) {
     const density = commentDensity(source);
     if (density.ratio < DENSITY_FLOOR) {
