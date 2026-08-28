@@ -67,6 +67,7 @@ jobs:
             dist/*.zip
             dist/*.exe
             dist/*.AppImage
+            dist/*.tar.gz
           if-no-files-found: error
 
   draft:
