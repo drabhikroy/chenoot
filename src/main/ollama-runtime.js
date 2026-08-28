@@ -23,17 +23,24 @@
 // One honest limitation. The download URLs below are Ollama's published release
 // assets, and the shape of those releases is outside this application's
 // control. If a release changes its naming, the download fails with a clear
-// message, not silently fetching something else, because the target is
-// checked for size and executability before it is ever run.
+// message, not silently fetching something else, because what arrives is
+// checked for size, against the checksum Ollama publishes beside it, and for
+// executability before it is ever run.
 
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
+const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 const { app } = require('electron');
 
 const RELEASE_BASE = 'https://github.com/ollama/ollama/releases/latest/download';
+
+// Ollama publishes one file of checksums covering every asset in a release. It
+// is fetched alongside the archive so what arrived can be compared against what
+// they published.
+const CHECKSUM_ASSET = 'sha256sum.txt';
 
 // Release assets per platform. It requested names like "ollama-darwin",
 // received a 404 page, and failed the size check, which is at least the
@@ -177,6 +184,54 @@ async function status(host) {
   };
 }
 
+// The published checksum for one asset, or null when the list cannot be had.
+//
+// Returning null rather than throwing is deliberate. A checksum that cannot be
+// fetched is a worse position than one that matches and a better position than
+// no check at all, and refusing to install over an unreachable text file would
+// turn a brief network fault into an application somebody cannot set up. What
+// it must never do is treat an absent checksum as a passing one, so the caller
+// is told which of the two happened and says so on screen.
+async function publishedChecksum(assetName, signal) {
+  try {
+    const response = await fetch(RELEASE_BASE + '/' + CHECKSUM_ASSET, { signal, redirect: 'follow' });
+    if (!response.ok) {
+      return null;
+    }
+    const listing = await response.text();
+    // Each line is a hash, whitespace, then a path that may carry a leading
+    // dot and slash. Matching on the file name at the end avoids depending on
+    // how that path is written.
+    const lines = listing.split('\n');
+    for (const line of lines) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length < 2) {
+        continue;
+      }
+      const named = parts[parts.length - 1].replace(/^\.\//, '');
+      if (named === assetName && /^[a-f0-9]{64}$/i.test(parts[0])) {
+        return parts[0].toLowerCase();
+      }
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+// Hashed in chunks off a read stream, since these archives are well over a
+// hundred megabytes and reading one into memory to hash it would be a needless
+// spike on a machine that is about to load a language model.
+function fileChecksum(target) {
+  return new Promise(function (resolve, reject) {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(target);
+    stream.on('error', reject);
+    stream.on('data', function (chunk) { hash.update(chunk); });
+    stream.on('end', function () { resolve(hash.digest('hex')); });
+  });
+}
+
 // Download and unpack the release, reporting progress throughout.
 //
 // Four phases, and each one is reported separately, because they take very
@@ -252,6 +307,31 @@ async function install(onProgress, signal) {
     );
   }
 
+  // Size says the transfer was not truncated. The checksum says the bytes are
+  // the ones Ollama published, which is a different question and the one that
+  // matters before anything here is made executable.
+  //
+  // Worth being plain about the limit of this. The checksum comes from the same
+  // release as the archive, so somebody able to tamper with one could tamper
+  // with both. What it does catch is a corrupted transfer, a bad cache, and
+  // anything that reached one request and not the other. That is a good deal
+  // more than a size floor and it is the most that can be had while following
+  // whichever release is current.
+  const expected = await publishedChecksum(spec.asset, signal);
+  let verified = false;
+  if (expected) {
+    const actual = await fileChecksum(archive);
+    if (actual !== expected) {
+      await fsp.unlink(archive).catch(function () { return null; });
+      throw new Error(
+        'What arrived does not match the checksum Ollama published for ' + spec.asset + '. ' +
+        'It was discarded and not unpacked. This usually means the download was corrupted, ' +
+        'so trying again often works.'
+      );
+    }
+    verified = true;
+  }
+
   report('extracting', 'Unpacking', 0, 0);
   await extract(archive, spec.archive);
   await fsp.unlink(archive).catch(function () { return null; });
@@ -267,18 +347,25 @@ async function install(onProgress, signal) {
   // Unpacked, not running. The final phase belongs to whoever performs that
   // last step.
   report('unpacked', 'Unpacked', 1, 1);
-  return { ok: true, path: target, bytes: stat.size };
+  return { ok: true, path: target, bytes: stat.size, verified: verified };
 }
 
-// Unpacking uses the tools the operating system already ships,, not
-// carrying an archive library for one operation. tar is present on macOS by
-// default; Expand-Archive is part of PowerShell on Windows.
+// Unpacking uses the tools the operating system already ships, not carrying an
+// archive library for one operation. tar is present on macOS by default;
+// Expand-Archive is part of PowerShell on Windows.
+//
+// On Windows the paths are passed as parameters rather than pasted into the
+// command text. Both of them run through the user data directory, which carries
+// the account name, and an account name holding a quote would otherwise end the
+// quoting early and leave the rest of the path to be read as further commands.
 function extract(archive, kind) {
   return new Promise(function (resolve, reject) {
     const directory = runtimeDirectory();
     const command = kind === 'zip'
       ? { file: 'powershell', args: ['-NoProfile', '-Command',
-          'Expand-Archive -LiteralPath "' + archive + '" -DestinationPath "' + directory + '" -Force'] }
+          'param($Archive, $Destination) Expand-Archive -LiteralPath $Archive ' +
+          '-DestinationPath $Destination -Force', '-Archive', archive,
+          '-Destination', directory] }
       : { file: 'tar', args: ['-xzf', archive, '-C', directory] };
 
     const unpack = spawn(command.file, command.args, { stdio: 'ignore' });

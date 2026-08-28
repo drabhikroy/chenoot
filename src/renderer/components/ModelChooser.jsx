@@ -36,7 +36,7 @@ function Consent({ reads, onGrant, onSkip }) {
       <p className="help-para">
         That is the whole list. No identifiers, nothing about your files or your network. It
         stays on this machine and you can revoke it at any time, which discards the reading
-        never only stopping further ones.
+        rather than only stopping further ones.
       </p>
       <div className="actions">
         <button className="primary" onClick={function () { onGrant(true); }}>

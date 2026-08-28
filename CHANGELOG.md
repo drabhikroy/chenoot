@@ -2,6 +2,27 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
+## [1.0.4] - 2026-08-28
+
+### Fixed
+
+- The downloaded Ollama runtime is checked against the checksum Ollama
+  publishes beside it before anything is unpacked or made executable. It was
+  checked only for being larger than twenty megabytes, which catches a
+  truncated transfer and nothing else. A file that does not match is discarded.
+- On Windows the unpacking command built its arguments by joining text, so a
+  path containing a quote could have ended the quoting early. The paths are
+  passed as parameters now.
+- The consent panel said revoking a machine reading discards it "never only
+  stopping further ones", which was garbled and said the opposite of what
+  happens.
+
+### Changed
+
+- The build tooling moves to electron-builder 26.15.3. Earlier versions
+  produced AppImages that could search the current directory for libraries.
+  This affects the Linux AppImage from previous releases.
+
 ## [1.0.3] - 2026-08-28
 
 ### Fixed
