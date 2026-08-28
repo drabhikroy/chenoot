@@ -1,6 +1,6 @@
 <div align="left">
 
-# Rank & Folder
+# Chenoot
 
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-black?logo=apple&logoColor=white)
