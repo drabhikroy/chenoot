@@ -1,14 +1,12 @@
-<div align="left">
 
 # Chenoot
 
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-black?logo=apple&logoColor=white)
 ![Intel](https://img.shields.io/badge/Intel-x86__64-black?logo=apple&logoColor=white)
-[![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)](#requirements)
-[![Release](https://img.shields.io/github/v/release/drabhikroy/rank-and-folder)](https://github.com/drabhikroy/rank-and-folder/releases)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#requirements)
+[![Release](https://img.shields.io/github/v/release/drabhikroy/chenoot)](https://github.com/drabhikroy/chenoot/releases)
 
-</div>
 
 Chenoot is a desktop application for creating draft survey instruments with local machine learning. It is intended for questionnaires that measure constructs such as attitudes, beliefs, behaviors, and other concepts.
 
@@ -26,10 +24,9 @@ detail appears in [Remote API mode](#remote-api-mode).
 
 ## Installation
 
-The current public release is available for macOS. Windows and Linux versions
-are coming soon.
+Chenoot is available for macOS, Windows, and Linux.
 
-### Download and install on macOS
+### macOS
 
 1. Download the version that matches your Mac:
    - **Apple Silicon (ARM64, M1/M2/M3/M4)**:
@@ -40,11 +37,24 @@ are coming soon.
 3. Drag Chenoot to the **Applications** folder.
 4. Open Chenoot from **Applications**.
 
-You can also open the
-[latest release page](https://github.com/drabhikroy/chenoot/releases/latest)
-if you want to see all available downloads.
+### Windows
 
-The downloaded application does not need Node.js or a copy of this repository.
+1. Download [Chenoot-Setup.exe](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-Setup.exe).
+2. Run the installer. It installs for the current user and lets you choose the
+   location.
+3. Open Chenoot from the Start menu.
+
+### Linux
+
+1. Download [Chenoot.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot.AppImage).
+2. Make it executable with `chmod +x Chenoot.AppImage`.
+3. Run it directly. No installation step is required.
+
+Install Ollama yourself before opening Chenoot on Linux. The setup screen can
+download and manage Ollama on macOS and Windows, but Ollama publishes no Linux
+build on the release endpoint Chenoot downloads from, so that route is not
+offered there. The [Ollama site](https://ollama.com/download) has the Linux
+instructions.
 
 ### If macOS blocks Chenoot
 
@@ -80,12 +90,12 @@ Building and tagging a release is described in `RELEASING.md`.
 
 ## Requirements
 
-For the current macOS release:
+For the current release:
 
-- macOS 12 Monterey or later
-- About 16 GB of system memory as a practical starting point for a 7 to 8
-  billion parameter model, with roughly 8 GB free for the model
-- More memory for larger models
+- macOS 12 Monterey or later, Windows 10 or later, or a Linux distribution with
+  FUSE available for running AppImages
+- 64-bit Intel or AMD processors on Windows and Linux, Apple Silicon or Intel
+  on macOS
 
 Local use requires Ollama and downloaded models, but you can install them from
 inside Chenoot during setup. An internet connection is needed for the initial

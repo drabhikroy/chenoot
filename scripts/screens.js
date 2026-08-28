@@ -260,15 +260,13 @@ async function checkHandles(client, open, failures) {
   }
 }
 
-// A finished run on disk, so the results screen has something to draw. Written
-// under the same name every time and left in place: it is one small file, and a
-// check that cleaned up after itself would also delete a real archive if the
-// path were ever wrong.
-function writeProbeRun() {
-  const base = process.platform === 'darwin'
-    ? path.join(os.homedir(), 'Library', 'Application Support', 'Chenoot')
-    : path.join(os.homedir(), '.config', 'Chenoot');
-  const directory = path.join(base, 'runs');
+// A finished run on disk, so the results screen has something to draw. It goes
+// into the throwaway profile the walk runs against, which is thrown away with
+// it. Before that it was written into the real archive under the home
+// directory, where it stayed, so anybody who ran this check ended up with a
+// fabricated run sitting among their own.
+function writeProbeRun(profile) {
+  const directory = path.join(profile, 'runs');
   fs.mkdirSync(directory, { recursive: true });
 
   const labels = [
@@ -328,9 +326,30 @@ function writeProbeRun() {
 }
 
 async function run() {
+  // A throwaway profile, so the walk always meets a machine that has not been
+  // set up yet. The first setup step offers to install the runtime only when
+  // the runtime is absent, and any machine this has already run on has it, so
+  // without this the check reads the state of whoever ran it rather than the
+  // state of the screen.
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'chenoot-screens-'));
+
+  // A settings file pointing at a port nothing answers on. The runtime status
+  // is derived from whether an address responds, and with no settings file the
+  // check falls back to the default Ollama port. Any machine with Ollama
+  // installed is answering there, which sits outside the profile and beyond
+  // what the profile can isolate, so the first setup step reported itself ready
+  // and offered nothing to click. A dead address puts that step into the state
+  // this check was written for, without an environment hook and without
+  // touching the application.
+  fs.writeFileSync(
+    path.join(profile, 'settings.json'),
+    JSON.stringify({ backend: 'ollama', host: 'http://127.0.0.1:49213' }),
+    'utf8'
+  );
+
   const child = spawn(
     path.join(ROOT, 'node_modules', '.bin', 'electron'),
-    ['.', '--no-sandbox', '--remote-debugging-port=' + PORT],
+    ['.', '--no-sandbox', '--user-data-dir=' + profile, '--remote-debugging-port=' + PORT],
     {
       cwd: ROOT,
       stdio: 'ignore',
@@ -487,7 +506,7 @@ async function run() {
     // one screen a person reaches only after waiting several minutes for it.
     // The fixture is small and it exercises the parts that need real data:
     // dimensions, items, anchors, distributions, and a full audit trail.
-    writeProbeRun();
+    writeProbeRun(profile);
     await navigate(client, 'history');
     await wait(900);
     const probeOpened = await evaluate(client, `(function () {
@@ -527,6 +546,11 @@ async function run() {
       client.close();
     }
     child.kill();
+    // The profile goes with the run that made it. A short wait first, since the
+    // window is still writing as it closes and pulling the directory out from
+    // under it produces noise that means nothing.
+    await wait(600);
+    fs.rmSync(profile, { recursive: true, force: true });
   }
 
   if (failures.length > 0) {

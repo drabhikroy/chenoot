@@ -2,6 +2,25 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
+## [1.0.1] - 2026-08-26
+
+### Fixed
+
+- The verification gate no longer stops on macOS and Windows. The smoke and
+  screen checks called xvfb-run unconditionally, which exists only on Linux, so
+  the gate could not finish on a development machine and the two checks that
+  need a window server never ran outside the release runner.
+
+### Changed
+
+- A version bump now runs the full verification gate first, so a tag cannot be
+  cut from a tree that fails its own checks.
+
+### Added
+
+- Windows and Linux artifacts are published alongside macOS. Version 1.0.0 was
+  released with the macOS build only.
+
 ## 1.0.0
 
 Analysis of collected responses is planned and not in this release. See the
