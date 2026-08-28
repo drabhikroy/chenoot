@@ -2,7 +2,7 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
-## [1.0.2] - 2026-08-28
+## [1.0.3] - 2026-08-28
 
 ### Fixed
 
