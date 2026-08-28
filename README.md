@@ -31,7 +31,7 @@ Chenoot is available for macOS, Windows, and Linux.
 1. Download the version that matches your Mac:
    - **Apple Silicon (ARM64, M1/M2/M3/M4)**:
      [Chenoot-arm64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.dmg)
-   - **Intel (x64)**:
+   - **Intel or AMD (x64)**:
      [Chenoot-x64.dmg](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.dmg)
 2. Open the downloaded `.dmg`.
 3. Drag Chenoot to the **Applications** folder.
@@ -46,14 +46,23 @@ Chenoot is available for macOS, Windows, and Linux.
 
 ### Linux
 
-1. Download the version that matches your machine. Run `uname -m` if you are
-   unsure. It prints `x86_64` for the first and `aarch64` for the second.
-   - **Intel or AMD (x86_64)**:
-     [Chenoot-x64.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.AppImage)
-   - **ARM (aarch64)**:
-     [Chenoot-arm64.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.AppImage)
-2. Make it executable with `chmod +x`, using whichever file you downloaded.
+Run `uname -m` if you are unsure which to take. It prints `x86_64` or `aarch64`.
+
+On x86_64, the AppImage is the simplest route:
+
+1. Download
+   [Chenoot-x86_64.AppImage](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x86_64.AppImage).
+2. Make it executable with `chmod +x Chenoot-x86_64.AppImage`.
 3. Run it directly. No installation step is required.
+
+On aarch64, or if the AppImage does not start, take the archive instead:
+
+1. Download
+   [Chenoot-arm64.tar.gz](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-arm64.tar.gz)
+   or
+   [Chenoot-x64.tar.gz](https://github.com/drabhikroy/chenoot/releases/latest/download/Chenoot-x64.tar.gz).
+2. Unpack it with `tar -xzf`, using whichever file you downloaded.
+3. Run the `chenoot` program inside the folder it creates.
 
 Install Ollama yourself before opening Chenoot on Linux. The setup screen can
 download and manage Ollama on macOS and Windows, but Ollama publishes no Linux

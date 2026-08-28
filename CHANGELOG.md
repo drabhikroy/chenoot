@@ -20,8 +20,10 @@ Entries are written as changes land. Dates are the day the version was tagged.
 
 - Windows and Linux artifacts are published alongside macOS. Version 1.0.0 was
   released with the macOS build only.
-- The Linux build is published for ARM as well as for Intel and AMD. Both are
-  AppImages and each names its architecture.
+- Linux archives are published for Intel, AMD, and ARM. The AppImage is offered
+  for x86_64 only, since the ARM AppImage runtime links against a library that
+  is not present on an ordinary desktop and cannot start there. The archives
+  need no runtime and work on either architecture.
 
 ## 1.0.0
 
