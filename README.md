@@ -1,4 +1,12 @@
-# Chenoot
+<div align="left">
+
+# Rank & Folder
+
+[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
+[![Shiny](https://img.shields.io/badge/Shiny-R-276DC3?logo=r&logoColor=white)](#requirements)
+[![Release](https://img.shields.io/github/v/release/drabhikroy/rank-and-folder)](https://github.com/drabhikroy/rank-and-folder/releases)
+
+</div>
 
 Chenoot is a desktop application for creating draft survey instruments with local machine learning. It is designed for questionnaires that measure constructs such as attitudes, beliefs, behaviors, and other concepts.
 
