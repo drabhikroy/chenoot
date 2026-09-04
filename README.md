@@ -2,17 +2,19 @@
 # Chenoot
 
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#requirements)
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-black?logo=apple&logoColor=white)
 ![Intel](https://img.shields.io/badge/Intel-x86__64-black?logo=apple&logoColor=white)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#requirements)
 [![Release](https://img.shields.io/github/v/release/drabhikroy/chenoot)](https://github.com/drabhikroy/chenoot/releases)
-
 
 Chenoot is a desktop application for creating draft survey instruments with local machine learning. It is intended for questionnaires that measure constructs such as attitudes, beliefs, behaviors, and other concepts.
 
 To begin, describe what you want to measure, who will complete the survey, how the results will be used, and approximately how long the instrument should be. The application then breaks the construct into dimensions, develops a larger pool of candidate items, reviews each item against a fixed rubric, and revises items when needed. It also removes near-duplicates, selects an appropriate response scale, assembles the remaining items into a draft instrument, and keeps a record of the decisions made along the way.
 
-![The Chenoot landing page](docs/images/landing-dark.png)
+![The Chenoot landing screen in dark mode. Below the introduction, a worked
+example shows a plain request on the left, the question Chenoot produced
+from it, and the five response format decisions recorded for that
+question.](docs/images/landing-dark.png)
 
 By default, Chenoot runs on your computer with a local language model through Ollama.
 Your survey content stays on your computer, and you do not need an account or
@@ -22,7 +24,68 @@ connection. Chenoot also has an optional remote API mode. When
 you choose that mode, survey content is sent to the provider you select. More
 detail appears in [Remote API mode](#remote-api-mode).
 
-## Installation
+## What it does
+
+Chenoot includes the full survey-development pipeline, the process that runs the
+steps in order, the audit trail, the local Ollama connection, and the input,
+pipeline, results, and settings screens.
+
+Completed instruments can be exported to Word, PDF, JSON, CSV, and plain text.
+
+### Word export
+
+The Word export is designed for sharing the instrument with someone who did not
+run the pipeline. It places the instrument in reading order and adds the audit
+trail as an appendix on a new page.
+
+Reverse-keyed items are marked. The document also states when administration
+order differs from reading order.
+
+### PDF export
+
+The PDF is created from the results view that you see on screen rather than from
+a separately written document layout. Before the PDF is created, Chenoot opens
+the audit panel so the file contains the complete audit trail instead of a
+picture of a closed panel.
+
+## What it does not do
+
+The current public release is available for macOS only. Windows and Linux builds
+are planned but are not yet available for download. The points below describe
+other limits to keep in mind when using Chenoot.
+
+- **The pipeline was developed and tested primarily with `llama3.1:8b`.** Models
+  of a similar size can work, but the prompts have not been compared
+  systematically across many models. The model you choose can change the quality
+  of the items it produces.
+- **Chenoot does not validate an instrument by generating it.** The pipeline
+  produces a draft that still needs testing with respondents. Reliability and
+  factor structure depend on data collected from people, so piloting remains
+  necessary.
+- **Semantic differential scales are documented but not offered as a response
+  format.** They require a separate bipolar adjective pair for each item rather
+  than one shared set of response labels.
+- **The current macOS build has not been verified through Apple's paid developer
+  program.** This is why macOS may show a warning when the application is opened.
+  Windows and Linux builds are not yet part of the public release.
+
+## Requirements
+
+For the current release:
+
+- macOS 12 Monterey or later, Windows 10 or later, or a Linux distribution with
+  FUSE available for running AppImages
+- 64-bit Intel or AMD processors on Windows and Linux, Apple Silicon or Intel
+  on macOS
+
+Local use requires Ollama and downloaded models, but you can install them from
+inside Chenoot during setup. An internet connection is needed for the initial
+Ollama and model downloads. After that, the local workflow can run without an
+internet connection.
+
+To build Chenoot from source, you also need Node.js 22.12.0 or later.
+
+## Install
 
 Chenoot is available for macOS, Windows, and Linux.
 
@@ -109,28 +172,35 @@ This command removes the download restriction from Chenoot only. It does not
 change the security settings for your other apps.
 
 If Chenoot still will not open, see
-[Developer verification and code signing](#developer-verification-and-code-signing)
+[Developer verification and code signing](#code-signing-and-verification)
 for diagnostic commands and build details.
 
 Building and tagging a release is described in `RELEASING.md`.
 
-## Requirements
+## Using Chenoot
 
-For the current release:
+Chenoot automatically saves every completed run in the application's data
+folder for the current user. You can open the archive from **Past runs** on the
+first screen.
 
-- macOS 12 Monterey or later, Windows 10 or later, or a Linux distribution with
-  FUSE available for running AppImages
-- 64-bit Intel or AMD processors on Windows and Linux, Apple Silicon or Intel
-  on macOS
+Opening a saved run restores the full results view, the audit trail, and all
+export options. You can return to an older run and export it again later.
 
-Local use requires Ollama and downloaded models, but you can install them from
-inside Chenoot during setup. An internet connection is needed for the initial
-Ollama and model downloads. After that, the local workflow can run without an
-internet connection.
+Chenoot also keeps runs that stop before completion. For example, if a run stops
+during Step 5, the saved record still contains Steps 1 through 4. That partial
+record can help explain where the problem occurred.
 
-To build Chenoot from source, you also need Node.js 22.12.0 or later.
+The time estimate on the input screen comes from previous runs on the same
+computer. Run time depends on the model, the hardware, the number of dimensions
+created in Step 1, and the number of items that need revision. Those values are
+not known before a run starts. After the first completed run, Chenoot uses the
+median rate recorded on that computer and states that basis in the estimate.
 
-## Setup
+## Local model
+
+Chenoot runs on a local model by default, so this setup is required rather
+than optional. A remote provider is available as an alternative and is
+described at the end of this section.
 
 Chenoot needs Ollama, a language model for generating and reviewing items, and
 an embedding model for text comparisons. You can set these up inside Chenoot or
@@ -174,69 +244,7 @@ the assumptions behind the original item. A different model gives the critique
 and revision steps another source of judgment. It requires one additional model
 download and, in Chenoot's testing, catches more problems.
 
-## What the audit trail records
-
-Chenoot does more than generate survey items. It records why decisions were
-made so you can review them later. Each audit entry identifies the basis for the
-decision.
-
-- **Measured** means Chenoot calculated something directly from the text. Examples
-  include a Flesch-Kincaid grade level or cosine similarity. The same calculation
-  can be repeated.
-- **Model judgment** means the language model assessed an item against a stated
-  criterion, such as whether the wording leads the respondent. The audit trail
-  records the text and criterion used for that judgment.
-- **Unverified recall** means the model supplied information from its own memory
-  without a source that Chenoot can check. Scale names, authors, and years in
-  this category may be invented by the model, so Chenoot marks them wherever
-  they appear.
-
-This last category is why literature grounding is off by default.
-
-## What Chenoot can do
-
-Chenoot includes the full survey-development pipeline, the process that runs the
-steps in order, the audit trail, the local Ollama connection, and the input,
-pipeline, results, and settings screens.
-
-Completed instruments can be exported to Word, PDF, JSON, CSV, and plain text.
-
-### Word export
-
-The Word export is designed for sharing the instrument with someone who did not
-run the pipeline. It places the instrument in reading order and adds the audit
-trail as an appendix on a new page.
-
-Reverse-keyed items are marked. The document also states when administration
-order differs from reading order.
-
-### PDF export
-
-The PDF is created from the results view that you see on screen rather than from
-a separately written document layout. Before the PDF is created, Chenoot opens
-the audit panel so the file contains the complete audit trail instead of a
-picture of a closed panel.
-
-## Past runs
-
-Chenoot automatically saves every completed run in the application's data
-folder for the current user. You can open the archive from **Past runs** on the
-first screen.
-
-Opening a saved run restores the full results view, the audit trail, and all
-export options. You can return to an older run and export it again later.
-
-Chenoot also keeps runs that stop before completion. For example, if a run stops
-during Step 5, the saved record still contains Steps 1 through 4. That partial
-record can help explain where the problem occurred.
-
-The time estimate on the input screen comes from previous runs on the same
-computer. Run time depends on the model, the hardware, the number of dimensions
-created in Step 1, and the number of items that need revision. Those values are
-not known before a run starts. After the first completed run, Chenoot uses the
-median rate recorded on that computer and states that basis in the estimate.
-
-## Remote API mode
+### Remote API mode
 
 Remote API mode is off by default. It is the one mode in which Chenoot sends
 survey content outside your computer.
@@ -260,31 +268,68 @@ Anthropic does not provide an embeddings endpoint. When Anthropic is selected,
 the Step 6 redundancy check does not run. The coverage check still runs, and the
 audit trail records that the redundancy check was skipped.
 
-## Current limitations
+## Accessibility
 
-The current public release is available for macOS only. Windows and Linux builds
-are planned but are not yet available for download. The points below describe
-other limits to keep in mind when using Chenoot.
+- Five color vision settings: standard, deuteranopia, protanopia, tritanopia,
+  and monochromacy. Each set meets WCAG 2.2 AA contrast, and each state also
+  carries its own shape and label, so meaning never depends on color alone
+- Hovering or focusing a setting previews it before it is chosen
+- Dark and light display modes
+- Animation is suppressed when the system asks for reduced motion
+- Visible focus outlines on every interactive element
+- Labels and roles for screen readers, with live regions on the running
+  pipeline so progress is announced
 
-- **The pipeline was developed and tested primarily with `llama3.1:8b`.** Models
-  of a similar size can work, but the prompts have not been compared
-  systematically across many models. The model you choose can change the quality
-  of the items it produces.
-- **Chenoot does not validate an instrument by generating it.** The pipeline
-  produces a draft that still needs testing with respondents. Reliability and
-  factor structure depend on data collected from people, so piloting remains
-  necessary.
-- **Semantic differential scales are documented but not offered as a response
-  format.** They require a separate bipolar adjective pair for each item rather
-  than one shared set of response labels.
-- **The current macOS build has not been verified through Apple's paid developer
-  program.** This is why macOS may show a warning when the application is opened.
-  Windows and Linux builds are not yet part of the public release.
+## How it works
+
+Chenoot does more than generate survey items. It records why decisions were
+made so you can review them later. Each audit entry identifies the basis for the
+decision.
+
+- **Measured** means Chenoot calculated something directly from the text. Examples
+  include a Flesch-Kincaid grade level or cosine similarity. The same calculation
+  can be repeated.
+- **Model judgment** means the language model assessed an item against a stated
+  criterion, such as whether the wording leads the respondent. The audit trail
+  records the text and criterion used for that judgment.
+- **Unverified recall** means the model supplied information from its own memory
+  without a source that Chenoot can check. Scale names, authors, and years in
+  this category may be invented by the model, so Chenoot marks them wherever
+  they appear.
+
+This last category is why literature grounding is off by default.
+
+### Response scale selection
+
+The model chooses the type of response scale that fits the construct and records
+why it selected that type. It does not write the response labels itself.
+
+Response labels come from a balanced catalog. This avoids common model errors,
+such as returning six labels when seven were requested or placing the midpoint
+off center. Chenoot treats balanced labels as a fixed lookup rather than a model
+judgment.
 
 ## For developers
 
 The sections below describe the code, tests, packaging process, and platform
 details for people working on Chenoot itself.
+
+### Project layout
+
+```text
+electron-builder.config.cjs
+                     Portable DMG configuration for installer file placement.
+src/main/            Main process. Renderer code does not reach this directly.
+  backends/          The backend interface and its implementations.
+  pipeline/          Pipeline steps, the orchestrator, and the audit trail.
+    rubric/          The measured part of the Step 4 rubric.
+  prompts/           One prompt template per step, separate from step logic.
+src/renderer/        Sandboxed interface with no Node access.
+  tokens/            Palettes plus spacing, type, and motion scales.
+standards/           Writing rules and the checks that apply them.
+test/                Unit tests, standards checks, and palette checks.
+design/              Visual direction sketches. Not part of the build.
+```
 
 ### Dependencies
 
@@ -317,7 +362,7 @@ npm run watch:renderer
 npx electron .
 ```
 
-### Tests and the standards gate
+### Tests and standards gates
 
 Run the main test command with:
 
@@ -456,7 +501,7 @@ The macOS build produces:
 The disk image opens at 820 by 587 pixels with Chenoot on the left, an
 Applications shortcut on the right, and an Installation Help file below.
 
-### Developer verification and code signing
+### Code signing and verification
 
 The current public build is for macOS only. In `package.json`, the macOS build
 sets `identity` to `null` and turns off the hardened runtime. This tells
@@ -532,7 +577,7 @@ chmod +x Chenoot-*.AppImage
 For paid developer signing, add the appropriate Apple and Windows signing
 credentials to the build configuration.
 
-### Release file names
+## Releases
 
 The direct download links in this README depend on exact artifact names. The
 `artifactName` settings in the build configuration control those names. If an
@@ -541,34 +586,7 @@ artifact name changes, its direct download link must be updated too.
 Release preparation is documented in `RELEASING.md`. Version-specific public
 notes are stored in files such as `docs/RELEASE-NOTES-1.0.0.md`.
 
-### Project layout
-
-```text
-electron-builder.config.cjs
-                     Portable DMG configuration for installer file placement.
-src/main/            Main process. Renderer code does not reach this directly.
-  backends/          The backend interface and its implementations.
-  pipeline/          Pipeline steps, the orchestrator, and the audit trail.
-    rubric/          The measured part of the Step 4 rubric.
-  prompts/           One prompt template per step, separate from step logic.
-src/renderer/        Sandboxed interface with no Node access.
-  tokens/            Palettes plus spacing, type, and motion scales.
-standards/           Writing rules and the checks that apply them.
-test/                Unit tests, standards checks, and palette checks.
-design/              Visual direction sketches. Not part of the build.
-```
-
-### Response scale selection
-
-The model chooses the type of response scale that fits the construct and records
-why it selected that type. It does not write the response labels itself.
-
-Response labels come from a balanced catalog. This avoids common model errors,
-such as returning six labels when seven were requested or placing the midpoint
-off center. Chenoot treats balanced labels as a fixed lookup rather than a model
-judgment.
-
-## What's in a Name?
+## Credits and background
 
 Chenoot takes its name from ṯnwt, an ancient Egyptian term used for a census or
 a reckoning of people. The name reflects the application's focus on building
@@ -577,8 +595,15 @@ how each instrument was produced.
 
 ## License
 
-Chenoot is released under the PolyForm Noncommercial License 1.0.0. Copyright
-Abhik Roy. See `LICENSE`.
+[PolyForm Noncommercial License 1.0.0](LICENSE). The full text is also at
+<https://polyformproject.org/licenses/noncommercial/1.0.0>.
 
-Lexend, Fraunces, and Spline Sans Mono are used under the SIL Open Font License.
-See `src/renderer/fonts/OFL.txt`.
+Personal use, personal study, hobby projects, teaching, academic research, and
+use by charitable, educational, nonprofit, public research, public health, and
+government organizations are permitted. Commercial use is not permitted without
+a separate license.
+
+Required notice: Copyright 2026 Abhik Roy.
+
+Lexend, Fraunces, and Spline Sans Mono are used under the SIL Open Font
+License. See `src/renderer/fonts/OFL.txt`.
