@@ -45,7 +45,9 @@ it discards the stored reading rather than only stopping future ones.
 
 Open a private security advisory through the repository, or open a
 normal issue if the problem is not sensitive. Please include the
-version, what you did, and what you saw.
+version, what you did, and what you saw. If the report touches the
+remote API path, leave your API key out of it; reproducing or
+diagnosing a problem never requires it.
 
 ## Scope
 
