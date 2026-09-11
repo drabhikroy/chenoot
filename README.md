@@ -50,9 +50,7 @@ picture of a closed panel.
 
 ## What it does not do
 
-The current public release is available for macOS only. Windows and Linux builds
-are planned but are not yet available for download. The points below describe
-other limits to keep in mind when using Chenoot.
+The points below describe limits to keep in mind when using Chenoot.
 
 - **The pipeline was developed and tested primarily with `llama3.1:8b`.** Models
   of a similar size can work, but the prompts have not been compared
@@ -528,12 +526,10 @@ npm start
 
 This method requires Node.js.
 
-When the Windows version is released, an unverified build may trigger a blue
-**Windows protected your PC** SmartScreen panel. Choose **More info**, then
-**Run anyway**.
+An unverified Windows build may trigger a blue **Windows protected your PC**
+SmartScreen panel. Choose **More info**, then **Run anyway**.
 
-When the Linux version is released, mark the AppImage as executable before
-starting it:
+Mark the Linux AppImage as executable before starting it:
 
 ```bash
 chmod +x Chenoot-*.AppImage
