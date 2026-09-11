@@ -491,16 +491,16 @@ spctl --assess --type execute --verbose=4 "/Applications/Chenoot.app"
 The second command should report `accepted` and `source=Notarized Developer
 ID`.
 
-Signing currently passes `--timestamp=none` (via `mac.additionalArguments`
-in `package.json`), which skips requesting a secure timestamp from Apple.
-This does not affect notarization or whether the app opens without a
-warning; it only means the signature does not carry proof of exactly when
-it was made, which matters mainly if the signing certificate itself is
-later revoked or expires. It was added because the machine building this
-release could not reach `timestamp.apple.com` on any network tried,
-including a completely separate one, while every other HTTPS destination
-tested worked normally. Once that is understood or resolved, removing
-`additionalArguments` restores the default of requesting a timestamp.
+Public releases are built and notarized on GitHub Actions
+(`.github/workflows/build-macos.yml`), triggered manually from the Actions
+tab or with `gh workflow run build-macos.yml`. The certificate and Apple
+credentials are stored as encrypted repository secrets (`CSC_LINK`,
+`CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`,
+`APPLE_TEAM_ID`) and never touch the local machine that triggers the run.
+Building locally with `npm run dist:mac` works the same way in principle,
+but depends on the local network actually being able to reach Apple's
+notary service and timestamp authority, which is not guaranteed on every
+network.
 
 A `.zip` built with `dist:mac:zip` on a host other than macOS cannot be
 signed during that build, since codesign only runs on macOS. Chenoot includes

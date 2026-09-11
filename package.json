@@ -136,7 +136,8 @@
       "synopsis": "Auditable psychometric instrument construction",
       "artifactName": "Chenoot-${arch}.${ext}"
     },
-    "afterPack": "scripts/after-pack.js"
+    "afterPack": "scripts/after-pack.js",
+    "afterAllArtifactBuild": "scripts/notarize-dmgs.js"
   },
   "dependencies": {
     "docx": "^9.7.1"
