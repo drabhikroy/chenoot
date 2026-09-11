@@ -1,6 +1,6 @@
 {
   "name": "chenoot",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Local-first desktop application that builds psychometric survey instruments through an auditable multi-step pipeline.",
   "author": "Abhik Roy",
   "repository": {
@@ -38,6 +38,7 @@
     "appId": "com.abhikroy.chenoot",
     "productName": "Chenoot",
     "copyright": "Copyright Abhik Roy",
+    "afterSign": "scripts/notarize.js",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -73,8 +74,7 @@
       "category": "public.app-category.productivity",
       "darkModeSupport": true,
       "minimumSystemVersion": "12.0",
-      "identity": null,
-      "hardenedRuntime": false,
+      "hardenedRuntime": true,
       "artifactName": "Chenoot-${arch}.${ext}"
     },
     "dmg": {
@@ -135,12 +135,14 @@
       "category": "Science",
       "synopsis": "Auditable psychometric instrument construction",
       "artifactName": "Chenoot-${arch}.${ext}"
-    }
+    },
+    "afterPack": "scripts/after-pack.js"
   },
   "dependencies": {
     "docx": "^9.7.1"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "electron": "^43.0.0",
     "electron-builder": "^26.5.0",
     "esbuild": "0.23.1",

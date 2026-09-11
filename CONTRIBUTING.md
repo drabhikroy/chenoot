@@ -35,8 +35,8 @@ count alone.
 ## Style
 
 `standards/lexicon.js` holds the banned lexicon as word roots rather
-than surface forms, so a ban on "align" also catches "aligned" and
-"alignment." `standards/prose.js` checks source, comments, and
+than surface forms, so banning one root also catches every inflected
+form built from it. `standards/prose.js` checks source, comments, and
 documentation against it, and also rejects forbidden characters and
 contractions. Run with `npm run standards`, or automatically before
 `npm test`.

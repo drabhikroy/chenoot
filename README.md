@@ -65,9 +65,6 @@ other limits to keep in mind when using Chenoot.
 - **Semantic differential scales are documented but not offered as a response
   format.** They require a separate bipolar adjective pair for each item rather
   than one shared set of response labels.
-- **The current macOS build has not been verified through Apple's paid developer
-  program.** This is why macOS may show a warning when the application is opened.
-  Windows and Linux builds are not yet part of the public release.
 
 ## Requirements
 
@@ -144,36 +141,6 @@ download and manage Ollama on macOS and Windows, but Ollama publishes no Linux
 build on the release endpoint Chenoot downloads from, so that route is not
 offered there. The [Ollama site](https://ollama.com/download) has the Linux
 instructions.
-
-### If macOS blocks Chenoot
-
-Chenoot is not yet verified through Apple's developer program, so macOS may show
-a warning the first time you open it. The disk image also includes an
-**Installation Help** file. Double-click it for these instructions.
-
-If macOS says it cannot check Chenoot, try to open Chenoot once, then open
-**System Settings > Privacy & Security**. Find the security message about
-Chenoot and choose **Open Anyway**.
-
-If macOS says **“Chenoot.app is damaged and can&rsquo;t be opened”** and does not show
-an **Open Anyway** option, use these steps only if you downloaded Chenoot from
-the official GitHub release:
-
-1. Move Chenoot to your **Applications** folder.
-2. Open **Terminal**, copy and paste the following command, then press
-   **Return**:
-
-   ```bash
-   xattr -dr com.apple.quarantine "/Applications/Chenoot.app"
-   ```
-3. Open Chenoot again from **Applications** after the command finishes.
-
-This command removes the download restriction from Chenoot only. It does not
-change the security settings for your other apps.
-
-If Chenoot still will not open, see
-[Developer verification and code signing](#code-signing-and-verification)
-for diagnostic commands and build details.
 
 Building and tagging a release is described in `RELEASING.md`.
 
@@ -503,57 +470,56 @@ Applications shortcut on the right, and an Installation Help file below.
 
 ### Code signing and verification
 
-The current public build is for macOS only. In `package.json`, the macOS build
-sets `identity` to `null` and turns off the hardened runtime. This tells
-electron-builder to skip Apple developer signing. The build is also not
-notarized by Apple.
+The macOS build is signed with a Developer ID Application certificate and
+notarized by Apple. electron-builder finds the certificate in Keychain Access
+automatically, so nothing in the build configuration names one directly.
 
-That matters because macOS applies extra checks to applications downloaded from
-the internet. Depending on the macOS version and the build, the user may see a
-message that Apple cannot check the application or a message saying the
-application is damaged.
+Notarization runs through `scripts/notarize.js`, an electron-builder
+`afterSign` hook that reads `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and
+`APPLE_TEAM_ID` from the environment and submits the signed build to Apple's
+notary service. When those variables are not all set, the hook prints why
+and returns, so `dist:linux`, `dist:win`, and a macOS build made without
+notarization credentials on hand all continue to work.
 
-For a downloaded copy from the official Chenoot release, removing the quarantine
-marker is a temporary way to test the unsigned build:
-
-```bash
-xattr -dr com.apple.quarantine "/Applications/Chenoot.app"
-```
-
-This applies only to Chenoot. Do not disable Gatekeeper system-wide.
-
-If the application still does not open, check the bundle from Terminal:
+To confirm a built copy is signed and notarized:
 
 ```bash
 codesign --verify --deep --strict --verbose=4 "/Applications/Chenoot.app"
 spctl --assess --type execute --verbose=4 "/Applications/Chenoot.app"
 ```
 
-Because the current build deliberately skips Apple developer signing,
-`codesign` or `spctl` may report that no usable developer signature is present.
-These commands are still useful for distinguishing that expected state from a
-bundle that was changed or damaged after packaging.
+The second command should report `accepted` and `source=Notarized Developer
+ID`.
 
-For normal public distribution without these extra opening steps, the macOS
-application should be signed with an Apple Developer ID certificate and
-notarized by Apple.
+Signing currently passes `--timestamp=none` (via `mac.additionalArguments`
+in `package.json`), which skips requesting a secure timestamp from Apple.
+This does not affect notarization or whether the app opens without a
+warning; it only means the signature does not carry proof of exactly when
+it was made, which matters mainly if the signing certificate itself is
+later revoked or expires. It was added because the machine building this
+release could not reach `timestamp.apple.com` on any network tried,
+including a completely separate one, while every other HTTPS destination
+tested worked normally. Once that is understood or resolved, removing
+`additionalArguments` restores the default of requesting a timestamp.
 
-A macOS `.zip` created outside macOS cannot receive Apple developer signing
-during that build. Chenoot also includes a preparation script for testing a
-bundle on a Mac:
+A `.zip` built with `dist:mac:zip` on a host other than macOS cannot be
+signed during that build, since codesign only runs on macOS. Chenoot includes
+a preparation script for signing such a bundle locally instead:
 
 ```bash
 ./prepare-macos.sh Chenoot.app
 ```
 
-Do not run `codesign --deep` manually. Chenoot contains nested frameworks and
-helper applications, so signing only the outer application can leave the bundle
-in an invalid state. The supplied script works from the nested components
+That produces an ad hoc signature, enough to run the bundle on the machine
+that signs it, but not Developer ID signing or notarization. Do not run
+`codesign --deep` manually in its place. Chenoot contains nested frameworks
+and helper applications, so signing only the outer application can leave the
+bundle in an invalid state; the script works from the nested components
 outward.
 
-If a macOS build remains blocked, running from source avoids the downloaded-app
-quarantine step because the Electron binary installed by npm comes from the
-Electron package:
+Running from source avoids the downloaded-app quarantine step, since the
+Electron binary installed by npm comes from the Electron package rather than
+from a Chenoot download:
 
 ```bash
 npm install
@@ -574,8 +540,8 @@ chmod +x Chenoot-*.AppImage
 ./Chenoot-*.AppImage
 ```
 
-For paid developer signing, add the appropriate Apple and Windows signing
-credentials to the build configuration.
+For Windows code signing, add the appropriate signing credentials to the
+build configuration.
 
 ## Releases
 
