@@ -9,8 +9,8 @@
 // directory. Nothing is sent anywhere, and nothing is written outside that
 // directory.
 //
-// Failed runs are kept too. A run that died at Step 5 still documents Steps 1
-// through 4, and that is usually exactly what explains the failure.
+// Failed runs are kept too. A run that died at Step 6 still documents Steps 1
+// through 5, and that is usually exactly what explains the failure.
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -133,21 +133,18 @@ function totalDuration(trail) {
   }, 0);
 }
 
-// A runtime estimate for a requested item count. So, not modeling it, the
-// estimate is measured from what this machine and this model have actually
-// done before. With no history there is nothing honest to say beyond a wide
-// range, and the basis is reported so the interface can say which it is
-// giving. A run has a fixed cost and a per item cost, and the first estimate
-// treated it as though it had only the second. Nine steps run whether the
-// instrument holds four items or forty. Reading the specification, splitting
-// the construct into dimensions, and choosing a response scale each cost one
-// model call and do not grow with the item count. Drafting, critiquing,
-// revising, and narrowing do grow with it. Multiplying a single per item
-// figure by the requested count therefore overshot badly at the default of
-// twenty, where it reported half an hour, and would undershoot at three. These
-// two numbers are what a mid sized model on an ordinary laptop does. They are
-// a starting point for a machine with no history, not a measurement, and the
-// interface says so.
+// A runtime estimate for a requested item count.
+//
+// Measured from what this machine and this model have actually done before
+// wherever that history exists, and the basis is reported so the interface can
+// say which kind of figure it is giving. A run has a fixed cost as well as a
+// per item one. Nine steps run whether the instrument holds four items or
+// forty, and reading the specification, splitting the construct into
+// dimensions, and choosing a response scale each cost one model call that
+// does not grow with the count. Drafting, critiquing, revising, and narrowing
+// do grow with it. The two defaults below are what a mid sized model on an
+// ordinary laptop does. They are a starting point for a machine with no
+// history, not a measurement, and the interface says so.
 const FALLBACK_FIXED_SECONDS = 150;
 const FALLBACK_SECONDS_PER_ITEM = 34;
 
@@ -180,12 +177,27 @@ function speedFactor(context) {
 
 // The arithmetic, separated from the file reading so it can be tested without
 // an Electron application object standing behind it.
+function medianOf(values) {
+  const sorted = values.slice().sort(function (a, b) { return a - b; });
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+}
+
 function estimateFrom(rows, requestedItems, context) {
   const completed = (rows || []).filter(function (row) {
     return row.status === 'complete' && row.durationMs > 0 && row.itemCount > 0;
   });
 
-  if (completed.length === 0) {
+  // Runs on the chosen model are the only ones that describe it. Timing from
+  // a three billion parameter model says little about a thirty-two billion
+  // one, so other models are used only when this one has no history at all.
+  const model = context && context.model;
+  const sameModel = model
+    ? completed.filter(function (row) { return row.model === model; })
+    : [];
+  const basisRows = sameModel.length > 0 ? sameModel : completed;
+
+  if (basisRows.length === 0) {
     const factor = speedFactor(context);
     return {
       seconds: Math.round(
@@ -196,47 +208,49 @@ function estimateFrom(rows, requestedItems, context) {
     };
   }
 
-  // With runs at two or more different lengths, the fixed and per item costs can
-  // be separated instead of assumed. Two points define the line; more than two
-  // are reduced to the shortest and longest, which is cruder than a fit and far
-  // more resistant to one slow run in the middle.
-  const byCount = completed.slice().sort(function (a, b) {
-    return a.itemCount - b.itemCount;
-  });
-  const shortest = byCount[0];
-  const longest = byCount[byCount.length - 1];
-
-  if (longest.itemCount > shortest.itemCount) {
-    const perItem =
-      ((longest.durationMs - shortest.durationMs) / 1000) /
-      (longest.itemCount - shortest.itemCount);
-    const fixed = shortest.durationMs / 1000 - perItem * shortest.itemCount;
-    // A negative slope or a negative intercept means the two runs disagree about
-    // which way length works, which happens when a model was cold for one of
+  // With runs at two or more different lengths, the fixed and per item costs
+  // are separated by the Theil and Sen line (Sen, 1968). The slope is the
+  // median of the slopes between every pair of runs of different length, and
+  // the intercept is the median of what each run leaves over once that slope
+  // is taken out. A single run that stalled on a cold model moves a median
+  // very little, and it would move a line through the two extremes a great
+  // deal, since either extreme can be the stalled one.
+  const slopes = [];
+  for (let i = 0; i < basisRows.length; i += 1) {
+    for (let j = i + 1; j < basisRows.length; j += 1) {
+      const dx = basisRows[j].itemCount - basisRows[i].itemCount;
+      if (dx !== 0) {
+        slopes.push(((basisRows[j].durationMs - basisRows[i].durationMs) / 1000) / dx);
+      }
+    }
+  }
+  if (slopes.length > 0) {
+    const perItem = medianOf(slopes);
+    const fixed = medianOf(basisRows.map(function (row) {
+      return row.durationMs / 1000 - perItem * row.itemCount;
+    }));
+    // A negative slope or a negative intercept means the runs disagree about
+    // which way length works, which happens when a model was cold for some of
     // them. Fall through to the median rate in that case.
     if (perItem > 0 && fixed > 0) {
       return {
         seconds: Math.round(fixed + requestedItems * perItem),
         basis: 'measured',
-        sampleSize: completed.length
+        sampleSize: basisRows.length
       };
     }
   }
 
   // Median, not mean. One run that stalled on a cold model start should
   // not drag every future estimate upward.
-  const rates = completed
-    .map(function (row) { return (row.durationMs / 1000) / row.itemCount; })
-    .sort(function (a, b) { return a - b; });
-  const middle = Math.floor(rates.length / 2);
-  const perItem = rates.length % 2 === 0
-    ? (rates[middle - 1] + rates[middle]) / 2
-    : rates[middle];
+  const perItem = medianOf(basisRows.map(function (row) {
+    return (row.durationMs / 1000) / row.itemCount;
+  }));
 
   return {
     seconds: Math.round(requestedItems * perItem),
     basis: 'measured',
-    sampleSize: completed.length
+    sampleSize: basisRows.length
   };
 }
 

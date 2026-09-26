@@ -29,7 +29,7 @@
 // text the model was shown.
 //
 // RECALLED covers anything the model produced from its own memory with no
-// source available to check, which in practice means the Step 2 reference
+// source available to check, which in practice means the Step 3 reference
 // scales when the run is offline. Names, authors, and years in this category
 // are frequently fabricated. They are recorded because the trail records
 // everything, and they are marked because presenting them beside measured
@@ -60,7 +60,7 @@ class AuditTrail {
       embeddingModel: settings.embeddingModel
     };
     this.steps = [];
-    // Per-item history, keyed by item id. Step 5 writes a row here for every
+    // Per-item history, keyed by item id. Step 6 writes a row here for every
     // revision attempt, so a dropped item can be traced back through all three
     // of its failures instead of appearing only as a count.
     this.itemHistory = new Map();

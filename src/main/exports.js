@@ -79,7 +79,7 @@ function toCsv({ instrument }) {
   };
 }
 
-// The readable audit document produced by Step 8, written as it stands.
+// The readable audit document produced by Step 9, written as it stands.
 function toText({ instrument, document }) {
   return {
     fileName: safeName(instrument.construct) + '-audit.txt',

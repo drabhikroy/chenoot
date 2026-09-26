@@ -10,6 +10,7 @@ const {
   findBannedTerms,
   findForbiddenCharacters,
   findContractions,
+  findBritishSpellings,
   commentDensity
 } = require('../standards/prose');
 
@@ -54,6 +55,15 @@ const LEXICON_EXEMPT = new Set([
   'src/renderer/reference/formats-reference.js'
 ]);
 
+// The spelling list names every British form it bans, and its test has to
+// feed it British forms, so both are exempt from the check they define. The format reference is exempt for the reason given above, since
+// a paper published in British spelling keeps that spelling in its citation.
+const SPELLING_EXEMPT = new Set([
+  'standards/spelling.js',
+  'test/spelling.test.js',
+  'src/renderer/reference/formats-reference.js'
+]);
+
 function walk(directory, collected) {
   fs.readdirSync(directory, { withFileTypes: true }).forEach(function (entry) {
     if (entry.isDirectory()) {
@@ -88,6 +98,13 @@ files.forEach(function (file) {
   findForbiddenCharacters(source).forEach(function (hit) {
     failures.push(relative + ':' + hit.line + '  ' + hit.name);
   });
+
+  if (!SPELLING_EXEMPT.has(relative)) {
+    findBritishSpellings(source).forEach(function (hit) {
+      failures.push(relative + ':' + hit.line + '  British spelling "' + hit.word +
+        '", use "' + hit.american + '"');
+    });
+  }
 
   findContractions(source).forEach(function (hit) {
     failures.push(relative + ':' + hit.line + '  contraction "' + hit.text + '"');

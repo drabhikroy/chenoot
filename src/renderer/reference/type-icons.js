@@ -167,7 +167,7 @@ const ICONS = {
   // A fact: fixed, and the same whoever is asked.
   fact: [box(8, 8, 24, 24, 'outline'), line(13, 16, 27, 16), line(13, 22, 22, 22, 'mark')],
 
-  // A judgment: a position held somewhere in a range, off centre because an
+  // A judgment: a position held somewhere in a range, off center because an
   // opinion is a place on a scale and not a middle.
   //
   // This was a ring with two dashes and a mouth line, which was a face. A face

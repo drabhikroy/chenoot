@@ -1,4 +1,4 @@
-// Step 6: coverage and redundancy.
+// Step 7: coverage and redundancy.
 //
 // The specification names a fixed cosine cutoff of 0.92 for near-duplicates.
 // That number is not portable and this step does not use it as written, for
@@ -41,7 +41,22 @@ const MAD_CONSISTENCY = 1.4826;
 // Pairs from different dimensions that sit this close suggest the dimensions
 // are not discriminable. These are reported and never removed, because the
 // problem they indicate is in the scoping, not in the items.
+//
+// The test is the same one applied inside a dimension. A pair is reported when
+// it clears the duplicate cutoff of both dimensions it spans, meaning it would
+// have been treated as a near-duplicate had the two items shared a dimension.
+// That keeps the alert on the same footing as removal and lets it move with the
+// embedding model. This fixed value is used only when a dimension had too few
+// pairs to produce a cutoff of its own.
 const CROSS_DIMENSION_ALERT = 0.9;
+
+// Weight on relevance against novelty when narrowing a dimension, in the
+// maximal marginal relevance ranking of Carbonell and Goldstein (1998). Even
+// weighting treats an item that drifts from the dimension and an item that
+// repeats one already chosen as equally costly, which is the balance item
+// selection wants. Leaning toward novelty rewards drift, and leaning toward
+// relevance rewards the redundancy the step exists to remove.
+const RELEVANCE_WEIGHT = 0.5;
 
 // A dimension needs a handful of pairs before a distribution means anything.
 const MINIMUM_PAIRS_FOR_DISTRIBUTION = 6;
@@ -89,6 +104,105 @@ function preferredItem(a, b, assessmentById) {
   return a.id < b.id ? a : b;
 }
 
+function flagCount(item, assessmentById) {
+  return (assessmentById.get(item.id) || { flags: [] }).flags.length;
+}
+
+// What each candidate is judged relevant to. The dimension definition written
+// at scoping is the better anchor, because it states what the dimension is
+// meant to measure, while the centroid of the pool only states what the pool
+// happens to say. A pool that drifted as a whole pulls its own centroid along
+// with it. The centroid is the fallback when the definition cannot be embedded.
+async function anchorFor(dimension, pool, vectors, backend) {
+  const size = vectors.get(pool[0].id).length;
+  if (dimension.definition) {
+    try {
+      const vector = await backend.embed(dimension.definition);
+      if (Array.isArray(vector) && vector.length === size) {
+        return { vector, description: 'the dimension definition' };
+      }
+    } catch (error) {
+      // Falls through to the centroid, which needs no further call.
+    }
+  }
+  const centroid = new Array(size).fill(0);
+  pool.forEach(function (item) {
+    const v = vectors.get(item.id);
+    for (let k = 0; k < size; k += 1) {
+      centroid[k] += v[k] / pool.length;
+    }
+  });
+  return { vector: centroid, description: 'the center of the pool' };
+}
+
+// Choose target items from one dimension's pool.
+//
+// Selection runs within keying direction. Ranking on quality alone reliably
+// strips the reverse keyed items, because they are the harder ones to write and
+// therefore the ones carrying more flags, and a dimension with no reverse items
+// is exposed to acquiescence bias no matter how good the survivors read.
+//
+// Within a direction, fewer outstanding flags always wins. Among items with the
+// same number of flags, the next pick is the one that best trades relevance to
+// the dimension against similarity to anything already picked. Ranking by
+// distance from the rest of the pool alone, with no relevance term, would favor
+// exactly the items that wandered off the construct, since those are the ones
+// least like everything else.
+//
+// With no vectors the order is flags and then identifier, which is still
+// reproducible, and the caller records that similarity played no part.
+function selectForDimension(pool, target, assessmentById, similarity) {
+  const chosen = [];
+
+  function score(item) {
+    if (!similarity) {
+      return 0;
+    }
+    const v = similarity.vectors.get(item.id);
+    const relevance = cosine(v, similarity.anchor);
+    const redundancy = chosen.reduce(function (worst, other) {
+      return Math.max(worst, cosine(v, similarity.vectors.get(other.id)));
+    }, 0);
+    return RELEVANCE_WEIGHT * relevance - (1 - RELEVANCE_WEIGHT) * redundancy;
+  }
+
+  function pickFrom(candidates, count) {
+    const remaining = candidates.slice();
+    for (let n = 0; n < count && remaining.length > 0; n += 1) {
+      const fewest = Math.min.apply(null, remaining.map(function (i) {
+        return flagCount(i, assessmentById);
+      }));
+      let best = null;
+      let bestScore = -Infinity;
+      remaining.forEach(function (item) {
+        if (flagCount(item, assessmentById) !== fewest) {
+          return;
+        }
+        const value = score(item);
+        if (value > bestScore || (value === bestScore && item.id < best.id)) {
+          best = item;
+          bestScore = value;
+        }
+      });
+      chosen.push(best);
+      remaining.splice(remaining.indexOf(best), 1);
+    }
+  }
+
+  const reverses = pool.filter(function (i) { return i.direction === 'reverse'; });
+  const positives = pool.filter(function (i) { return i.direction !== 'reverse'; });
+  const wantedReverse = Math.min(reverses.length, Math.max(1, Math.round(target * REVERSE_TARGET)));
+  pickFrom(reverses, wantedReverse);
+  pickFrom(positives, target - chosen.length);
+
+  // Any shortfall in one direction is made up from the other, so the target
+  // count is met even when a dimension produced few usable positive items.
+  if (chosen.length < target) {
+    pickFrom(pool.filter(function (i) { return chosen.indexOf(i) === -1; }), target - chosen.length);
+  }
+  return new Set(chosen.map(function (i) { return i.id; }));
+}
+
 async function run({ results, backend, trail, entry, report, note }) {
   const scoping = results.scoping;
   const items = results.revision.items;
@@ -122,7 +236,7 @@ async function run({ results, backend, trail, entry, report, note }) {
   const removedDuplicates = [];
   const crossDimensionAlerts = [];
   const distributions = [];
-  const meanSimilarity = new Map();
+  const dimensionOverlap = [];
   const trimmed = [];
 
   if (embeddingsAvailable) {
@@ -143,21 +257,6 @@ async function run({ results, backend, trail, entry, report, note }) {
       if (pairs.length === 0) {
         return;
       }
-
-      // Mean similarity of each item to the rest of its dimension. An item that
-      // sits close to everything else adds least, so this becomes the diversity
-      // term when the pool has to be narrowed to the target count below.
-      group.forEach(function (item) {
-        const related = pairs.filter(function (p) {
-          return p.a.id === item.id || p.b.id === item.id;
-        });
-        meanSimilarity.set(
-          item.id,
-          related.length === 0
-            ? 0
-            : related.reduce(function (total, p) { return total + p.similarity; }, 0) / related.length
-        );
-      });
 
       const similarities = pairs.map(function (p) { return p.similarity; });
       const center = median(similarities);
@@ -231,6 +330,15 @@ async function run({ results, backend, trail, entry, report, note }) {
     // Cross-dimension similarity is reported without action. An item that looks
     // like an item in another dimension is evidence the two dimensions overlap,
     // and deleting one of them would hide that, not fix it.
+    const cutoffFor = new Map();
+    const medianFor = new Map();
+    distributions.forEach(function (d) {
+      if (d.rule === 'adaptive') {
+        cutoffFor.set(d.dimension, d.cutoff);
+        medianFor.set(d.dimension, d.median);
+      }
+    });
+    const crossByPair = new Map();
     for (let i = 0; i < items.length; i += 1) {
       for (let j = i + 1; j < items.length; j += 1) {
         if (items[i].dimension === items[j].dimension) {
@@ -240,25 +348,71 @@ async function run({ results, backend, trail, entry, report, note }) {
           continue;
         }
         const similarity = cosine(vectors.get(items[i].id), vectors.get(items[j].id));
-        if (similarity >= CROSS_DIMENSION_ALERT) {
+        const key = [items[i].dimension, items[j].dimension].sort().join('\u0000');
+        if (!crossByPair.has(key)) {
+          crossByPair.set(key, { dimensions: [items[i].dimension, items[j].dimension].sort(), values: [] });
+        }
+        crossByPair.get(key).values.push(similarity);
+
+        const threshold = Math.max(
+          cutoffFor.get(items[i].dimension) || CROSS_DIMENSION_ALERT,
+          cutoffFor.get(items[j].dimension) || CROSS_DIMENSION_ALERT
+        );
+        if (similarity >= threshold) {
           crossDimensionAlerts.push({
             a: items[i].id,
             b: items[j].id,
             dimensions: [items[i].dimension, items[j].dimension],
-            similarity
+            similarity,
+            threshold
           });
           trail.recordDecision(entry, {
             code: 'cross_dimension_overlap',
             description: items[i].id + ' and ' + items[j].id + ' sit at cosine ' +
               similarity.toFixed(3) + ' across ' + items[i].dimension + ' and ' +
-              items[j].dimension + ', which suggests the dimensions are not fully distinct. ' +
-              'Both were kept.',
+              items[j].dimension + ', above the ' + threshold.toFixed(3) + ' that would mark them ' +
+              'as near-duplicates within either dimension. Both were kept.',
             evidence: similarity.toFixed(3),
             provenance: PROVENANCE.MEASURED
           });
         }
       }
     }
+
+    // The same question asked of whole dimensions. Items should sit closer to
+    // their own dimension than to another, which is the convergent and
+    // discriminant pattern Campbell and Fiske (1959) set out for trait
+    // measures. When the typical pair spanning two dimensions is as close as the
+    // typical pair inside one of them, that dimension is not separating from the
+    // other in the wording, and it is worth knowing before any data is collected.
+    crossByPair.forEach(function (pair) {
+      const within = pair.dimensions.map(function (name) { return medianFor.get(name); });
+      if (within.some(function (m) { return m === undefined; })) {
+        return;
+      }
+      const across = median(pair.values);
+      const lower = Math.min(within[0], within[1]);
+      const record = {
+        dimensions: pair.dimensions,
+        acrossMedian: across,
+        withinMedians: within,
+        distinct: across < lower
+      };
+      dimensionOverlap.push(record);
+      if (!record.distinct) {
+        trail.recordDecision(entry, {
+          code: 'dimensions_not_distinct',
+          description: 'Items in ' + pair.dimensions[0] + ' and ' + pair.dimensions[1] +
+            ' are as similar to each other, at a median cosine of ' + across.toFixed(3) +
+            ', as items within ' + (within[0] <= within[1] ? pair.dimensions[0] : pair.dimensions[1]) +
+            ' are to one another, at ' + lower.toFixed(3) + '. The wording does not yet separate ' +
+            'the two, so they may not hold apart once responses are collected.',
+          evidence: 'across ' + across.toFixed(3) + ', within ' + within[0].toFixed(3) + ' and ' +
+            within[1].toFixed(3),
+          provenance: PROVENANCE.MEASURED
+        });
+      }
+    });
 
     // Coverage is restored before anything leaves this step. Deduplication is
     // worth less than a dimension that can be scored, so the least similar
@@ -302,68 +456,22 @@ async function run({ results, backend, trail, entry, report, note }) {
 
     // Narrow each dimension to its target count.
     //
-    // This is the step the step was missing. Everything before it removes items
-    // for cause: a failed rubric, a near-duplicate. None of it selects. Without
-    // a selection pass the oversized pool that Step 3 drafted deliberately, so
-    // that later steps would have something to discard, survives intact and a
-    // request for eight items returns twenty-six.
-    scoping.dimensions.forEach(function (dimension) {
+    // Everything before this removes items for cause, a failed rubric or a
+    // near-duplicate. None of it selects, and Step 4 drafts an oversized pool on
+    // purpose so that later steps have something to discard. Without a
+    // selection pass a request for eight items would return twenty-four.
+    for (const dimension of scoping.dimensions) {
       const pool = items.filter(function (i) {
         return i.dimension === dimension.name && survivors.has(i.id);
       });
-      const surplus = pool.length - dimension.targetItemCount;
-      if (surplus <= 0) {
-        return;
+      if (pool.length <= dimension.targetItemCount) {
+        continue;
       }
-
-      // Ranked on three measured criteria in order. Fewest outstanding flags
-      // first, because quality is the point. Then least similar to the rest of
-      // the dimension, because an item that sits close to everything else adds
-      // the least coverage. Then by identifier, so the result is reproducible
-      // and not dependent on iteration order.
-      const rank = function (a, b) {
-        const flagsA = (assessmentById.get(a.id) || { flags: [] }).flags.length;
-        const flagsB = (assessmentById.get(b.id) || { flags: [] }).flags.length;
-        if (flagsA !== flagsB) {
-          return flagsA - flagsB;
-        }
-        const simA = meanSimilarity.get(a.id) || 0;
-        const simB = meanSimilarity.get(b.id) || 0;
-        if (simA !== simB) {
-          return simA - simB;
-        }
-        return a.id < b.id ? -1 : 1;
-      };
-
-      // Selection is done within keying direction, not across the whole
-      // pool. Ranking on quality alone reliably strips the reverse keyed items,
-      // because they are the harder ones to write and therefore the ones
-      // carrying more flags, and a dimension with no reverse items is exposed
-      // to acquiescence bias no matter how good the survivors read.
-      const positives = pool.filter(function (i) { return i.direction === 'positive'; }).sort(rank);
-      const reverses = pool.filter(function (i) { return i.direction === 'reverse'; }).sort(rank);
-
-      const wantedReverse = Math.min(
-        reverses.length,
-        Math.max(1, Math.round(dimension.targetItemCount * REVERSE_TARGET))
-      );
-      const wantedPositive = dimension.targetItemCount - wantedReverse;
-
-      const kept = new Set(
-        positives.slice(0, wantedPositive).concat(reverses.slice(0, wantedReverse))
-          .map(function (i) { return i.id; })
-      );
-
-      // Any shortfall in one direction is made up from the other, so the target
-      // count is met even when a dimension produced no usable reverse items.
-      if (kept.size < dimension.targetItemCount) {
-        pool.slice().sort(rank).forEach(function (item) {
-          if (kept.size < dimension.targetItemCount) {
-            kept.add(item.id);
-          }
-        });
-      }
-
+      const anchor = await anchorFor(dimension, pool, vectors, backend);
+      const kept = selectForDimension(pool, dimension.targetItemCount, assessmentById, {
+        vectors,
+        anchor: anchor.vector
+      });
       pool.forEach(function (item) {
         if (kept.has(item.id)) {
           return;
@@ -372,32 +480,73 @@ async function run({ results, backend, trail, entry, report, note }) {
         trimmed.push({ id: item.id, dimension: dimension.name, text: item.text });
         trail.recordItemEvent(item.id, { event: 'not-selected', dimension: dimension.name });
       });
-
       trail.recordDecision(entry, {
         code: 'narrowed_to_target',
         description: dimension.name + ' held ' + pool.length + ' usable items against a target of ' +
-          dimension.targetItemCount + '. The ' + surplus + ' adding least were set aside, ranked by ' +
-          'outstanding flags, then by how much each overlapped the rest of the dimension.',
+          dimension.targetItemCount + '. The ' + (pool.length - dimension.targetItemCount) +
+          ' set aside were chosen by outstanding flags first, then by how closely each item ' +
+          'matched ' + anchor.description + ' while overlapping least with the items already chosen.',
         evidence: pool.length + ' to ' + dimension.targetItemCount,
         provenance: PROVENANCE.MEASURED
       });
-    });
+    }
 
     return {
       finalItems: items.filter(function (i) { return survivors.has(i.id); }),
       removedDuplicates,
       crossDimensionAlerts,
+      dimensionOverlap,
       distributions,
       trimmed
     };
   }
 
+  // Without embeddings there is no redundancy check, but the pool is still
+  // three times the size that was asked for and has to be narrowed. Selection
+  // falls back to flags and keying balance, and the trail says similarity
+  // played no part, so nobody reads the result as deduplicated.
+  const kept = new Set();
+  scoping.dimensions.forEach(function (dimension) {
+    const pool = items.filter(function (i) { return i.dimension === dimension.name; });
+    if (pool.length <= dimension.targetItemCount) {
+      pool.forEach(function (i) { kept.add(i.id); });
+      return;
+    }
+    const chosen = selectForDimension(pool, dimension.targetItemCount, assessmentById, null);
+    pool.forEach(function (item) {
+      if (chosen.has(item.id)) {
+        kept.add(item.id);
+        return;
+      }
+      trimmed.push({ id: item.id, dimension: dimension.name, text: item.text });
+      trail.recordItemEvent(item.id, { event: 'not-selected', dimension: dimension.name });
+    });
+    trail.recordDecision(entry, {
+      code: 'narrowed_to_target',
+      description: dimension.name + ' held ' + pool.length + ' usable items against a target of ' +
+        dimension.targetItemCount + '. With no embeddings available, the ' +
+        (pool.length - dimension.targetItemCount) + ' set aside were chosen by outstanding flags ' +
+        'and keying balance alone, and near-duplicates may remain.',
+      evidence: pool.length + ' to ' + dimension.targetItemCount,
+      provenance: PROVENANCE.MEASURED
+    });
+  });
+  // Items from a dimension the scoping no longer names are passed through
+  // rather than silently dropped.
+  items.forEach(function (i) {
+    const named = scoping.dimensions.some(function (d) { return d.name === i.dimension; });
+    if (!named) {
+      kept.add(i.id);
+    }
+  });
+
   return {
-    finalItems: items,
+    finalItems: items.filter(function (i) { return kept.has(i.id); }),
     removedDuplicates: [],
     crossDimensionAlerts: [],
+    dimensionOverlap: [],
     distributions: [],
-    trimmed: []
+    trimmed
   };
 }
 
@@ -419,7 +568,8 @@ function recordInput({ results }) {
   return {
     incoming: results.revision.items.length,
     absoluteFloor: ABSOLUTE_FLOOR,
-    deviationMultiplier: DEVIATION_MULTIPLIER
+    deviationMultiplier: DEVIATION_MULTIPLIER,
+    relevanceWeight: RELEVANCE_WEIGHT
   };
 }
 
@@ -432,5 +582,7 @@ module.exports = {
   cosine,
   median,
   medianAbsoluteDeviation,
-  ABSOLUTE_FLOOR
+  selectForDimension,
+  ABSOLUTE_FLOOR,
+  RELEVANCE_WEIGHT
 };

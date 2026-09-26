@@ -1,4 +1,4 @@
-// Prompt and schema for Step 4, self-critique.
+// Prompt and schema for Step 5, self-critique.
 //
 // The prompt asks about two criteria and no others. Everything else in the
 // rubric is measured in code, and including those criteria here would invite
@@ -7,7 +7,7 @@
 //
 // It also asks for a rewrite only where the item failed. A model asked to
 // improve every item will improve every item, including the ones that were
-// already correct, and Step 5 would then rewrite work that needed nothing.
+// already correct, and Step 6 would then rewrite work that needed nothing.
 
 const GUIDANCE = [
   'You are reviewing draft survey items for two specific problems. Judge only',

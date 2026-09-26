@@ -1,4 +1,4 @@
-// Prompt and schema for Step 2, literature grounding.
+// Prompt and schema for Step 3, literature grounding.
 //
 // The prompt does two unusual things, both addressing the same problem.
 //

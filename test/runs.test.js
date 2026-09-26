@@ -136,3 +136,26 @@ test('runs that disagree about the effect of length fall back to the median rate
   assert.strictEqual(outcome.basis, 'measured');
   assert.ok(outcome.seconds > 0);
 });
+
+test('history from the chosen model is preferred over other models', function () {
+  const rows = [
+    { status: 'complete', durationMs: 100000, itemCount: 10, model: 'llama3.2:3b' },
+    { status: 'complete', durationMs: 2000000, itemCount: 10, model: 'qwen2.5:32b-instruct' }
+  ];
+  const small = estimateFrom(rows, 10, { model: 'llama3.2:3b' });
+  const large = estimateFrom(rows, 10, { model: 'qwen2.5:32b-instruct' });
+  assert.strictEqual(small.seconds, 100);
+  assert.strictEqual(large.seconds, 2000);
+  assert.strictEqual(small.sampleSize, 1);
+});
+
+test('one stalled run at an extreme length does not bend the line', function () {
+  // Four runs on a clean line of 60 seconds fixed and 30 an item, then one
+  // long run that stalled for an extra half hour. A line through the shortest
+  // and longest runs would take its slope from the stalled one.
+  const rows = [5, 10, 15, 20].map(function (n) {
+    return { status: 'complete', durationMs: (60 + 30 * n) * 1000, itemCount: n };
+  }).concat([{ status: 'complete', durationMs: (60 + 30 * 25 + 1800) * 1000, itemCount: 25 }]);
+  const estimate = estimateFrom(rows, 12);
+  assert.ok(Math.abs(estimate.seconds - (60 + 30 * 12)) < 30, 'got ' + estimate.seconds);
+});

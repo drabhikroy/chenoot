@@ -1,9 +1,9 @@
-// Step 3: item generation.
+// Step 4: item generation.
 //
 // Produces an oversized pool so that Steps 4 through 6 have something to
 // discard. Generating exactly the target count would leave the critique step
 // unable to reject anything without falling below quota, which turns critique
-// into theatre.
+// into theater.
 //
 // Generation runs one call per dimension, not one call for the whole
 // instrument. A local model given eight dimensions at once produces items that
@@ -14,7 +14,7 @@ const { buildPrompt, SCHEMA } = require('../prompts/step4-generation');
 const { PROVENANCE } = require('./audit');
 
 // Pool multiplier. Three times target is the specification's upper bound and is
-// used here because the revision loop in Step 5 drops items permanently, so
+// used here because the revision loop in Step 6 drops items permanently, so
 // the pool has to survive both critique and deduplication.
 const POOL_MULTIPLIER = 3;
 
@@ -32,7 +32,7 @@ function slug(text) {
 }
 
 // Exact and near-exact repeats are common when a local model generates fifteen
-// items in one response. Removing them here is cheap and keeps Step 6 from
+// items in one response. Removing them here is cheap and keeps Step 7 from
 // spending embedding calls on duplicates that never needed a similarity score.
 function normalizeForComparison(text) {
   return text.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();

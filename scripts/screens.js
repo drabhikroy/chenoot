@@ -293,7 +293,7 @@ function writeProbeRun(profile) {
         polarity: 'bipolar',
         points: 5,
         hasMidpoint: true,
-        fullyLabelled: true,
+        fullyLabeled: true,
         family: 'agreement',
         justification: 'The construct is bipolar.',
         order: 'positive-first'

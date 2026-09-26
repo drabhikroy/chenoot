@@ -39,7 +39,7 @@ const CATALOG = {
   // ---- Bipolar: agreement ------------------------------------------------
   // The default in practice and the most overused format in the field. Kept
   // because it suits genuinely bipolar attitudinal content, and flagged by
-  // Step 7 when something better fits.
+  // Step 8 when something better fits.
   'agreement-5': {
     label: 'Five-point agreement',
     polarity: 'bipolar',
@@ -248,7 +248,7 @@ const CATALOG = {
 // Semantic differential is described, not offered. It requires a pair of
 // opposing adjectives per item, not one shared anchor set, so it cannot
 // be selected as a single scale for a whole instrument the way everything above
-// can. Step 7 reports it as a possibility when the items would suit it, and
+// can. Step 8 reports it as a possibility when the items would suit it, and
 // leaves the anchor pairs to be written by hand.
 const UNSUPPORTED = {
   'semantic-differential': {
@@ -259,7 +259,7 @@ const UNSUPPORTED = {
 };
 
 // Selected when nothing recognizable comes back. Five-point agreement is the
-// safest default for the first-person declarative statements Step 3 writes.
+// safest default for the first-person declarative statements Step 4 writes.
 const FALLBACK = 'agreement-5';
 
 // Substitute the construct name into item-specific anchors. Adjectival

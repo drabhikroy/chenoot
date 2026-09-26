@@ -254,3 +254,51 @@ test('the renderer prints the scale point beside each anchor', function () {
     /\{index \+ 1\}/
   );
 });
+
+test('reading ease is compared as a floor converted from the grade target', function () {
+  // Reading Ease runs the other way and on another scale. Comparing its raw
+  // score against a grade target of eight flags every item ever written.
+  const plain = checkItem(
+    { text: 'I know what my manager expects of me.', direction: 'positive' },
+    { readabilityMeasure: 'flesch-reading-ease', maximumGrade: 8 }
+  );
+  assert.ok(!codes(plain).includes('reading_level'));
+
+  const dense = checkItem({
+    text: 'Organizational communication modalities demonstrate considerable heterogeneity.',
+    direction: 'positive'
+  }, { readabilityMeasure: 'flesch-reading-ease', maximumGrade: 8 });
+  const finding = dense.find(function (f) { return f.code === 'reading_level'; });
+  assert.ok(finding);
+  assert.ok(/below the 60/.test(finding.message));
+});
+
+test('a contracted negation on a reverse item is caught', function () {
+  const flags = checkItem({ text: 'I don\'t feel rested after a night of sleep.', direction: 'reverse' });
+  assert.ok(codes(flags).includes('negated_reverse_item'));
+});
+
+test('an absolute next to punctuation is still an absolute', function () {
+  const flags = checkItem({ text: 'At work I feel supported, always.', direction: 'positive' });
+  assert.ok(codes(flags).includes('absolute_term'));
+});
+
+test('a second conjunction is checked when the first is inside a phrase', function () {
+  const flags = checkItem({
+    text: 'Pros and cons of my job make me want to stay and grow in this role.',
+    direction: 'positive'
+  });
+  assert.ok(codes(flags).includes('double_barreled'));
+});
+
+test('countable behavior markers match whole words and not fragments', function () {
+  const { shareMatching } = require('../src/main/pipeline/step8-scale');
+  const markers = ['attend', 'read', 'call', 'log in', 'miss'];
+  assert.strictEqual(shareMatching([{ text: 'I attended every meeting.' }], markers), 1);
+  assert.strictEqual(shareMatching([{ text: 'I log in daily.' }], markers), 1);
+  // Each of these contains a marker as a fragment and describes no behavior.
+  ['I pay attention in class.', 'I am ready to learn.', 'I recall the lesson.',
+    'I feel a sense of mission.'].forEach(function (text) {
+    assert.strictEqual(shareMatching([{ text }], markers), 0, text);
+  });
+});

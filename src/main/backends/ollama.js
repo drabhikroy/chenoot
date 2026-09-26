@@ -81,7 +81,7 @@ class OllamaBackend extends AIBackend {
           stream: false,
           options: {
             // Structured steps run cool. Item wording benefits from variation,
-            // so Step 3 passes a higher value. Either way the retry drops the
+            // so Step 4 passes a higher value. Either way the retry drops the
             // temperature, on the reasoning that a first attempt which failed
             // to satisfy the schema was probably sampling too freely.
             temperature: attempt === 0

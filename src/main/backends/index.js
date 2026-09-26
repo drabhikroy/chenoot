@@ -23,15 +23,15 @@ class AIBackend {
     throw new Error('complete is not implemented on this backend');
   }
 
-  // Produce an embedding vector, used by the redundancy check in Step 6.
+  // Produce an embedding vector, used by the redundancy check in Step 7.
   async embed(_text) {
     throw new Error('embed is not implemented on this backend');
   }
 
   // Return a second backend of the same kind bound to a different model.
   //
-  // This exists so that Step 4 can critique with a model other than the one
-  // Step 3 wrote with. A model reviewing its own output shares its own priors
+  // This exists so that Step 5 can critique with a model other than the one
+  // Step 4 wrote with. A model reviewing its own output shares its own priors
   // and passes work it should catch, and swapping the reviewer is the cheapest
   // available correction: one extra pull and not any change to the pipeline.
   withModel(_model) {

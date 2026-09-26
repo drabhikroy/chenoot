@@ -20,10 +20,10 @@ const { EventEmitter } = require('node:events');
 // results is a plain object keyed by step name holding everything produced so
 // far.
 
-class CancelledError extends Error {
+class CanceledError extends Error {
   constructor() {
     super('Run canceled.');
-    this.name = 'CancelledError';
+    this.name = 'CanceledError';
   }
 }
 
@@ -50,7 +50,7 @@ class Orchestrator extends EventEmitter {
       // finishes and nothing further starts.
       if (signal && signal.aborted) {
         this.emit('run:canceled', { completedSteps: index });
-        throw new CancelledError();
+        throw new CanceledError();
       }
 
       const entry = this.trail.beginStep(step.number, step.name);
@@ -82,7 +82,7 @@ class Orchestrator extends EventEmitter {
       // Progress answers how far through a step is. This answers what it just
       // did, which is the thing that makes a twenty minute run legible rather
       // than merely bounded. A step that says "dropped vigor-04, still
-      // double-barrelled after three rounds" is being transparent in a way that
+      // double-barreled after three rounds" is being transparent in a way that
       // a percentage cannot be.
       //
       // Kept to short factual lines and capped in the renderer, because a log
@@ -146,8 +146,8 @@ class Orchestrator extends EventEmitter {
         completed: index + 1
       });
 
-      // Step 1 is the single point where the pipeline may need a person. It
-      // reports back, not throwing, because a construct too vague to
+      // Steps 1 and 2 are the only points where the pipeline may need a
+      // person. Each reports back, not throwing, because a construct too vague to
       // operationalize is an ordinary outcome instead of a failure.
       if (output && output.needsClarification) {
         this.emit('clarification:needed', {
@@ -174,4 +174,4 @@ class Orchestrator extends EventEmitter {
   }
 }
 
-module.exports = { Orchestrator, CancelledError };
+module.exports = { Orchestrator, CanceledError };

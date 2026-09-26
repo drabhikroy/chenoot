@@ -11,7 +11,7 @@
 // is not shared, and the difference is confined to two small functions below.
 //
 // Embeddings are a real asymmetry instead of an oversight. Anthropic publishes
-// no embeddings endpoint, so in that mode Step 6 loses its redundancy check
+// no embeddings endpoint, so in that mode Step 7 loses its redundancy check
 // and keeps its coverage check. The step already degrades correctly when
 // embeddings are unavailable, so nothing special is needed here beyond a clear
 // message.

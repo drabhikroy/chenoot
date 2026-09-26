@@ -29,7 +29,7 @@ export function RunParameters({ input, actualCount }) {
       <div>
         <dt>Requested</dt>
         {/* When the finished count differs from what was asked for, both are
-            shown, not only the result. Step 1 raises the total when a
+            shown, not only the result. Step 2 raises the total when a
             dimension would fall below three items, and someone who asked for
             eight and received twelve deserves to see that on the screen rather
             than only in the audit trail. */}

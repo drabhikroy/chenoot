@@ -1,4 +1,4 @@
-// Prompt and schema for Step 1, construct scoping.
+// Prompt and schema for Step 2, construct scoping.
 //
 // Prompt templates live apart from step logic so that wording can be revised
 // and compared across models without touching anything that reads the result.

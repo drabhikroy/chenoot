@@ -11,7 +11,7 @@
 // one that stays inside it.
 //
 // What this list is not is a benchmark. Nothing here was measured by this
-// application on your hardware, and the characterisations come from each
+// application on your hardware, and the characterizations come from each
 // model's general reputation and published behavior and not from a
 // controlled comparison on survey item generation, which as far as anyone knows
 // does not exist. They are a starting point for choosing, not evidence.
@@ -113,7 +113,7 @@ const MODELS = [
     memoryGb: 4,
     strengths: 'Unusually strong instruction following for its size and better with schemas ' +
       'than most small models, so the structured steps hold up.',
-    weaknesses: 'Narrow world knowledge. Construct scoping on a specialised subject produces ' +
+    weaknesses: 'Narrow world knowledge. Construct scoping on a specialized subject produces ' +
       'dimensions that are generic or subtly wrong, and nothing downstream can recover from that.'
   },
   {

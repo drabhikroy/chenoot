@@ -1,6 +1,6 @@
-// Prompt and schema for Step 3, item generation.
+// Prompt and schema for Step 4, item generation.
 //
-// The prompt states the rubric the items will be judged against in Step 4.
+// The prompt states the rubric the items will be judged against in Step 5.
 // Telling a model the criteria before it writes costs a few dozen tokens and
 // removes a whole class of revision work, which on a local model is the
 // difference between one pass and three.
@@ -39,7 +39,7 @@ function buildPrompt({ construct, dimension, requested, reverseCount, phrasingNo
       ' are reverse keyed.'
   ];
 
-  // Phrasing conventions are passed through when Step 2 found any. The scale
+  // Phrasing conventions are passed through when Step 3 found any. The scale
   // names are deliberately left out: they are unverified, and a model shown an
   // unverified citation tends to write toward the name, not the note.
   const notes = (phrasingNotes || []).filter(function (n) { return n && n.length > 0; });

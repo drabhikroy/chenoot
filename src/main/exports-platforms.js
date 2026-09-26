@@ -204,7 +204,7 @@ function toQualtricsSurveyFile({ instrument }) {
 
 
 // Advanced Format. Dimensions become blocks, which is what Qualtrics uses for
-// randomisation and page breaks, so the structure survives instead of arriving
+// randomization and page breaks, so the structure survives instead of arriving
 // as one long list.
 function toQualtrics({ instrument }) {
   const lines = ['[[AdvancedFormat]]', ''];

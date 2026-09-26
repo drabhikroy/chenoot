@@ -1,4 +1,4 @@
-// Prompt and schema for Step 5, revision.
+// Prompt and schema for Step 6, revision.
 //
 // The prompt shows each item alongside the specific problems found in it rather
 // than restating the rubric and asking for a general improvement. A model given

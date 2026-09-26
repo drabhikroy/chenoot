@@ -278,7 +278,7 @@ function drawMark(surface) {
   const originX = (surface.size - gridWidth) / 2;
   const originY = (surface.size - gridHeight) / 2 - 0.9 * unit;
 
-  // Which position each item was answered at. No two neighbours agree, and the
+  // Which position each item was answered at. No two neighbors agree, and the
   // set trends in neither direction.
   const answers = [3, 0, 2];
 

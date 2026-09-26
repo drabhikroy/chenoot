@@ -1,4 +1,4 @@
-// Step 1: construct scoping.
+// Step 2: construct scoping.
 //
 // Turns a construct name and a little context into named sub-dimensions with
 // definitions and item quotas. Every later step works from these dimensions, so

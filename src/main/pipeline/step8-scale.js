@@ -1,4 +1,4 @@
-// Step 7: response scale selection.
+// Step 8: response scale selection.
 //
 // The model decides two things: whether the construct is unipolar or bipolar,
 // and which response dimension the items are asking respondents to report. It
@@ -50,13 +50,23 @@ function usableAsAnchorWord(word) {
   return !NOMINAL_ENDINGS.test(cleaned);
 }
 
+// Markers are matched as whole words with their common endings, so "attend"
+// matches "attended" and "attending" and not "attention", "read" does not match
+// "ready" or "already", and "call" does not match "recall". Substring matching
+// inflated the countable share on exactly the attitudinal items the advisory
+// is meant to leave alone.
+function markerPattern(marker) {
+  const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+');
+  return new RegExp('\\b' + escaped + '(?:s|es|ed|d|ing)?\\b', 'i');
+}
+
 function shareMatching(items, markers) {
   if (items.length === 0) {
     return 0;
   }
+  const patterns = markers.map(markerPattern);
   const matching = items.filter(function (item) {
-    const text = item.text.toLowerCase();
-    return markers.some(function (marker) { return text.indexOf(marker) !== -1; });
+    return patterns.some(function (pattern) { return pattern.test(item.text); });
   });
   return matching.length / items.length;
 }
@@ -123,7 +133,7 @@ async function run({ results, backend, trail, entry }) {
 
   // Item-specific anchors need an adjective. Without a usable one the
   // placeholder is stripped and the anchors fall back to generic wording, which
-  // is why the check happens here, not being trusted to the model.
+  // is why the check happens here and is not left to the model.
   if ((selected.itemSpecific || selected.endpointsOnly) && !usableAsAnchorWord(constructWord)) {
     trail.recordDecision(entry, {
       code: 'construct_word_unusable',
@@ -146,7 +156,7 @@ async function run({ results, backend, trail, entry }) {
   });
   trail.recordDecision(entry, {
     code: 'scale_labels_from_catalog',
-    description: 'Anchor labels came from the catalog and not being generated, so the set is ' +
+    description: 'Anchor labels came from the catalog and were not generated, so the set is ' +
       (selected.endpointsOnly ? 'anchored at both ends with a familiar numeric range.' : 'fully labeled and symmetric.'),
     evidence: labels.length + ' anchors',
     provenance: PROVENANCE.MEASURED
@@ -203,7 +213,7 @@ async function run({ results, backend, trail, entry }) {
     family: selected.family,
     points: labels.length,
     hasMidpoint: labels.length % 2 === 1,
-    fullyLabelled: !selected.endpointsOnly,
+    fullyLabeled: !selected.endpointsOnly,
     requiresTimeFrame: Boolean(selected.requiresTimeFrame),
     justification,
     alternatives: Object.keys(UNSUPPORTED).map(function (key) {

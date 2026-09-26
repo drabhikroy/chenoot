@@ -1,4 +1,4 @@
-// Step 2: literature grounding.
+// Step 3: literature grounding.
 //
 // This step is the most dangerous one in the pipeline and the least important
 // to the result, which is an uncomfortable combination.
@@ -8,7 +8,7 @@
 // and frequently invent them. An application whose stated purpose is auditable
 // reasoning cannot let fabricated citations enter the audit trail unmarked.
 //
-// It is unimportant because everything downstream works without it. Step 3
+// It is unimportant because everything downstream works without it. Step 4
 // generates from the dimension definitions; grounding only calibrates phrasing.
 // So the correct posture is to run it, mark everything it produces as
 // unverified, and never let it stop the pipeline for any reason.

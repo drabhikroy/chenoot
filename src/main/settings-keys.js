@@ -16,7 +16,7 @@ const DEFAULTS = {
   apiProvider: 'anthropic',
   apiBaseUrl: '',
   apiKeyEncrypted: null,
-  // Off by default. Step 2 recall is unverifiable, so it is opted into.
+  // Off by default. Step 3 recall is unverifiable, so it is opted into.
   allowModelRecall: false,
   readabilityMeasure: 'flesch-kincaid',
   maximumGrade: 8,

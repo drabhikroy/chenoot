@@ -1,4 +1,4 @@
-// Step 4: self-critique.
+// Step 5: self-critique.
 //
 // Two sources of flags are combined here, and keeping them apart is the whole
 // design.
@@ -14,7 +14,7 @@
 // socially desirable answer. Those depend on what the item is about and on what
 // a respondent would want to be seen as, neither of which is in the string.
 //
-// Where a critique model is configured, it is a different model than Step 3
+// Where a critique model is configured, it is a different model than Step 4
 // wrote with. A model reviewing its own output shares the priors that produced
 // it and passes work it should catch.
 
@@ -39,7 +39,7 @@ async function critiqueDimension(backend, construct, dimension, items) {
   return judgments;
 }
 
-// Assess one dimension's worth of items and return their assessments. Step 5
+// Assess one dimension's worth of items and return their assessments. Step 6
 // calls this directly on revised items, so the rubric applied to a rewrite is
 // the same code that judged the original, not a second implementation
 // that could drift away from it.
@@ -176,7 +176,7 @@ async function run({ input, results, backend, trail, entry, report, note }) {
   }
 
   // Balance is a property of the pool, not of any item, so it is
-  // reported against the dimension and carried forward for Step 5 to act on.
+  // reported against the dimension and carried forward for Step 6 to act on.
   const balance = checkDimensionBalance(pool, options);
   balance.forEach(function (finding) {
     trail.recordDecision(entry, {

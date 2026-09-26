@@ -51,7 +51,7 @@ function App() {
   const [states, setStates] = useState(initialStates);
   const [settings, setSettings] = useState(null);
   const [backend, setBackend] = useState({ ready: false, detail: 'Checking Ollama.' });
-  const [cancelling, setCancelling] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [startedAt, setStartedAt] = useState(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   // Records when the current step began so its timer can be tracked separately
@@ -236,7 +236,7 @@ function App() {
     setStates(initialStates());
     setError(null);
     setResult(null);
-    setCancelling(false);
+    setCanceling(false);
     setStartedAt(Date.now());
     setElapsedMs(0);
     setStepStartedAt(null);
@@ -259,7 +259,7 @@ function App() {
       } else if (outcome.status === 'canceled') {
         setScreen('input');
       }
-      setCancelling(false);
+      setCanceling(false);
     });
   }, []);
 
@@ -341,7 +341,7 @@ function App() {
   }, []);
 
   const cancel = useCallback(function () {
-    setCancelling(true);
+    setCanceling(true);
     window.chenoot.cancel();
   }, []);
 
@@ -355,7 +355,7 @@ function App() {
         stepStartedAt={stepStartedAt}
         notes={notes}
         onCancel={cancel}
-        cancelling={cancelling}
+        canceling={canceling}
         elapsedMs={elapsedMs}
         error={error}
       />

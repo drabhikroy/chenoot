@@ -8,7 +8,7 @@ const assert = require('node:assert');
 
 const step2 = require('../src/main/pipeline/step2-scoping');
 const step4 = require('../src/main/pipeline/step4-generation');
-const { Orchestrator, CancelledError } = require('../src/main/pipeline/orchestrator');
+const { Orchestrator, CanceledError } = require('../src/main/pipeline/orchestrator');
 const { AuditTrail, PROVENANCE } = require('../src/main/pipeline/audit');
 
 const SETTINGS = { backend: 'ollama', model: 'llama3.1:8b', embeddingModel: 'nomic-embed-text' };
@@ -233,7 +233,7 @@ test('orchestrator stops between steps when the signal is aborted', async functi
     };
   });
   const orchestrator = new Orchestrator({ backend: stubBackend({}), steps, trail });
-  await assert.rejects(orchestrator.run({}, controller.signal), CancelledError);
+  await assert.rejects(orchestrator.run({}, controller.signal), CanceledError);
   assert.strictEqual(trail.counts().steps, 1);
 });
 

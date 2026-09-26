@@ -261,6 +261,50 @@ test('losing embeddings skips redundancy without losing the pipeline', async fun
 
   const output = await step7.run({ results, backend, trail, entry });
 
-  assert.strictEqual(output.finalItems.length, 3);
+  // Redundancy is skipped, but the oversized pool is still narrowed to the
+  // target. Returning all three would hand back more items than were asked for.
+  assert.strictEqual(output.finalItems.length, 2);
+  assert.strictEqual(output.trimmed.length, 1);
   assert.ok(entry.decisions.some(function (d) { return d.code === 'embeddings_unavailable'; }));
+  const narrowed = entry.decisions.find(function (d) { return d.code === 'narrowed_to_target'; });
+  assert.ok(narrowed && /no embeddings/.test(narrowed.description));
+});
+
+test('narrowing prefers an item near the definition over one that drifted', async function () {
+  const { trail, entry } = fresh(7, 'coverage');
+  // v-01 and v-03 both sit near the definition and overlap each other. v-05
+  // is orthogonal to all of it. Choosing by distance from the rest of the pool
+  // alone keeps v-05, the item least like the dimension it is meant to measure.
+  const results = coverageResults(['v-01', 'v-03', 'v-05'], 2);
+  results.scoping.dimensions[0].definition = 'definition text';
+  const backend = embeddingBackend();
+  results.revision.items.forEach(function (i) { backend.register(i.id, i.text); });
+  const embedItem = backend.embed;
+  backend.embed = async function (text) {
+    return text === 'definition text' ? [0.8, 0.6, 0] : embedItem(text);
+  };
+
+  const output = await step7.run({ results, backend, trail, entry });
+  const ids = output.finalItems.map(function (i) { return i.id; }).sort();
+
+  assert.deepStrictEqual(ids, ['v-01', 'v-03']);
+  const narrowed = entry.decisions.find(function (d) { return d.code === 'narrowed_to_target'; });
+  assert.ok(/dimension definition/.test(narrowed.description));
+});
+
+test('selection without vectors still honors flags and keying', function () {
+  const pool = [
+    { id: 'a-01', direction: 'positive' },
+    { id: 'a-02', direction: 'positive' },
+    { id: 'a-03', direction: 'positive' },
+    { id: 'a-04', direction: 'reverse' }
+  ];
+  const assessments = new Map([
+    ['a-01', { flags: [{ code: 'x' }] }],
+    ['a-02', { flags: [] }],
+    ['a-03', { flags: [] }],
+    ['a-04', { flags: [{ code: 'x' }] }]
+  ]);
+  const kept = step7.selectForDimension(pool, 3, assessments, null);
+  assert.deepStrictEqual(Array.from(kept).sort(), ['a-02', 'a-03', 'a-04']);
 });

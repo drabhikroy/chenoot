@@ -19,7 +19,7 @@
 // Each reference as parts in place of as one string, so the journal title and
 // volume can be set in italics and the rest cannot.
 //
-// APA 7 italicises the periodical title and the volume number, and the title of
+// APA 7 italicizes the periodical title and the volume number, and the title of
 // a book or report, and nothing else in the entry. That is a typographic rule
 // and it cannot be expressed in a flat string without the renderer guessing
 // where the italics belong, which is why these are split.

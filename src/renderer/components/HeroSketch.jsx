@@ -24,7 +24,7 @@ const ANCHORS = [
   'Strongly disagree'
 ];
 
-// The one the respondent picked. Second from the top, off centre, because a
+// The one the respondent picked. Second from the top, off center, because a
 // mark in the middle of a five point scale reads as a diagram of a scale and a
 // mark anywhere else reads as somebody's answer.
 const CHOSEN = 1;
@@ -34,7 +34,7 @@ const ROW_HEIGHT = 74;
 const CIRCLE_X = 46;
 const RADIUS = 22;
 // The distance between the two lines of a wrapped anchor, which is also what
-// each line is offset from the circle's centre by.
+// each line is offset from the circle's center by.
 const LINE_HEIGHT = 19;
 
 // A closed path around a circle, with each of the four control points pushed
@@ -108,7 +108,7 @@ export function HeroSketch() {
 
             {/* Centered on the circle by the renderer rather than by an offset
                 chosen to look right. Text is positioned on its baseline by
-                default, so a y equal to the circle's centre sets the label a
+                default, so a y equal to the circle's center sets the label a
                 little low, and the correction was guessed at: one line landed
                 close and two lines did not, which is why the longest anchor sat
                 below the circle it belongs to. Asking for the central baseline

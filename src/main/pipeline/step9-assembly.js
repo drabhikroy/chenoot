@@ -1,4 +1,4 @@
-// Step 8: final assembly and audit trail.
+// Step 9: final assembly and audit trail.
 //
 // Composes what the earlier steps produced into two artifacts: the instrument
 // itself, and a document a person can read to understand how it came to look

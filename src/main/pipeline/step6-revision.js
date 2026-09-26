@@ -1,4 +1,4 @@
-// Step 5: revision loop.
+// Step 6: revision loop.
 //
 // Rewrites every flagged item, re-judges the rewrite, and repeats up to a fixed
 // cap. Items still failing at the cap are dropped with their full failure
@@ -204,7 +204,7 @@ async function run({ input, results, backend, trail, entry, report, note }) {
 
   const items = Array.from(byId.values());
 
-  // Coverage is checked here as well as in Step 6, because a dimension gutted
+  // Coverage is checked here as well as in Step 7, because a dimension gutted
   // by drops needs to be attributable to revision and not to deduplication.
   scoping.dimensions.forEach(function (dimension) {
     const remaining = items.filter(function (i) { return i.dimension === dimension.name; }).length;

@@ -471,7 +471,7 @@ export function SettingsScreen({
         />
       ) : null}
 
-      {/* These two settings directly affect the checks used in Step 4, so
+      {/* These two settings directly affect the checks used in Steps 5 and 6, so
           changing them can change which items are flagged. */}
       {section === 'items' ? (
       <section className="group">

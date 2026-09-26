@@ -1,4 +1,4 @@
-// The checkable portion of the Step 4 rubric.
+// The checkable portion of the Step 5 rubric.
 //
 // The build specification hands the whole rubric to the model. Three of its five
 // criteria do not need a model at all: whether an item joins two predicates,
@@ -12,8 +12,8 @@
 // whether an item leads the respondent, and whether it invites a socially
 // desirable answer. Those two live in the model prompt.
 //
-// Every function returns flags, not a verdict. Step 4 decides what a
-// flag costs, and Step 5 decides what to do about it.
+// Every function returns flags, not a verdict. Step 5 decides what a
+// flag costs, and Step 6 decides what to do about it.
 
 // Syllable counting and the readability formulas live in readability.js, which
 // holds eight measures and knows which can be applied to a single item. Keeping
@@ -47,7 +47,36 @@ const ABSOLUTES = [
 
 // Negation interacts badly with reverse keying. A reverse-keyed item that also
 // contains a negation asks the respondent to hold two inversions at once.
-const NEGATIONS = ['not', 'never', 'no', 'cannot', 'without', 'rarely', 'neither'];
+const NEGATIONS = [
+  'not', 'never', 'no', 'cannot', 'without', 'rarely', 'neither', 'nor',
+  'none', 'nothing', 'nobody', 'nowhere'
+];
+
+// Generated items use contractions even though this project does not, and a
+// contracted "do not" is the most common way a reverse item gets negated. Any
+// word ending in n, an apostrophe, and t is a negation whatever verb it is
+// attached to. Straight and curly apostrophes are both accepted.
+const CONTRACTED_NEGATION = /n['\u2019]t$/;
+
+// Flesch published Reading Ease with a table placing score bands at school
+// grades (Flesch, 1949, The Art of Readable Writing). The target in settings is
+// a grade, and Reading Ease runs the other way on a different scale, so the
+// grade is converted through that table and never compared to the score
+// directly. Each row is the highest grade the band covers and the lowest score
+// that still counts as that band.
+const EASE_FLOOR_BY_GRADE = [
+  { grade: 5, floor: 90 },
+  { grade: 6, floor: 80 },
+  { grade: 7, floor: 70 },
+  { grade: 9, floor: 60 },
+  { grade: 12, floor: 50 },
+  { grade: 16, floor: 30 }
+];
+
+function easeFloorForGrade(grade) {
+  const row = EASE_FLOOR_BY_GRADE.find(function (r) { return grade <= r.grade; });
+  return row ? row.floor : 0;
+}
 
 // Defaults. General population instruments are usually written at or below
 // eighth grade; a clinical or workplace instrument may sit higher.
@@ -73,6 +102,19 @@ function tokenize(text) {
   return text.trim().split(/\s+/).filter(function (w) { return w.length > 0; });
 }
 
+// The item as a run of bare lowercase words with single spaces and a space at
+// each end. Punctuation touching a word would otherwise hide it, so "never,"
+// and "never." read as "never" the way a respondent reads them. Apostrophes are
+// kept, and curly ones straightened, so that contractions survive intact.
+function wordRun(text) {
+  const words = String(text).toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[^a-z0-9'\s]/g, ' ')
+    .split(/\s+/)
+    .filter(function (w) { return w.length > 0; });
+  return { words, padded: ' ' + words.join(' ') + ' ' };
+}
+
 // Reading grade for one item, using whichever measure has been chosen. Only
 // measures valid at item length are offered in settings, so this cannot be
 // handed a formula that needs a thirty sentence sample.
@@ -81,8 +123,16 @@ function tokenize(text) {
 // item containing a sentence break is a different problem and is caught by the
 // double-barreled check.
 function readingGrade(text, measureId) {
-  const value = readability.score(text, measureId || readability.DEFAULT_MEASURE);
-  return value === null ? 0 : value;
+  const id = measureId || readability.DEFAULT_MEASURE;
+  const value = readability.score(text, id);
+  if (value !== null) {
+    return value;
+  }
+  // No text means nothing to flag, so the neutral value is whichever end of
+  // the scale can never trip the check. That is zero for a grade and the top of
+  // the scale for Reading Ease, where zero would be the hardest possible text.
+  const measure = readability.MEASURES[id];
+  return measure && measure.higherIsEasier ? 100 : 0;
 }
 
 function flag(code, message, evidence) {
@@ -102,19 +152,23 @@ function checkItem(item, options) {
   BOUND_PHRASES.forEach(function (phrase) {
     masked = masked.split(phrase).join(' ');
   });
+  // Every occurrence is tested, not only the first. In "Pros and cons of my
+  // job make me want to stay and grow here" the first "and" is inside a phrase
+  // and the second is the one joining two propositions.
   CONJUNCTIONS.forEach(function (conjunction) {
-    const position = masked.indexOf(conjunction);
-    if (position === -1) {
-      return;
-    }
-    const before = tokenize(masked.slice(0, position));
-    const after = tokenize(masked.slice(position + conjunction.length));
-    if (before.length >= 3 && after.length >= 3) {
-      flags.push(flag(
-        'double_barreled',
-        'Joins two propositions, so a respondent who agrees with one and not the other has no correct answer.',
-        conjunction.trim()
-      ));
+    let position = masked.indexOf(conjunction);
+    while (position !== -1) {
+      const before = tokenize(masked.slice(0, position));
+      const after = tokenize(masked.slice(position + conjunction.length));
+      if (before.length >= 3 && after.length >= 3) {
+        flags.push(flag(
+          'double_barreled',
+          'Joins two propositions, so a respondent who agrees with one and not the other has no correct answer.',
+          conjunction.trim()
+        ));
+        return;
+      }
+      position = masked.indexOf(conjunction, position + conjunction.length);
     }
   });
 
@@ -128,18 +182,29 @@ function checkItem(item, options) {
   }
 
   // Reading level.
-  const grade = readingGrade(text, config.readabilityMeasure);
+  const measureId = config.readabilityMeasure || readability.DEFAULT_MEASURE;
+  const measure = readability.MEASURES[measureId] || readability.MEASURES[readability.DEFAULT_MEASURE];
+  const grade = readingGrade(text, measureId);
   // Compared at the precision it is reported at. Comparing 8.04 against 8 and
   // then printing "grade 8.0, above the target of 8" is a message that reads as
   // a fault in the application instead of a finding about the item.
-  const reportedGrade = Math.round(grade * 10) / 10;
-  if (reportedGrade > config.maximumGrade) {
+  const reported = Math.round(grade * 10) / 10;
+  if (measure.higherIsEasier) {
+    const floor = easeFloorForGrade(config.maximumGrade);
+    if (reported < floor) {
+      flags.push(flag(
+        'reading_level',
+        'Reading ease of ' + reported.toFixed(1) + ' by ' + measure.label + ', below the ' +
+          floor + ' that Flesch places at grade ' + config.maximumGrade + '.',
+        grade.toFixed(1)
+      ));
+    }
+  } else if (reported > config.maximumGrade) {
     flags.push(flag(
       'reading_level',
       // The measure is named in the finding. Two measures disagree by a grade
       // or more on the same sentence, so a bare number is not checkable.
-      'Reads at grade ' + reportedGrade.toFixed(1) + ' by ' +
-        (readability.MEASURES[config.readabilityMeasure || readability.DEFAULT_MEASURE].label) +
+      'Reads at grade ' + reported.toFixed(1) + ' by ' + measure.label +
         ', above the target of ' + config.maximumGrade + '.',
       grade.toFixed(1)
     ));
@@ -157,8 +222,9 @@ function checkItem(item, options) {
   }
 
   // Absolutes.
+  const run = wordRun(text);
   ABSOLUTES.forEach(function (term) {
-    if (lower.indexOf(' ' + term + ' ') !== -1) {
+    if (run.padded.indexOf(' ' + term + ' ') !== -1) {
       flags.push(flag(
         'absolute_term',
         'Uses an absolute, which pushes responses toward a scale endpoint for reasons unrelated to the construct.',
@@ -170,8 +236,8 @@ function checkItem(item, options) {
   // Negation combined with reverse keying.
   if (item.direction === 'reverse') {
     const found = NEGATIONS.filter(function (term) {
-      return lower.indexOf(' ' + term + ' ') !== -1;
-    });
+      return run.padded.indexOf(' ' + term + ' ') !== -1;
+    }).concat(run.words.filter(function (w) { return CONTRACTED_NEGATION.test(w); }));
     if (found.length > 0) {
       flags.push(flag(
         'negated_reverse_item',
@@ -235,5 +301,6 @@ module.exports = {
   checkDimensionBalance,
   readingGrade,
   countSyllables,
+  easeFloorForGrade,
   DEFAULTS
 };

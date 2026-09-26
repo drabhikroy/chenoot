@@ -1,4 +1,4 @@
-// Prompt and schema for Step 7, response scale selection.
+// Prompt and schema for Step 8, response scale selection.
 //
 // The prompt asks two questions in a fixed order, because the second only makes
 // sense once the first is settled.

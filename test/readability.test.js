@@ -71,3 +71,24 @@ test('every measure carries prose explaining where it should not be trusted', fu
     assert.ok(m.caution && m.caution.length > 30, id + ' states no caution');
   });
 });
+
+test('syllables are right on the vocabulary survey items lean on', function () {
+  // Each of these was miscounted by a plain vowel group count, and each is
+  // common in item wording. Counts are from the CMU Pronouncing Dictionary.
+  const expected = {
+    your: 1, yourself: 2, year: 1, being: 2, going: 2, people: 2, able: 2,
+    simple: 2, likely: 2, sometimes: 2, management: 3, wanted: 2, needed: 2,
+    changes: 2, services: 3, previous: 3, experience: 4, behavior: 3, idea: 3,
+    area: 3, tired: 2, feedback: 2, supervisor: 4, satisfied: 3
+  };
+  Object.keys(expected).forEach(function (word) {
+    assert.strictEqual(readability.syllables(word), expected[word], word);
+  });
+});
+
+test('a plainly worded item is not pushed over a grade eight target', function () {
+  // A plain vowel group count put this at grade 12.3. A dictionary count puts
+  // it at 8.4.
+  const grade = readability.score('Your supervisor gives you useful feedback.', 'flesch-kincaid');
+  assert.ok(grade < 9, String(grade));
+});

@@ -11,6 +11,7 @@ const {
   FORBIDDEN_CHARACTERS,
   CONTRACTION_PATTERN
 } = require('./lexicon');
+const { americanFor, wordsInToken, SPELLING_ALLOWLIST } = require('./spelling');
 
 // One combined expression is faster than fifty separate passes over the file
 // and, more importantly, reports findings in source order.
@@ -147,7 +148,29 @@ function commentDensity(source) {
   };
 }
 
+// Report every British spelling, with the American form it should take. Tokens
+// are whole identifiers or words, and an identifier on the allowlist is passed
+// as a unit before it is split, so a kept legacy key is not reported by parts.
+function findBritishSpellings(text) {
+  const findings = [];
+  const pattern = /[A-Za-z]+/g;
+  let match = pattern.exec(text);
+  while (match !== null) {
+    if (!SPELLING_ALLOWLIST.has(match[0])) {
+      wordsInToken(match[0]).forEach(function (word) {
+        const american = americanFor(word);
+        if (american) {
+          findings.push({ word, american, line: lineNumberAt(text, match.index) });
+        }
+      });
+    }
+    match = pattern.exec(text);
+  }
+  return findings;
+}
+
 module.exports = {
+  findBritishSpellings,
   findBannedTerms,
   findForbiddenCharacters,
   findContractions,

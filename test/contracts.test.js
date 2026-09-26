@@ -109,7 +109,7 @@ test('every event channel the renderer subscribes to is emitted somewhere', func
 test('every backend the settings screen offers resolves to a module', function () {
   const screen = read('src/renderer/screens/SettingsScreen.jsx');
   // Sliced from the backend select to its own closing tag, not to the
-  // next field. Anchoring on a neighbouring element made this depend on source
+  // next field. Anchoring on a neighboring element made this depend on source
   // order, and it broke the first time two fields were reordered.
   const start = screen.indexOf('id="backend"');
   const end = screen.indexOf('</select>', start);
@@ -394,7 +394,7 @@ test('no renderer file uses an identifier it does not import or define', functio
     });
   }(path.join(ROOT, 'src', 'renderer')));
 
-  // Capitalised identifiers only. Those are components and module constants,
+  // Capitalized identifiers only. Those are components and module constants,
   // which is where this class of mistake lands; lowercase locals are too
   // numerous to track without parsing properly.
   const problems = [];

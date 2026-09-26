@@ -1,6 +1,6 @@
 // The similarity calibration scale.
 //
-// Step 6 decides which items are near-duplicates by treating a pair as an
+// Step 7 decides which items are near-duplicates by treating a pair as an
 // outlier in its own dimension's similarity distribution, not by testing
 // it against a fixed number. That is a defensible method and an opaque one: the
 // audit trail can state the cutoff, but a number in a log gives a reader no way

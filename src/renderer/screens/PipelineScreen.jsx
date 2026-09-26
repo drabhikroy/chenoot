@@ -58,7 +58,7 @@ function basisOf(estimate) {
 // sample states. That makes it possible to inspect flagged and failed cases
 // without causing a real model run to fail.
 export function PipelineScreen({
-  input, steps, states, onCancel, cancelling, elapsedMs, error, stepStartedAt, notes
+  input, steps, states, onCancel, canceling, elapsedMs, error, stepStartedAt, notes
 }) {
   // The time estimate is calculated once when the run begins, then adjusted based
   // on how much of the process remains. Recalculating it every second would add
@@ -202,11 +202,11 @@ export function PipelineScreen({
       ) : null}
 
       <div className="actions">
-        <button onClick={onCancel} disabled={cancelling || Boolean(error)}>
-          {cancelling ? 'Finishing current step' : 'Cancel'}
+        <button onClick={onCancel} disabled={canceling || Boolean(error)}>
+          {canceling ? 'Finishing current step' : 'Cancel'}
         </button>
       </div>
-      {cancelling ? (
+      {canceling ? (
         <p className="field-hint">
           A local model cannot stop once it has started a task, so the current step will
           finish before the process stops. No later steps will begin.

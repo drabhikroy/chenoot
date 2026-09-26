@@ -9,7 +9,7 @@ const fs = require('node:fs/promises');
 
 const { createBackend } = require('./backends');
 const { steps } = require('./pipeline');
-const { Orchestrator, CancelledError } = require('./pipeline/orchestrator');
+const { Orchestrator, CanceledError } = require('./pipeline/orchestrator');
 const { AuditTrail } = require('./pipeline/audit');
 const settingsStore = require('./settings');
 const exporters = require('./exports');
@@ -157,7 +157,7 @@ function registerHandlers(getWindow) {
           // renderer to parse prose back into rows, which is the kind of thing
           // that works until someone edits a heading.
           trail: trail.toJSON(),
-          // Step 6 measures a similarity distribution per dimension and, until
+          // Step 7 measures a similarity distribution per dimension and, until
           // now, only wrote it to the trail as prose. The results screen plots
           // it, so the numbers cross the bridge as numbers.
           coverage: {
@@ -175,11 +175,11 @@ function registerHandlers(getWindow) {
         missing: halted.missing || []
       };
     } catch (error) {
-      if (error instanceof CancelledError) {
+      if (error instanceof CanceledError) {
         return { status: 'canceled' };
       }
       // The partial trail is kept. Nothing is discarded. A run that failed at
-      // Step 5 still documents Steps 1 through 4, and that is often exactly
+      // Step 6 still documents Steps 1 through 5, and that is often exactly
       // what someone needs in order to understand why it failed.
       lastCompletedRun = { instrument: null, document: null, trail };
       try {
@@ -195,14 +195,14 @@ function registerHandlers(getWindow) {
 
   // Cancellation is acknowledged immediately and not awaited. The current step has to
   // finish before the orchestrator can check the signal, so telling the renderer
-  // "cancelling" immediately is both accurate and better than a button that
+  // "canceling" immediately is both accurate and better than a button that
   // appears to do nothing for the next forty seconds.
   ipcMain.handle('pipeline:cancel', async function () {
     if (!activeRun) {
       return { status: 'idle' };
     }
     activeRun.controller.abort();
-    return { status: 'cancelling' };
+    return { status: 'canceling' };
   });
 
   // Status is rebuilt from settings on every call and never cached, since
@@ -418,7 +418,7 @@ function registerHandlers(getWindow) {
       return { ok: true };
     } catch (error) {
       if (error.name === 'AbortError') {
-        return { ok: false, cancelled: true };
+        return { ok: false, canceled: true };
       }
       return { ok: false, detail: error.message };
     } finally {
@@ -587,7 +587,11 @@ function registerHandlers(getWindow) {
         construct: instrument.construct,
         dimension: owningDimension,
         backend: buildBackend(),
-        options: { maximumGrade: settings.maximumGrade, maximumWords: settings.maximumWords }
+        options: {
+          readabilityMeasure: settings.readabilityMeasure,
+          maximumGrade: settings.maximumGrade,
+          maximumWords: settings.maximumWords
+        }
       });
 
       owningDimension.items[found.index] = outcome.item;
@@ -675,7 +679,11 @@ function registerHandlers(getWindow) {
           construct: instrument.construct,
           dimension: target.dimension,
           backend,
-          options: { maximumGrade: settings.maximumGrade, maximumWords: settings.maximumWords }
+          options: {
+            readabilityMeasure: settings.readabilityMeasure,
+            maximumGrade: settings.maximumGrade,
+            maximumWords: settings.maximumWords
+          }
         });
         target.dimension.items[target.index] = outcome.item;
         changed += 1;
@@ -898,6 +906,7 @@ function registerHandlers(getWindow) {
       });
       return runs.estimate(Number(itemCount) || 0, {
         machine: known,
+        model: settings.model,
         modelMemoryGb: chosen ? chosen.memoryGb : null
       });
     } catch (error) {

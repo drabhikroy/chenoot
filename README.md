@@ -2,7 +2,7 @@
 # Chenoot
 
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#requirements)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgray)](#requirements)
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-black?logo=apple&logoColor=white)
 ![Intel](https://img.shields.io/badge/Intel-x86__64-black?logo=apple&logoColor=white)
 [![Release](https://img.shields.io/github/v/release/drabhikroy/chenoot)](https://github.com/drabhikroy/chenoot/releases)
@@ -497,8 +497,8 @@ credentials are stored as encrypted repository secrets (`CSC_LINK`,
 `APPLE_TEAM_ID`) and never touch the local machine that triggers the run.
 Building locally with `npm run dist:mac` works the same way in principle,
 but depends on the local network actually being able to reach Apple's
-notary service and timestamp authority, which is not guaranteed on every
-network.
+notary service and timestamp authority, and some networks block one or
+both.
 
 A `.zip` built with `dist:mac:zip` on a host other than macOS cannot be
 signed during that build, since codesign only runs on macOS. Chenoot includes

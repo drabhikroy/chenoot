@@ -22,6 +22,13 @@ import { FormatReference } from '../components/FormatReference.jsx';
 //
 // Dates are shown as dates rather than timestamps. This is a document someone
 // may save or file, and the exact time it was created is not usually needed.
+// Runs saved before the field took its American spelling carry the older
+// key, and the archive is read as it was written, so both are accepted.
+function labeledAtEndsOnly(scale) {
+  const value = scale.fullyLabeled !== undefined ? scale.fullyLabeled : scale.fullyLabelled;
+  return value === false;
+}
+
 function formatBuilt(iso) {
   const when = new Date(iso);
   if (Number.isNaN(when.getTime())) {
@@ -313,7 +320,7 @@ export function ResultsScreen({
         <p className="scale-properties value">
           {scale.polarity} &middot; {scale.points} points &middot;
           {' '}{scale.hasMidpoint ? 'midpoint' : 'no midpoint'} &middot;
-          {' '}{scale.fullyLabelled === false ? 'endpoints labeled' : 'fully labeled'}
+          {' '}{labeledAtEndsOnly(scale) ? 'endpoints labeled' : 'fully labeled'}
         </p>
         {/* If any item uses a different response format, the block above shows
             the default rather than the format used by every item. Saying so

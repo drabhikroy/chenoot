@@ -10,7 +10,7 @@
 // read as part of this application in place of as clip art. Four shapes cover
 // every family in the catalog:
 //
-//   bipolar   cells of equal weight with a marked centre, heavier at both ends
+//   bipolar   cells of equal weight with a marked center, heavier at both ends
 //   unipolar  cells climbing from nothing at the left to full height at the right
 //   binary    two large cells and nothing between them
 //   numeric   a long rule with ticks, only the ends named
@@ -41,7 +41,7 @@ function bipolarCells() {
       y: 14,
       width: cellWidth,
       height: 16,
-      role: middle ? 'centre' : end ? 'end' : 'plain'
+      role: middle ? 'center' : end ? 'end' : 'plain'
     };
   });
 }
