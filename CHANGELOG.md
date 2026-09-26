@@ -2,6 +2,77 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
+## [1.1.0] - 2026-09-26
+
+### Changed
+
+- Narrowing a dimension to its target count now keeps the items that best
+  match the dimension definition while overlapping least with the items
+  already kept (maximal marginal relevance, Carbonell and Goldstein, 1998). It
+  used to keep the items least similar to the rest of the pool, which favored
+  items that had drifted away from the construct.
+- Syllables are counted with rules for the patterns survey wording leans on,
+  such as a consonant y in "your", a sounded le in "able", and a silent e in
+  "sometimes". Against the CMU Pronouncing Dictionary, Flesch-Kincaid grade on
+  typical items moves from an average error of 1.3 grades to 0.2. Items that
+  were flagged for reading level only because of miscounted syllables are no
+  longer flagged.
+- A pair of items from different dimensions is reported as overlapping when it
+  clears the duplicate cutoff of both dimensions, and not at a fixed cosine of
+  0.9, so the alert follows the embedding model in use.
+- Runtime estimates use only past runs of the chosen model when there are any,
+  and fit the fixed and per item costs with a Theil and Sen line, so one stalled
+  run no longer bends the estimate.
+
+### Added
+
+- A check on whole dimensions. When items in two dimensions are as similar to
+  each other as items within one of them, the audit trail says the wording does
+  not yet separate the two (after Campbell and Fiske, 1959).
+- An American spelling check in the standards gate, which reads identifiers as
+  well as prose.
+
+### Fixed
+
+- Without embeddings, as with the API backend or an embedding model that is not
+  installed, the finished instrument held the whole draft pool, three times the
+  number of items requested. It is now narrowed to the target on flags and
+  keying balance, and the audit trail says similarity played no part.
+- Choosing Flesch Reading Ease flagged nearly every item, because its score was
+  compared against the grade target as though it were a grade. The target is
+  now converted to a Reading Ease floor through Flesch's published table.
+- Changing an item's format checked the rewrite with Flesch-Kincaid whatever
+  measure was chosen in settings.
+- Reverse keyed items negated with a contraction, such as "do not" written
+  short, were not flagged as double negations. Absolutes followed by
+  punctuation were missed, and only the first "and" or "or" in an item was
+  tested for a second proposition.
+- The frequency advisory counted words like "attention", "ready", and "recall"
+  as countable behavior because they contain "attend", "read", and "call".
+- Two sentences in the scale step of the audit trail were ungrammatical.
+- British spellings in interface text and code, including one in the model
+  catalog descriptions, are now American.
+- Release builds for macOS are signed and notarized. The release workflow
+  never passed the signing credentials to the macOS build, which would have
+  produced DMGs that Gatekeeper refuses.
+
+## [1.0.5] - 2026-09-11
+
+### Changed
+
+- macOS builds are signed with a Developer ID certificate and notarized by
+  Apple, and the DMG itself is notarized and stapled as well as the application
+  inside it. Opening Chenoot on macOS no longer needs the quarantine workaround,
+  and the README no longer describes one.
+- The README follows the structure shared across these applications, and the
+  repository now carries a Code of Conduct, a contributing guide, and a security
+  policy.
+
+### Fixed
+
+- The README said Windows and Linux builds were not yet available, directly
+  above installation steps for both.
+
 ## [1.0.4] - 2026-08-28
 
 ### Fixed

@@ -54,11 +54,38 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run ${{ matrix.script }}
+      # macOS is built with the Developer ID certificate and the notary
+      # credentials. Without them electron-builder finds no identity and the
+      # notarization hooks skip themselves, so the build still succeeds and
+      # produces a DMG that Gatekeeper refuses. That failure is silent here and
+      # only shows on the machine of the person who downloads it.
+      - if: matrix.os == 'macos-latest'
+        run: npm run ${{ matrix.script }}
         env:
           # electron-builder publishes on its own if this is unset, which would
           # put artifacts on the release before anybody has opened one.
           GH_TOKEN: ''
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      # The Apple credentials are kept away from the other two platforms.
+      # electron-builder reads CSC_LINK for Windows signing as well, and handed
+      # the Apple certificate it would try to sign the installer with it.
+      - if: matrix.os != 'macos-latest'
+        run: npm run ${{ matrix.script }}
+        env:
+          GH_TOKEN: ''
+      # Checked on the runner, before the draft exists. A DMG that is not
+      # stapled fails this job, and since the draft waits on every build, no
+      # draft is created until it is fixed.
+      - if: matrix.os == 'macos-latest'
+        run: |
+          for dmg in dist/*.dmg; do
+            xcrun stapler validate "$dmg"
+            spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}
