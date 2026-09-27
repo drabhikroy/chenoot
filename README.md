@@ -435,7 +435,9 @@ definition. The icon is rebuilt before packaging.
 `build/dmg-background@2x.png` from `scripts/build-dmg-background.js`. It needs
 a display and is not part of packaging, so run it after changing the wording or
 the layout and commit both files. electron-builder combines the two into one
-image so Finder shows the sharper one on Retina displays.
+image so Finder shows the sharper one on Retina displays. The hand-lettered
+note beside the drag arrow is set in Caveat, kept with its license in
+`scripts/fonts` and used only by this script.
 
 ### Building distributable packages
 

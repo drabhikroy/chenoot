@@ -63,21 +63,28 @@ const RULE = '#8aaae5';
 // about every application downloaded from the internet, and the help file
 // covers the rest.
 //
-// The lines are kept short on purpose. The help file's icon sits to the right
-// of them with its label below it, and a longer line runs underneath the icon.
+// The lines are kept as short as the ones they replace. The arrow toward the
+// help icon starts where the last line ends, and the icon and its label sit
+// to the right, so a longer line would run into both.
 const HEADLINE = 'First time opening Chenoot?';
 const BODY = [
-  'macOS asks once before opening an app',
-  'from the internet. Choose Open.'
+  'macOS asks once before opening it.',
+  'Choose Open. For anything else,'
 ];
-const LINK = 'Otherwise, double-click Installation Help.';
+const LINK = 'double-click Installation Help.';
 
-// The typeface is embedded as data so the page does not depend on where it is
-// loaded from.
+// The typefaces are embedded as data so the page does not depend on where it
+// is loaded from. Lexend is the application's own face. Caveat, a handwritten
+// face under the SIL Open Font License, sets the one hand-lettered note beside
+// the drag arrow. It lives beside this script with its license, and it is only
+// used here, never shipped inside the application.
 function fontFace() {
-  const font = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'fonts', 'lexend.woff2'));
+  const lexend = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'fonts', 'lexend.woff2'));
+  const caveat = fs.readFileSync(path.join(__dirname, 'fonts', 'caveat-latin-600-normal.woff2'));
   return '@font-face { font-family: "Lexend"; src: url(data:font/woff2;base64,' +
-    font.toString('base64') + ') format("woff2"); font-weight: 100 900; }';
+    lexend.toString('base64') + ') format("woff2"); font-weight: 100 900; }' +
+    '@font-face { font-family: "Caveat"; src: url(data:font/woff2;base64,' +
+    caveat.toString('base64') + ') format("woff2"); font-weight: 600; }';
 }
 
 // A rounded square with a dashed edge, centered on an icon position.
@@ -90,8 +97,6 @@ function well(center) {
 }
 
 function page() {
-  const midX = (APP_ICON.x + APPLICATIONS_ICON.x) / 2;
-  const arrowY = APP_ICON.y - 9;
   return '<!doctype html><html><head><meta charset="utf-8"><style>' +
     fontFace() +
     'html, body { margin: 0; padding: 0; background: ' + PAPER + '; }' +
@@ -124,14 +129,17 @@ function page() {
 
     // The two wells and the drag instruction between them.
     well(APP_ICON) + well(APPLICATIONS_ICON) +
-    '<line x1="' + (midX - 49) + '" y1="' + arrowY + '" x2="' + (midX + 45) + '" y2="' + arrowY +
-    '" stroke="' + ACCENT + '" stroke-width="3" stroke-linecap="round"/>' +
-    '<path d="M' + (midX + 30) + ' ' + (arrowY - 14) + ' L' + (midX + 47) + ' ' + arrowY +
-    ' L' + (midX + 30) + ' ' + (arrowY + 14) + '" fill="none" stroke="' + ACCENT +
-    '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '<text x="' + midX + '" y="' + (arrowY + 45) + '" text-anchor="middle" font-size="16" ' +
-    'font-weight="500" fill="' + ACCENT + '" transform="rotate(-5 ' + midX + ' ' + (arrowY + 45) +
-    ')">Drag to install</text>' +
+    // The drag arrow, its hand-lettered note, and the stroke under the note.
+    // Coordinates are measured from the original picture so the arrow keeps
+    // its weight and position.
+    '<line x1="355" y1="208" x2="451" y2="208" stroke="' + ACCENT +
+    '" stroke-width="5" stroke-linecap="round"/>' +
+    '<path d="M438 192 L454 208 L438 224" fill="none" stroke="' + ACCENT +
+    '" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<text x="408" y="256" text-anchor="middle" style="font-family: Caveat; font-size: 25px; ' +
+    'font-weight: 600" fill="' + ACCENT + '" transform="rotate(-7 408 256)">Drag to install</text>' +
+    '<path d="M359 284 Q 392 272 440 270" fill="none" stroke="' + ACCENT +
+    '" stroke-width="3.5" stroke-linecap="round"/>' +
 
     // The help panel. A marker, a divider, the words, and an arrow toward the
     // help file's icon.
@@ -143,20 +151,17 @@ function page() {
     '<text x="168" y="' + (HELP_ICON.y - 20) + '" font-size="19" font-weight="600" fill="' + INK + '">' +
     HEADLINE + '</text>' +
     BODY.map(function (line, i) {
-      return '<text x="168" y="' + (HELP_ICON.y + 6 + i * 22) + '" font-size="15" font-weight="350" ' +
+      return '<text x="168" y="' + (HELP_ICON.y + 6 + i * 22) + '" font-size="14.5" font-weight="350" ' +
         'fill="' + MUTED + '">' + line + '</text>';
     }).join('') +
-    '<text x="168" y="' + (HELP_ICON.y + 6 + BODY.length * 22) + '" font-size="15" font-weight="600" ' +
+    '<text id="link" x="168" y="' + (HELP_ICON.y + 6 + BODY.length * 22) + '" font-size="14.5" font-weight="600" ' +
     'fill="' + ACCENT + '">' + LINK + '</text>' +
-    // The arrow starts past the end of the last line and curves up toward the
-    // left edge of the help icon, stopping short of it.
-    '<path d="M' + (HELP_ICON.x - 100) + ' ' + (HELP_ICON.y + 45) + ' C ' + (HELP_ICON.x - 82) + ' ' +
-    (HELP_ICON.y + 50) + ', ' + (HELP_ICON.x - 72) + ' ' + (HELP_ICON.y + 38) + ', ' +
-    (HELP_ICON.x - 64) + ' ' + (HELP_ICON.y + 18) + '" fill="none" stroke="' + ACCENT +
-    '" stroke-width="2.5" stroke-linecap="round"/>' +
-    '<path d="M' + (HELP_ICON.x - 75) + ' ' + (HELP_ICON.y + 24) + ' L' + (HELP_ICON.x - 63) + ' ' +
-    (HELP_ICON.y + 15) + ' L' + (HELP_ICON.x - 56) + ' ' + (HELP_ICON.y + 28) +
-    '" fill="none" stroke="' + ACCENT + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    // The arrow from the end of the last line toward the help icon, measured
+    // from the original picture like the drag arrow above.
+    '<path d="M397 468 C 424 481, 466 473, 499 449" fill="none" stroke="' + ACCENT +
+    '" stroke-width="4.5" stroke-linecap="round"/>' +
+    '<path d="M478 442 L502 447 L488 470" fill="none" stroke="' + ACCENT +
+    '" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>' +
 
     // A thin rule near the foot, closing the composition.
     '<line x1="33" y1="520" x2="787" y2="520" stroke="' + RULE + '" stroke-width="1"/>' +
@@ -176,6 +181,14 @@ async function captureAt(win, scale, file) {
     'requestAnimationFrame(function () { requestAnimationFrame(r); }); }); })'
   );
   await new Promise(function (resolve) { setTimeout(resolve, 300); });
+  // The arrow toward the help icon starts at x 397, so the line before it has
+  // to end short of that or the two touch.
+  const linkEnd = await win.webContents.executeJavaScript(
+    'document.getElementById("link").getBBox().x + document.getElementById("link").getBBox().width'
+  );
+  if (linkEnd > 390) {
+    throw new Error('The last panel line ends at ' + Math.round(linkEnd) + ', past the arrow at 397.');
+  }
   const image = await win.webContents.capturePage({
     x: 0, y: 0, width: WIDTH * scale, height: HEIGHT * scale
   });
