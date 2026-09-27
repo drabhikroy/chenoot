@@ -77,14 +77,26 @@ jobs:
         run: npm run ${{ matrix.script }}
         env:
           GH_TOKEN: ''
-      # Checked on the runner, before the draft exists. A DMG that is not
-      # stapled fails this job, and since the draft waits on every build, no
-      # draft is created until it is fixed.
+      # Checked on the runner, before the draft exists. A failure here fails
+      # this job, and since the draft waits on every build, no draft is created
+      # until it is fixed.
+      #
+      # Two things are checked for each DMG. The DMG must carry a stapled
+      # notarization ticket, so it opens without a network check. The
+      # application inside must pass Gatekeeper as notarized Developer ID code,
+      # which is the judgment macOS makes when someone launches it. The DMG
+      # itself is not signed, following electron-builder's advice that a signed
+      # DMG conflicts with notarization, so Gatekeeper is asked about the
+      # application and not about the DMG's own signature, which it lacks.
       - if: matrix.os == 'macos-latest'
         run: |
           for dmg in dist/*.dmg; do
             xcrun stapler validate "$dmg"
-            spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
+            mount=$(mktemp -d)
+            hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mount" >/dev/null
+            spctl --assess --type execute --verbose=2 "$mount/Chenoot.app"
+            xcrun stapler validate "$mount/Chenoot.app"
+            hdiutil detach "$mount" >/dev/null
           done
       - uses: actions/upload-artifact@v6
         with:
