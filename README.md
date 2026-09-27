@@ -429,6 +429,14 @@ described in coordinates instead of being stored only as a separate binary
 source, which keeps the application mark and generated icon tied to the same
 definition. The icon is rebuilt before packaging.
 
+#### Disk image background
+
+`npm run build:dmg-background` rebuilds `build/dmg-background.png` and
+`build/dmg-background@2x.png` from `scripts/build-dmg-background.js`. It needs
+a display and is not part of packaging, so run it after changing the wording or
+the layout and commit both files. electron-builder combines the two into one
+image so Finder shows the sharper one on Retina displays.
+
 ### Building distributable packages
 
 Use the platform commands below:
@@ -463,8 +471,11 @@ The macOS build produces:
 - `Chenoot-x64.dmg` for Intel Macs
 - matching `.zip` files when that target is requested
 
-The disk image opens at 820 by 587 pixels with Chenoot on the left, an
-Applications shortcut on the right, and an Installation Help file below.
+The disk image window shows a picture 820 by 587 points in size, with
+Chenoot on the left, an Applications shortcut on the right, and an
+Installation Help file below. The help file covers the question macOS asks the
+first time a downloaded app is opened, what to do if a download arrives
+damaged, and which disk image fits which kind of Mac.
 
 ### Code signing and verification
 

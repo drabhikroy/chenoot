@@ -18,6 +18,7 @@
     "test": "node --test test/*.test.js",
     "build:icon": "node scripts/build-icon.js",
     "build:svg": "node scripts/build-svg.js",
+    "build:dmg-background": "node scripts/with-display.js electron scripts/build-dmg-background.js",
     "build:renderer": "node scripts/build-palettes.js && esbuild src/renderer/main.jsx --bundle --outfile=src/renderer/app.js --loader:.jsx=jsx --jsx=automatic --format=iife --target=chrome120 --minify",
     "watch:renderer": "npm run build:renderer -- --watch",
     "start": "npm run build:renderer && electron .",
