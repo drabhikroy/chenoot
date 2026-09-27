@@ -10,8 +10,8 @@ module.exports = {
     contents: [
       ...pkg.build.dmg.contents,
         {
-          x: 590,
-          y: 422,
+          x: 700,
+          y: 452,
           type: "file",
           path: path.join(
             __dirname,

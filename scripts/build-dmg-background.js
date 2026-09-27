@@ -1,11 +1,12 @@
 // The background of the macOS disk image window, generated, not made by hand.
 //
 // The disk image opens as a Finder window with this picture behind three icons.
-// Chenoot sits in the left well, the Applications shortcut in the right well,
-// and the Installation Help file in the lower right corner. The positions of
+// Chenoot and the Applications shortcut sit together in one region with the
+// drag arrow between them, three numbered steps run beneath, and the
+// Installation Help file sits in the lower right corner. The positions of
 // those icons are set in package.json and electron-builder.config.cjs, and the
-// wells and arrows below are placed to meet them, so a change to one side needs
-// the same change to the other.
+// region and arrow below are placed to meet them, so a change to
+// one side needs the same change to the other.
 //
 // Rendered by Electron from the markup in this file, in the typeface the
 // application uses, so the words can be changed by editing a string and running
@@ -42,36 +43,55 @@ const HEIGHT = 587;
 
 // Where Finder puts each icon, by the center of the icon, matching dmg.contents
 // in package.json and the extra entry in electron-builder.config.cjs.
-const APP_ICON = { x: 220, y: 217 };
-const APPLICATIONS_ICON = { x: 590, y: 217 };
-const HELP_ICON = { x: 590, y: 422 };
-
-// Colors, taken from the interface palette's light theme so the installer and
-// the application read as one product.
-const PAPER = '#f3f3f5';
-const INK = '#111a33';
-const MUTED = '#3a4459';
-const ACCENT = '#0a4bcf';
-const WELL = '#8fb0ec';
-const WAVE_LIGHT = '#dfe9fb';
-const WAVE_MID = '#c9dcf8';
-const WAVE_DEEP = '#b4cff5';
-const RULE = '#8aaae5';
-
-// The words in the lower panel. Written for a notarized application: the only
-// thing a person normally sees on first launch is the question macOS asks
-// about every application downloaded from the internet, and the help file
-// covers the rest.
 //
-// The lines are kept as short as the ones they replace. The arrow toward the
-// help icon starts where the last line ends, and the icon and its label sit
-// to the right, so a longer line would run into both.
-const HEADLINE = 'First time opening Chenoot?';
-const BODY = [
-  'macOS asks once before opening it.',
-  'Choose Open. For anything else,'
+// The two icons of the drag sit 310 points apart. Dragging time grows with
+// distance for a target of a given size (Fitts, 1954), and the Applications
+// folder is a large target, so a shorter span costs nothing in accuracy. The
+// help file sits in the lower right corner, out of the path of the drag, so the
+// window offers two main icons and not three equally weighted ones (Hick, 1952).
+const APP_ICON = { x: 255, y: 232 };
+const APPLICATIONS_ICON = { x: 565, y: 232 };
+const HELP_ICON = { x: 700, y: 452 };
+
+// Colors for the installer window. These are cool blues of the installer's own
+// and not the warm paper and teal of the application's interface.
+const PAPER = '#f4f5f8';
+const INK = '#111a33';
+const MUTED = '#4a5468';
+const ACCENT = '#0a4bcf';
+const REGION = '#e3ecfb';
+const CORNER_LIGHT = '#cfdcf6';
+const CORNER_DEEP = '#9cb8ee';
+const RULE = '#c9d6ee';
+
+// Finder always draws this window in its light appearance when it has a
+// background picture, whatever the system setting, and sets the icon labels
+// in black on top of it. A window with no picture follows Dark Mode instead,
+// but then it shows no picture at all, and Finder offers no way to supply a
+// second one for Dark Mode. So this one light design is what everyone sees,
+// and the black labels sit directly on the pale background at better than
+// fifteen to one.
+
+// The three steps, in the order they are done.
+//
+// Running an application straight from the mounted disk image is a common
+// first install mistake on macOS, so the sequence runs past the drag to
+// opening Chenoot and ejecting the disk.
+//
+// The second step says what the first launch dialog should report before it
+// says which button to press. Attention to security prompts drops sharply once
+// people learn to dismiss them without reading (Anderson et al., CHI 2015), and
+// warnings are followed more often when people understand what they are being
+// told (Felt et al., CHI 2015). Anyone who sees something else is sent to the
+// help file instead of to the Open button.
+const STEPS = [
+  { title: 'Drag to Applications', lines: ['Copy Chenoot onto', 'this Mac.'] },
+  { title: 'Open Chenoot', lines: ['macOS should confirm', 'Apple checked it.', 'Then choose Open.'] },
+  { title: 'Eject this disk', lines: ['Chenoot runs from', 'Applications, not here.'] }
 ];
-const LINK = 'double-click Installation Help.';
+const STEP_X = [50, 250, 450];
+const STEP_Y = 426;
+const FALLBACK = 'Something different on screen? Open Installation Help, on the right.';
 
 // The typefaces are embedded as data so the page does not depend on where it
 // is loaded from. Lexend is the application's own face. Caveat, a handwritten
@@ -88,15 +108,23 @@ function fontFace() {
 }
 
 // A rounded square with a dashed edge, centered on an icon position.
-function well(center) {
-  const size = 204;
-  const x = center.x - size / 2;
-  const y = center.y - size / 2 + 13;
-  return '<rect x="' + x + '" y="' + y + '" width="' + size + '" height="' + size +
-    '" rx="22" fill="none" stroke="' + WELL + '" stroke-width="1.5" stroke-dasharray="6 6"/>';
+function step(number, x, content) {
+  return '<g id="step' + number + '">' +
+    '<circle cx="' + x + '" cy="' + (STEP_Y - 5) + '" r="13" fill="' + ACCENT + '"/>' +
+    '<text x="' + x + '" y="' + STEP_Y + '" text-anchor="middle" font-size="14" font-weight="600" ' +
+    'fill="#ffffff">' + number + '</text>' +
+    '<text x="' + (x + 22) + '" y="' + STEP_Y + '" font-size="15" font-weight="600" fill="' + INK + '">' +
+    content.title + '</text>' +
+    content.lines.map(function (line, i) {
+      return '<text x="' + (x + 22) + '" y="' + (STEP_Y + 21 + i * 18) + '" font-size="12.5" ' +
+        'font-weight="350" fill="' + MUTED + '">' + line + '</text>';
+    }).join('') +
+    '</g>';
 }
 
 function page() {
+  const dx = (APP_ICON.x + APPLICATIONS_ICON.x) / 2 - 405;
+  const dy = APP_ICON.y - 8 - 208;
   return '<!doctype html><html><head><meta charset="utf-8"><style>' +
     fontFace() +
     'html, body { margin: 0; padding: 0; background: ' + PAPER + '; }' +
@@ -106,65 +134,48 @@ function page() {
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + HEIGHT +
     '" viewBox="0 0 ' + WIDTH + ' ' + HEIGHT + '">' +
 
-    // Scattered squares in the upper corners, the same motif as the landing page.
-    '<g fill="' + WAVE_MID + '">' +
-    '<rect x="22" y="20" width="50" height="50" rx="10" opacity="0.9"/>' +
-    '<rect x="91" y="56" width="31" height="31" rx="7" opacity="0.8"/>' +
-    '<rect x="58" y="93" width="22" height="22" rx="5" fill="' + WELL + '"/>' +
-    '<rect x="698" y="43" width="35" height="35" rx="8" opacity="0.9"/>' +
-    '<rect x="747" y="72" width="31" height="31" rx="7" opacity="0.7"/>' +
-    '<rect x="724" y="103" width="22" height="22" rx="5" fill="' + WELL + '"/>' +
+    // Small brand squares in the upper corners, quieter than the landing page
+    // so they frame the window without drawing the eye.
+    '<g fill="' + CORNER_LIGHT + '">' +
+    '<rect x="24" y="22" width="30" height="30" rx="7"/>' +
+    '<rect x="60" y="44" width="18" height="18" rx="4" fill="' + CORNER_DEEP + '"/>' +
+    '<rect x="760" y="22" width="30" height="30" rx="7"/>' +
+    '<rect x="742" y="44" width="18" height="18" rx="4" fill="' + CORNER_DEEP + '"/>' +
     '</g>' +
 
-    // The name and what the application is for.
-    '<text x="' + WIDTH / 2 + '" y="78" text-anchor="middle" font-size="64" font-weight="250" ' +
-    'letter-spacing="14" fill="' + INK + '">CHENOOT</text>' +
-    '<text x="' + WIDTH / 2 + '" y="111" text-anchor="middle" font-size="17" font-weight="350" ' +
+    // The name and what the application is for, kept small so the drag below
+    // is the first thing the eye lands on.
+    '<text x="' + WIDTH / 2 + '" y="60" text-anchor="middle" font-size="40" font-weight="250" ' +
+    'letter-spacing="10" fill="' + INK + '">CHENOOT</text>' +
+    '<text x="' + WIDTH / 2 + '" y="86" text-anchor="middle" font-size="14" font-weight="350" ' +
     'fill="' + MUTED + '">Auditable survey instrument construction</text>' +
 
-    // Waves across the lower half, lightest at the back.
-    '<path d="M0 262 C 120 236, 210 300, 350 300 S 600 262, 820 276 L 820 587 L 0 587 Z" fill="' + WAVE_LIGHT + '"/>' +
-    '<path d="M0 312 C 160 292, 260 352, 420 336 S 690 300, 820 318 L 820 587 L 0 587 Z" fill="' + WAVE_MID + '" opacity="0.85"/>' +
-    '<path d="M0 372 C 180 350, 330 402, 520 382 S 740 356, 820 366 L 820 587 L 0 587 Z" fill="' + WAVE_DEEP + '" opacity="0.55"/>' +
+    // One shared region behind the application, the arrow, and Applications.
+    // Elements inside a common boundary are seen as belonging together
+    // (Palmer, 1992), so the three read as one action.
+    '<rect x="130" y="112" width="560" height="228" rx="28" fill="' + REGION + '"/>' +
 
-    // The two wells and the drag instruction between them.
-    well(APP_ICON) + well(APPLICATIONS_ICON) +
-    // The drag arrow, its hand-lettered note, and the stroke under the note.
-    // Coordinates are measured from the original picture so the arrow keeps
-    // its weight and position.
-    '<line x1="355" y1="208" x2="451" y2="208" stroke="' + ACCENT +
-    '" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M438 192 L454 208 L438 224" fill="none" stroke="' + ACCENT +
+    // The drag arrow, its hand-lettered note, and the stroke under the note,
+    // with the same shapes, sizes, and spacing as the original window, moved
+    // as one piece to sit between the two icons. The coordinates are measured
+    // from the original picture, where the arrow ran from x 355 to 454 at y 208,
+    // and dx and dy shift all of them together.
+    '<line x1="' + (355 + dx) + '" y1="' + (208 + dy) + '" x2="' + (451 + dx) + '" y2="' + (208 + dy) +
+    '" stroke="' + ACCENT + '" stroke-width="5" stroke-linecap="round"/>' +
+    '<path d="M' + (438 + dx) + ' ' + (192 + dy) + ' L' + (454 + dx) + ' ' + (208 + dy) + ' L' + (438 + dx) +
+    ' ' + (224 + dy) + '" fill="none" stroke="' + ACCENT +
     '" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '<text x="408" y="256" text-anchor="middle" style="font-family: Caveat; font-size: 25px; ' +
-    'font-weight: 600" fill="' + ACCENT + '" transform="rotate(-7 408 256)">Drag to install</text>' +
-    '<path d="M359 284 Q 392 272 440 270" fill="none" stroke="' + ACCENT +
-    '" stroke-width="3.5" stroke-linecap="round"/>' +
+    '<text x="' + (408 + dx) + '" y="' + (256 + dy) + '" text-anchor="middle" style="font-family: Caveat; ' +
+    'font-size: 25px; font-weight: 600" fill="' + ACCENT + '" transform="rotate(-7 ' + (408 + dx) + ' ' +
+    (256 + dy) + ')">Drag to install</text>' +
+    '<path d="M' + (359 + dx) + ' ' + (284 + dy) + ' Q ' + (392 + dx) + ' ' + (272 + dy) + ' ' + (440 + dx) +
+    ' ' + (270 + dy) + '" fill="none" stroke="' + ACCENT + '" stroke-width="3.5" stroke-linecap="round"/>' +
 
-    // The help panel. A marker, a divider, the words, and an arrow toward the
-    // help file's icon.
-    '<circle cx="84" cy="' + (HELP_ICON.y - 12) + '" r="34" fill="' + ACCENT + '"/>' +
-    '<text x="84" y="' + (HELP_ICON.y + 2) + '" text-anchor="middle" font-size="38" font-weight="600" ' +
-    'fill="#ffffff">?</text>' +
-    '<line x1="147" y1="' + (HELP_ICON.y - 40) + '" x2="147" y2="' + (HELP_ICON.y + 50) +
-    '" stroke="' + ACCENT + '" stroke-width="1.5" opacity="0.6"/>' +
-    '<text x="168" y="' + (HELP_ICON.y - 20) + '" font-size="19" font-weight="600" fill="' + INK + '">' +
-    HEADLINE + '</text>' +
-    BODY.map(function (line, i) {
-      return '<text x="168" y="' + (HELP_ICON.y + 6 + i * 22) + '" font-size="14.5" font-weight="350" ' +
-        'fill="' + MUTED + '">' + line + '</text>';
-    }).join('') +
-    '<text id="link" x="168" y="' + (HELP_ICON.y + 6 + BODY.length * 22) + '" font-size="14.5" font-weight="600" ' +
-    'fill="' + ACCENT + '">' + LINK + '</text>' +
-    // The arrow from the end of the last line toward the help icon, measured
-    // from the original picture like the drag arrow above.
-    '<path d="M397 468 C 424 481, 466 473, 499 449" fill="none" stroke="' + ACCENT +
-    '" stroke-width="4.5" stroke-linecap="round"/>' +
-    '<path d="M478 442 L502 447 L488 470" fill="none" stroke="' + ACCENT +
-    '" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-
-    // A thin rule near the foot, closing the composition.
-    '<line x1="33" y1="520" x2="787" y2="520" stroke="' + RULE + '" stroke-width="1"/>' +
+    // The steps, a rule above them, and the pointer to the help file.
+    '<line x1="40" y1="382" x2="600" y2="382" stroke="' + RULE + '" stroke-width="1"/>' +
+    STEPS.map(function (content, i) { return step(i + 1, STEP_X[i], content); }).join('') +
+    '<text id="fallback" x="' + STEP_X[0] + '" y="520" font-size="12.5" font-weight="350" fill="' +
+    MUTED + '">' + FALLBACK + '</text>' +
     '</svg></body></html>';
 }
 
@@ -181,13 +192,20 @@ async function captureAt(win, scale, file) {
     'requestAnimationFrame(function () { requestAnimationFrame(r); }); }); })'
   );
   await new Promise(function (resolve) { setTimeout(resolve, 300); });
-  // The arrow toward the help icon starts at x 397, so the line before it has
-  // to end short of that or the two touch.
-  const linkEnd = await win.webContents.executeJavaScript(
-    'document.getElementById("link").getBBox().x + document.getElementById("link").getBBox().width'
+  // Each step has to end before the next one begins, and the last step and
+  // the pointer line have to end before the help icon, which reaches about
+  // fifty six points left of its center.
+  const ends = await win.webContents.executeJavaScript(
+    '["step1", "step2", "step3", "fallback"].map(function (id) { ' +
+    'var e = document.getElementById(id).getBBox(); return e.x + e.width; })'
   );
-  if (linkEnd > 390) {
-    throw new Error('The last panel line ends at ' + Math.round(linkEnd) + ', past the arrow at 397.');
+  for (let i = 0; i < 2; i += 1) {
+    if (ends[i] > STEP_X[i + 1] - 16) {
+      throw new Error('Step ' + (i + 1) + ' ends at ' + Math.round(ends[i]) + ', into step ' + (i + 2) + '.');
+    }
+  }
+  if (Math.max(ends[2], ends[3]) > HELP_ICON.x - 62) {
+    throw new Error('The steps run to ' + Math.round(Math.max(ends[2], ends[3])) + ', into the help icon.');
   }
   const image = await win.webContents.capturePage({
     x: 0, y: 0, width: WIDTH * scale, height: HEIGHT * scale

@@ -89,13 +89,13 @@
       "iconTextSize": 14,
       "contents": [
         {
-          "x": 220,
-          "y": 217,
+          "x": 255,
+          "y": 232,
           "type": "file"
         },
         {
-          "x": 590,
-          "y": 217,
+          "x": 565,
+          "y": 232,
           "type": "link",
           "path": "/Applications"
         }
