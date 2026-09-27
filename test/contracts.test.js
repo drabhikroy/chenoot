@@ -500,3 +500,40 @@ test('every screen the router can show can be navigated to', function () {
   assert.deepStrictEqual(orphaned, [],
     'these screens are rendered by the router but nothing navigates to them');
 });
+
+test('the DMG notarization hook reads the build result electron-builder passes', function () {
+  // The shape below is the BuildResult interface in app-builder-lib. The hook
+  // once treated it as a plain list, which failed at the very end of a signed
+  // build, after every other step had already succeeded.
+  const { dmgPathsFrom } = require('../scripts/notarize-dmgs');
+  const buildResult = {
+    outDir: '/tmp/dist',
+    artifactPaths: [
+      '/tmp/dist/Chenoot-arm64.dmg',
+      '/tmp/dist/Chenoot-arm64.zip',
+      '/tmp/dist/Chenoot-x64.dmg',
+      '/tmp/dist/Chenoot-x64.dmg.blockmap'
+    ],
+    platformToTargets: new Map(),
+    configuration: {}
+  };
+  assert.deepStrictEqual(dmgPathsFrom(buildResult), [
+    '/tmp/dist/Chenoot-arm64.dmg',
+    '/tmp/dist/Chenoot-x64.dmg'
+  ]);
+  assert.deepStrictEqual(dmgPathsFrom({}), []);
+});
+
+test('the DMG notarization hook skips quietly without credentials', async function () {
+  const hook = require('../scripts/notarize-dmgs').default;
+  const saved = process.env.APPLE_ID;
+  delete process.env.APPLE_ID;
+  try {
+    const added = await hook({ artifactPaths: ['/tmp/dist/Chenoot-arm64.dmg'] });
+    assert.deepStrictEqual(added, []);
+  } finally {
+    if (saved !== undefined) {
+      process.env.APPLE_ID = saved;
+    }
+  }
+});

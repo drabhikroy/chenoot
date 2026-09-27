@@ -13,6 +13,20 @@
 const { notarize } = require('@electron/notarize');
 const { execFileSync } = require('node:child_process');
 
+// electron-builder hands this hook a build result object, not a list. The
+// paths of everything it built are in its artifactPaths field, alongside the
+// output folder, the targets, and the configuration. Reading the object as a
+// list fails only after both architectures have been signed and notarized,
+// about ten minutes into the build, so the shape is checked by a test.
+function dmgPathsFrom(buildResult) {
+  const paths = (buildResult && buildResult.artifactPaths) || [];
+  return paths.filter(function (artifactPath) {
+    return artifactPath.endsWith('.dmg');
+  });
+}
+
+exports.dmgPathsFrom = dmgPathsFrom;
+
 exports.default = async function afterAllArtifactBuild(buildResult) {
   const appleId = process.env.APPLE_ID;
   const appleIdPassword = process.env.APPLE_APP_SPECIFIC_PASSWORD;
@@ -26,9 +40,7 @@ exports.default = async function afterAllArtifactBuild(buildResult) {
     return [];
   }
 
-  const dmgPaths = buildResult.filter(function (artifactPath) {
-    return artifactPath.endsWith('.dmg');
-  });
+  const dmgPaths = dmgPathsFrom(buildResult);
 
   for (const dmgPath of dmgPaths) {
     console.log(`Notarizing ${dmgPath}`);
