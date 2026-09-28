@@ -424,10 +424,12 @@ notice on Linux. The hook changes which button appears and nothing else.
 
 `npm run build:icon` rebuilds `build/icon.png` from `scripts/build-icon.js`.
 
-The icon uses the same graduated rule as the application mark. Its shape is
-described in coordinates instead of being stored only as a separate binary
-source, which keeps the application mark and generated icon tied to the same
-definition. The icon is rebuilt before packaging.
+The icon is three rows of five radio buttons with one chosen in each row. Its
+shape is described in coordinates instead of being stored only as a separate
+binary source, so it can be adjusted by editing a number. The application mark
+in the navigation bar keeps flat cells in the same three rows and the same
+pattern of answers, since rings merge below about eighteen pixels. The icon is
+rebuilt before packaging.
 
 #### Disk image background
 
@@ -582,7 +584,7 @@ use by charitable, educational, nonprofit, public research, public health, and
 government organizations are permitted. Commercial use is not permitted without
 a separate license.
 
-Required notice: Copyright 2026 Abhik Roy.
+Required notice: © 2026 Abhik Roy.
 
 Lexend, Fraunces, and Spline Sans Mono are used under the SIL Open Font
 License. See `src/renderer/fonts/OFL.txt`.

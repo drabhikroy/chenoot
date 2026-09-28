@@ -48,9 +48,15 @@ export function GraduatedRule({ steps, currentIndex, failedIndex }) {
             <div
               className={'rule-segment ' + state}
               key={step.name}
+              title={step.hint ? (index + 1) + '. ' + step.name + '. ' + step.hint : step.name}
               style={{ animationDelay: (index * 45) + 'ms' }}
             >
-              <span className="rule-label">{step.short}</span>
+              {/* The full step name, numbered, in sentence case. The clipped
+                  abbreviations in spaced capitals read as codes. */}
+              <span className="rule-label">
+                <span className="rule-number value">{index + 1}</span>
+                {step.name}
+              </span>
               <span className="rule-bar">{minors}</span>
             </div>
           );

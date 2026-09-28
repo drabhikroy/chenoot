@@ -491,6 +491,14 @@ test('every screen the router can show can be navigated to', function () {
   (shell.match(/onNavigate\('([a-z-]+)'\)/g) || []).forEach(function (call) {
     reachable.add(call.replace(/^onNavigate\('/, '').replace(/'\)$/, ''));
   });
+  // The reference tabs. The two reference pages share one place in the bar and
+  // each is reached by its tab, which hands its id to the router.
+  const tabs = fs.readFileSync(
+    path.join(ROOT, 'src', 'renderer', 'components', 'ReferenceTabs.jsx'), 'utf8'
+  );
+  (tabs.match(/id: '([a-z-]+)'/g) || []).forEach(function (item) {
+    reachable.add(item.replace(/^id: '/, '').replace(/'$/, ''));
+  });
   // The default, which needs no route because it is where the application opens.
   reachable.add('input');
 

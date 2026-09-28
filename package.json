@@ -38,7 +38,7 @@
   "build": {
     "appId": "com.abhikroy.chenoot",
     "productName": "Chenoot",
-    "copyright": "Copyright Abhik Roy",
+    "copyright": "© Abhik Roy",
     "afterSign": "scripts/notarize.js",
     "directories": {
       "output": "dist",

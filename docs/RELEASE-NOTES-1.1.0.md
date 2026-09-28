@@ -4,6 +4,15 @@ This release changes how Chenoot chooses and checks items. Running the same
 specification through 1.1.0 can return a different instrument than 1.0.5 did,
 and the reasons are set out below and in the audit trail of each run.
 
+## A clearer interface
+
+After your first instrument, Chenoot opens on a home screen with your recent
+runs and one button to build another. The navigation bar is shorter, with the
+two reference pages sharing one place. If setup is not finished, the bar and the
+new instrument form both say so before you start filling anything in. Each of
+the nine steps is named in full, required fields stand out from optional ones,
+and Settings asks before closing with changes you have not saved.
+
 ## Item selection
 
 When a dimension holds more usable items than you asked for, Chenoot now keeps

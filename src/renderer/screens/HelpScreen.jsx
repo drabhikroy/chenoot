@@ -249,7 +249,7 @@ export function HelpScreen({ onWalkthrough }) {
             <>
               <p className="help-para">
                 Chenoot is published under the PolyForm Noncommercial License 1.0.0.
-                Copyright Abhik Roy.
+                © Abhik Roy.
               </p>
               <p className="help-para">
                 Any noncommercial purpose is permitted, including personal study, research,

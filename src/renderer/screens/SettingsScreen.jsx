@@ -136,11 +136,35 @@ export function SettingsScreen({
     setDraft(Object.assign({}, draft, { [key]: value }));
   }
 
-  function save() {
+  // What was last saved, so the dialog can tell whether closing would lose
+  // anything. It moves forward on every successful save, unlike the copy above.
+  const [baseline, setBaseline] = useState(settings);
+  const [confirming, setConfirming] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(baseline);
+
+  function save(then) {
     setSaveState('working');
     onSave(draft).then(function (outcome) {
       setSaveState(outcome.ok ? 'saved' : outcome.detail);
+      if (outcome.ok) {
+        setBaseline(draft);
+        if (then) {
+          then();
+        }
+      }
     });
+  }
+
+  // Close, Escape, and a click outside the panel all come through here.
+  // Closing used to discard unsaved edits without a word, and people expect a
+  // settings panel to keep what they typed, so edits that are not saved are
+  // raised before the panel goes.
+  function requestClose() {
+    if (dirty && saveState !== 'working') {
+      setConfirming(true);
+      return;
+    }
+    onClose();
   }
 
   const status = backend || { state: 'error', detail: 'Status unknown.', ready: false };
@@ -160,10 +184,26 @@ export function SettingsScreen({
   return (
     <Modal
       title="Settings"
-      onClose={onClose}
-      footer={
+      onClose={requestClose}
+      footer={confirming ? (
         <>
-          <button className="primary" onClick={save} disabled={saveState === 'working'}>
+          <span className="field-hint settings-unsaved">Some changes are not saved yet.</span>
+          <button
+            className="primary"
+            onClick={function () { save(onClose); }}
+            disabled={saveState === 'working'}
+          >
+            {saveState === 'working' ? 'Saving' : 'Save and close'}
+          </button>
+          <button onClick={onClose} disabled={saveState === 'working'}>Close without saving</button>
+          <button onClick={function () { setConfirming(false); }}>Keep editing</button>
+          {saveState && saveState !== 'saved' && saveState !== 'working'
+            ? <span className="field-error">{saveState}</span>
+            : null}
+        </>
+      ) : (
+        <>
+          <button className="primary" onClick={function () { save(); }} disabled={saveState === 'working'}>
             {saveState === 'working' ? 'Saving' : 'Save changes'}
           </button>
           <button
@@ -172,12 +212,13 @@ export function SettingsScreen({
           >
             Discard changes
           </button>
-          <button onClick={onClose}>Close</button>
+          <button onClick={requestClose}>Close</button>
           {saveState === 'saved' ? <span className="field-hint state-complete">Saved.</span> : null}
           {saveState && saveState !== 'saved' && saveState !== 'working'
             ? <span className="field-error">{saveState}</span>
             : null}
         </>
+      )
       }
     >
       {/* A side rail works better than tabs across the top. The four labels
@@ -282,7 +323,7 @@ export function SettingsScreen({
             {draft.apiProvider === 'anthropic' ? (
               <span className="field-hint">
                 Anthropic does not offer an embeddings service, so the redundancy
-                check in step 6 is skipped in this mode. The coverage check still runs.
+                check in step 7 is skipped in this mode. The coverage check still runs.
               </span>
             ) : null}
           </div>

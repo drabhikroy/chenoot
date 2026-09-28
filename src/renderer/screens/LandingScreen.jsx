@@ -207,8 +207,116 @@ function Specimen({ item }) {
 
 // Both actions are passed in. The page does not know how the application
 // navigates, only which two places it offers to send someone.
-export function LandingScreen({ onEnter, onFormats }) {
+// How many recent runs the returning home lists before pointing to Past runs.
+const RECENT_LIMIT = 4;
+
+// Counts read as words, with the singular where there is one.
+function counted(n, one, many) {
+  return n + ' ' + (n === 1 ? one : many);
+}
+
+// What a run holds, from whatever the archive recorded about it. An older or
+// partial record may lack a count, and a missing number is left out instead
+// of being printed as the word undefined.
+function runSummary(run) {
+  if (run.status !== 'complete') {
+    return 'Incomplete';
+  }
+  const parts = [];
+  if (Number.isFinite(run.itemCount)) {
+    parts.push(counted(run.itemCount, 'item', 'items'));
+  }
+  if (Number.isFinite(run.dimensionCount)) {
+    parts.push(counted(run.dimensionCount, 'dimension', 'dimensions'));
+  }
+  return parts.length > 0 ? parts.join(', ') : 'Complete';
+}
+
+function savedWhen(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// The home a returning person sees.
+//
+// The full introduction is for someone deciding what this application is.
+// Someone who has already built with it comes back to do one of two things,
+// start another instrument or reopen one, and the first screen should offer
+// exactly those. The introduction stays one click away, not gone.
+function ReturningHome({ onEnter, onOpenRun, onHistory, onShowIntro }) {
+  const [runs, setRuns] = useState(null);
+
+  // The archive is read here and not passed in, so the list is current every
+  // time the home is shown, including after a run finishes or one is deleted.
+  // The flag stops a late answer from updating a screen that has been left.
+  useEffect(function () {
+    let live = true;
+    window.chenoot.listRuns().then(function (outcome) {
+      if (live) {
+        setRuns((outcome && outcome.runs) || []);
+      }
+    });
+    return function () { live = false; };
+  }, []);
+
+  // The archive arrives newest first, so the first few are the recent ones.
+  const recent = (runs || []).slice(0, RECENT_LIMIT);
+  return (
+    <section className="landing-home">
+      <p className="eyebrow">Auditable survey instrument construction</p>
+      <h1 className="landing-home-title">Build a new instrument or reopen one</h1>
+      <div className="landing-actions">
+        <button className="primary landing-primary" onClick={onEnter}>
+          Build an instrument
+        </button>
+      </div>
+
+      <h2 className="landing-home-heading">Recent runs</h2>
+      {runs === null ? <p className="field-hint">Reading the archive.</p> : null}
+      {runs && runs.length === 0 ? (
+        <p className="field-hint">Nothing has been built yet.</p>
+      ) : null}
+      {recent.length > 0 ? (
+        <ul className="recent-runs">
+          {/* Each row opens the run it names. Incomplete runs are listed too,
+              marked as such, because a failed attempt is often the one a
+              person comes back to look at. */}
+          {recent.map(function (run) {
+            const complete = run.status === 'complete';
+            return (
+              <li key={run.runId}>
+                <button className="recent-run" onClick={function () { onOpenRun(run.runId); }}>
+                  <span className="recent-run-name">{run.construct}</span>
+                  <span className={'recent-run-meta value state-' + (complete ? 'complete' : 'error')}>
+                    {runSummary(run)}
+                    {' \u00b7 ' + savedWhen(run.savedAt)}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      <div className="landing-home-links">
+        {runs && runs.length > RECENT_LIMIT ? (
+          <button className="link-button" onClick={onHistory}>
+            All {runs.length} past runs
+          </button>
+        ) : null}
+        <button className="link-button" onClick={onShowIntro}>
+          How Chenoot works
+        </button>
+      </div>
+    </section>
+  );
+}
+
+export function LandingScreen({ onEnter, onFormats, returning, onOpenRun, onHistory }) {
   const [step, setStep] = useState({});
+  const [intro, setIntro] = useState(false);
 
   // The sequence runs once. Anyone who prefers reduced motion sees the completed
   // state immediately, with the same information shown without the animation.
@@ -233,6 +341,21 @@ export function LandingScreen({ onEnter, onFormats }) {
 
   // The page uses a single column with sections separated by rules. Sections are
   // not placed in cards, which keeps the page reading as one continuous flow.
+  // A returning person gets the home, and can still ask for the introduction,
+  // which then renders exactly as it does on a first launch.
+  if (returning && !intro) {
+    return (
+      <div className="landing">
+        <ReturningHome
+          onEnter={onEnter}
+          onOpenRun={onOpenRun}
+          onHistory={onHistory}
+          onShowIntro={function () { setIntro(true); }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="landing">
       <section className="landing-hero">

@@ -4,16 +4,17 @@
 // word this whole application is built around, and the shape is the same
 // object in both. Deliberately not a clipboard, a checklist, or a speech
 // bubble. Those say survey by naming the artifact, which is the obvious move
-// and the one every form product has already made. The icon is three of these
-// rows stacked, and a wordmark glyph sharing none of its vocabulary made the
-// two look like marks for different applications. One row is what survives
+// and the one every form product has already made. The icon stacks three of
+// these rows with the cells as radio buttons, and a wordmark glyph sharing none
+// of its vocabulary made the two look like marks for different applications. One row is what survives
 // being twenty-two pixels wide. Rendered, not shipped as an image so it
 // inherits the palette, works at any size without a second asset, and stays
 // legible in monochrome.
 
-// Three items on a five point scale, which is the application icon at the size
-// a menu bar allows. The cells sit thinner and closer than the icon's, because
-// a shape reduced to twenty-two pixels loses its gaps first. Below about
+// Three items on a five point scale, which is the application icon's pattern at
+// the size a menu bar allows. The cells are flat where the icon's are rings,
+// and they sit thinner and closer, because rings merge into gray at
+// twenty-two pixels and a shape that small loses its gaps first. Below about
 // eighteen pixels the rows merge and the mark reads as three bars, which is
 // the floor this works to.
 const COLUMNS = [1.4, 5.9, 10.4, 14.9, 19.4];
@@ -21,8 +22,8 @@ const ROWS = [4.6, 10.2, 15.8];
 const CELL_WIDTH = 3.2;
 const CELL_HEIGHT = 3.8;
 
-// Which position each row is answered at. The icon's pattern, so the two are
-// the same object at two sizes.
+// Which position each row is answered at. The icon's pattern, so the two read
+// as one object at two sizes.
 const ANSWERS = [3, 0, 2];
 
 export function Mark({ size }) {

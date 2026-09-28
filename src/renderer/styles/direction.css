@@ -3535,3 +3535,165 @@ a:hover { text-decoration-color: var(--color-text-primary); }
     transition: none;
   }
 }
+
+/* ---- 1.2 interface pass ------------------------------------------------- */
+
+/* The wordmark and version keep their width. Shrinking the pair together cut
+   the version to "1.1.(" on a window that had room for all of it, and the bar
+   now holds fewer destinations, so the navigation has space to give instead. */
+.bar-mark { flex: 0 0 auto; }
+
+/* A small mark beside Setup while the application cannot run. The word on
+   the new instrument form says the same thing, so the color is never the only
+   signal. */
+.bar-attention {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--status-flagged);
+  vertical-align: 2px;
+}
+
+/* Tabs across the two reference pages that share one place in the bar. */
+.reference-tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.reference-tab {
+  min-height: var(--target-minimum);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--color-text-secondary);
+}
+.reference-tab:hover { background: none; color: var(--color-text-primary); }
+.reference-tab.current {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--status-running);
+}
+
+/* The home a returning person sees: one action, then their recent work. */
+.landing-home {
+  max-width: 760px;
+  padding: var(--space-6) 0 var(--space-5);
+}
+.landing-home-title {
+  font-size: var(--text-heading-1);
+  margin: 0 0 var(--space-4);
+}
+.landing-home-heading {
+  font: 500 var(--text-body-large)/1.3 var(--font-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+  margin: var(--space-6) 0 var(--space-2);
+}
+.recent-runs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+}
+.recent-runs li { border-bottom: 1px solid var(--color-border); }
+.recent-run {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-height: var(--target-minimum);
+  padding: var(--space-2) 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+.recent-run:hover { background: var(--color-surface-alt); }
+.recent-run-name {
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+.recent-run-meta { font-size: var(--text-caption); }
+.landing-home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+/* The setup notice at the top of the form. A caveat, marked the way the other
+   caveats in the application are, and not the full error banner, which still
+   sits beside Start. */
+.notice-setup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--status-flagged);
+  background: var(--color-surface-alt);
+  color: var(--color-text-primary);
+}
+
+/* Step names in the rule, numbered, in sentence case, and allowed to wrap to
+   a second line in place of being clipped to an abbreviation. */
+.rule-track { gap: 4px; }
+.rule-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  min-height: 3.1em;
+  font: 500 10px/1.2 var(--font-body);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  white-space: normal;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  overflow: visible;
+}
+.rule-number { color: var(--color-text-secondary); }
+
+/* Required fields are the thing to notice on this form, so their marker is
+   the stronger cue. It was ten pixel gray capitals, quieter than the optional
+   section heading below it. */
+.required-mark {
+  padding: 2px 6px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  font: 600 11px/1 var(--font-data);
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+}
+
+/* The optional section reads as optional. Its heading was set larger than any
+   field label and in spaced capitals, which gave the one thing nobody has to
+   fill in the most weight on the page. */
+details.spec-advanced > summary {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.spec-advanced .spec-section-title {
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+}
+details.spec-advanced[open] .spec-section-title { color: var(--color-text-primary); }
+
+/* Results: changes to the instrument on one side, explanations on the other. */
+.scale-actions { align-items: center; justify-content: space-between; }
+.scale-actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The unsaved changes prompt in the settings footer. */
+.settings-unsaved { color: var(--color-text-primary); }

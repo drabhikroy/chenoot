@@ -3,18 +3,22 @@
 // What the icon has to do, and what it must not do. It sits in a dock beside
 // thirty other icons at forty pixels, so it has to be legible as a silhouette
 // before it is legible as a picture. It must not be a clipboard, a checklist,
-// or a speech bubble: those name the artifact, which is the obvious move and
-// the one every form product has already made. This is the same graduated rule
-// the interface uses as its mark, which says measurement instead, and reads two
-// ways on purpose. As the scale on a measuring instrument, and as a row of
-// response anchors with one of them chosen.
+// or a speech bubble: those name the paper, which is the obvious move and the
+// one every form product has already made. It shows the answer instead. Three
+// rows of five radio buttons, one chosen in each, is the part of a
+// questionnaire a respondent actually touches, and it is what every rating
+// item looks like.
 //
-// Generated from this file so the icon and the interface mark cannot drift
-// apart, and so the shape can be adjusted by editing coordinates, not by
-// opening a drawing program and exporting again.
+// The interface mark keeps the flat cells this icon started from. Rings merge
+// into gray below about eighteen pixels, so at the twenty-two pixels a menu
+// bar allows, filled cells are what survive. The two share the pattern of
+// answers, so they still read as one object at two sizes.
+//
+// Generated from this file so the shape can be adjusted by editing
+// coordinates, not by opening a drawing program and exporting again.
 //
 // PNG is written directly. The alternative was a dependency that renders SVG,
-// and an icon is a few hundred filled rectangles on a rounded field, which is
+// and an icon is a few hundred filled shapes on a rounded field, which is
 // less code to write than it is to justify pulling in a library for.
 
 const fs = require('node:fs');
@@ -23,22 +27,22 @@ const zlib = require('node:zlib');
 
 const SIZE = 1024;
 
-// The field. A deep neutral, not the interface background exactly, since
-// an icon sits against wallpaper and not against the application and needs
-// a little more weight than a screen surface does.
-const FIELD = [20, 19, 18];
-// The rule and its graduations, in the warm off-white the interface uses for
-// primary text. Chosen over the accent color because a mark in an accent is a
-// mark that changes meaning when the palette does.
-const INK = [237, 233, 225];
-// The unanswered cells, mixed toward the field so they read as the paper the
-// grid is printed on. Ink at low opacity gave a neutral gray that fought the
-// warm field; this keeps the whole square in one temperature.
-const CELL = [92, 87, 80];
-// The one filled graduation, in the running blue. It is the only saturated
-// element and it is what the eye lands on first, which is correct: the chosen
-// point on a scale is the subject of the whole image.
+// The field. A deep warm neutral, lighter along the top edge and darker at the
+// foot, as a tile is when a light sits above it. It is not the interface
+// background exactly, since an icon sits against wallpaper and not against the
+// application and needs a little more weight than a screen surface does.
+const FIELD_TOP = [40, 38, 35];
+const FIELD_BOTTOM = [16, 15, 14];
+// The unchosen radio buttons, shown as rings. Light enough that a ring one
+// pixel wide still separates from the field at the size a dock renders.
+const RING = [176, 170, 158];
+// The chosen button, in the running blue. It is the only saturated element and
+// it is what the eye lands on first, which is correct: the chosen point on a
+// scale is the subject of the whole image.
 const CHOSEN = [69, 200, 232];
+// The dot inside the chosen button, in the warm off-white the interface uses
+// for primary text.
+const CORE = [237, 233, 225];
 
 // A canvas of straight RGBA bytes, composited in floating point so that an
 // edge lands between two pixels without stepping.
@@ -196,11 +200,14 @@ function fillRounded(surface, left, top, right, bottom, radius, color, weight) {
 // percent from top to bottom, which is below the threshold anyone would name
 // as a gradient and enough that the square stops looking cut out.
 function shadeAt(y, size) {
-  const lift = 1 + 0.16 * (1 - y / size);
-  return [FIELD[0] * lift, FIELD[1] * lift, FIELD[2] * lift];
+  const t = y / size;
+  return [
+    FIELD_TOP[0] + (FIELD_BOTTOM[0] - FIELD_TOP[0]) * t,
+    FIELD_TOP[1] + (FIELD_BOTTOM[1] - FIELD_TOP[1]) * t,
+    FIELD_TOP[2] + (FIELD_BOTTOM[2] - FIELD_TOP[2]) * t
+  ];
 }
-
-function fillField(surface, color) {
+function fillField(surface) {
   const size = surface.size;
   const inset = size * 0.055;
   const radius = size * 0.225;
@@ -259,50 +266,74 @@ function fillField(surface, color) {
 // The filled cells do not ascend or descend. A monotonic pattern reads as a
 // chart trending upward, which would be a claim about results, not a
 // picture of an instrument.
+// A filled circle, made as a rounded square whose corner radius is its half
+// width.
+function disc(surface, cx, cy, radius, color, weight) {
+  fillRounded(surface, cx - radius, cy - radius, cx + radius, cy + radius, radius, color, weight);
+}
+
 function drawMark(surface) {
   const unit = surface.size / 100;
 
-  // Three items, not four. Twenty cells held together at full size and
+  // Three items, not four. Twenty buttons held together at full size and
   // silted up at the forty pixels a dock actually renders, where the grid
-  // stopped being a grid and became texture. Fifteen larger cells survive the
+  // stopped being a grid and became texture. Fifteen larger ones survive the
   // reduction, and three items says what four said.
   const COLUMNS = 5;
   const ROWS = 3;
-  const cellWidth = 10.4 * unit;
-  const cellHeight = 12.6 * unit;
-  const columnGap = 2.2 * unit;
-  const rowGap = 6.4 * unit;
+  const pitch = 12.6 * unit;
+  const rowPitch = 19 * unit;
 
-  const gridWidth = COLUMNS * cellWidth + (COLUMNS - 1) * columnGap;
-  const gridHeight = ROWS * cellHeight + (ROWS - 1) * rowGap;
+  const gridWidth = (COLUMNS - 1) * pitch;
+  const gridHeight = (ROWS - 1) * rowPitch;
   const originX = (surface.size - gridWidth) / 2;
   const originY = (surface.size - gridHeight) / 2 - 0.9 * unit;
+
+  // Ring size and weight. The ring is as thick as a fifth of the button's
+  // width, which is heavier than a radio button on screen. A ring made
+  // to look right at a thousand pixels turns into a faint smudge at forty, so
+  // the weight here is set by how it looks small.
+  const outer = 5.2 * unit;
+  const ringWidth = 1.7 * unit;
 
   // Which position each item was answered at. No two neighbors agree, and the
   // set trends in neither direction.
   const answers = [3, 0, 2];
 
   answers.forEach(function (answer, row) {
-    const top = originY + row * (cellHeight + rowGap);
+    const cy = originY + row * rowPitch;
     for (let column = 0; column < COLUMNS; column += 1) {
-      const left = originX + column * (cellWidth + columnGap);
-      const chosen = column === answer;
-      fillRounded(
-        surface,
-        left, top, left + cellWidth, top + cellHeight,
-        3.2 * unit,
-        chosen ? CHOSEN : CELL,
-        // The unfilled cells carry the rhythm and should not compete with the
-        // answers for attention. Low enough to recede, high enough that the
-        // grid is still legible at the size a dock renders it.
-        chosen ? 1 : 0.92
-      );
+      const cx = originX + column * pitch;
+      if (column === answer) {
+        // A soft halo first, then the button, a light dot, and a blue center,
+        // which makes the selected state a ring within a ring and separates it
+        // from the plain rings around it at any size.
+        disc(surface, cx, cy, outer * 1.5, CHOSEN, 0.16);
+        disc(surface, cx, cy, outer * 1.06, CHOSEN, 1);
+        disc(surface, cx, cy, outer * 0.62, CORE, 1);
+        disc(surface, cx, cy, outer * 0.4, CHOSEN, 1);
+      } else {
+        disc(surface, cx, cy, outer, RING, 1);
+        disc(surface, cx, cy, outer - ringWidth, shadeAt(cy, surface.size), 1);
+      }
     }
   });
 }
 
-// PNG assembly. A single IDAT of filter-zero scanlines, deflated, with the
-// three chunks a decoder requires.
+// A thin lighter line along the top edge of the tile, the way a lit tile
+// catches light. Applied after the field so it sits over it and under nothing.
+function drawRim(surface) {
+  const size = surface.size;
+  const inset = size * 0.055;
+  const radius = size * 0.225;
+  fillRounded(
+    surface,
+    inset + radius * 0.6, inset + size * 0.012,
+    size - inset - radius * 0.6, inset + size * 0.02,
+    size * 0.004, [255, 255, 255], 0.1
+  );
+}
+
 function encodePng(surface) {
   const size = surface.size;
   const raw = Buffer.alloc(size * (size * 4 + 1));
@@ -402,7 +433,8 @@ function reduce(surface, target) {
 
 function build() {
   const surface = canvas(SIZE);
-  fillField(surface, FIELD);
+  fillField(surface);
+  drawRim(surface);
   drawMark(surface);
 
   const directory = path.join(__dirname, '..', 'build');

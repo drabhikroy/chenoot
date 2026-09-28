@@ -211,6 +211,20 @@ export function InputScreen({
         </header>
       )}
 
+      {/* A short notice at the top when the pipeline cannot run yet, so nobody
+          fills in the whole form before learning that. Preventing a problem is
+          better than reporting it afterward (Nielsen and Molich, 1990). The
+          form stays usable, since entries are saved, and the full explanation
+          still sits beside Start where the button it concerns is. */}
+      {backendReady ? null : (
+        <div className="notice-setup" role="status">
+          <span>Setup is not finished, so a run cannot start yet. Anything you enter here is saved.</span>
+          {onOpenSettings ? (
+            <button className="link-button" onClick={onOpenSettings}>Finish setup</button>
+          ) : null}
+        </div>
+      )}
+
       {/* Construct is required but is not part of the specification fields, so its
           missing-field warning is handled separately using the same delayed approach. */}
       <div className={'field' + (constructMissing ? ' incomplete' : '')}>
@@ -323,10 +337,9 @@ export function InputScreen({
         </p>
       ) : null}
 
-      {/* The message explaining why Start is unavailable appears beside the button
-          it refers to. Nothing here prevents someone from filling out the form, so
-          there is no reason to interrupt the form with this message earlier. Anything
-          already entered is saved if they leave to install a model. */}
+      {/* The full message explaining why Start is unavailable appears beside the
+          button it refers to. The notice at the top says the same thing in one
+          line, before any time is spent on the form. */}
       {backendReady ? null : (
         <div className="banner error" role="status">
           The pipeline cannot run yet.

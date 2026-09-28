@@ -11,6 +11,7 @@ import { LandingScreen } from './screens/LandingScreen.jsx';
 import { ScreenBoundary } from './components/ScreenBoundary.jsx';
 import { FormatReference } from './components/FormatReference.jsx';
 import { ItemTypeReference } from './components/ItemTypeReference.jsx';
+import { ReferenceTabs } from './components/ReferenceTabs.jsx';
 import { AppearanceScreen } from './screens/AppearanceScreen.jsx';
 import { SetupScreen } from './screens/SetupScreen.jsx';
 import { Walkthrough } from './components/Walkthrough.jsx';
@@ -20,16 +21,21 @@ import { Shell } from './components/Shell.jsx';
 // because this renderer is sandboxed and cannot import modules from the main
 // process. The main registry remains the source of truth. This list provides
 // only the labels, and the numbering is checked against incoming events.
+//
+// Each step also carries a one line description in plain words, shown when the
+// pointer rests on its segment. The abbreviations alone asked people to recall
+// what each stage does from a single clipped word, where a label and a short
+// explanation let them recognize it instead.
 const STEPS = [
-  { name: 'Specification', short: 'Spec' },
-  { name: 'Scoping', short: 'Scope' },
-  { name: 'Grounding', short: 'Ground' },
-  { name: 'Generation', short: 'Generate' },
-  { name: 'Critique', short: 'Critique' },
-  { name: 'Revision', short: 'Revise' },
-  { name: 'Coverage', short: 'Cover' },
-  { name: 'Response scale', short: 'Scale' },
-  { name: 'Assembly', short: 'Assemble' }
+  { name: 'Specification', short: 'Spec', hint: 'Reads what you entered and notes what is missing.' },
+  { name: 'Scoping', short: 'Scope', hint: 'Splits the construct into dimensions and shares out the items.' },
+  { name: 'Grounding', short: 'Ground', hint: 'Optional. Recalls published scales for phrasing conventions.' },
+  { name: 'Generation', short: 'Generate', hint: 'Drafts about three times as many items as you asked for.' },
+  { name: 'Critique', short: 'Critique', hint: 'Checks every item against the item standards.' },
+  { name: 'Revision', short: 'Revise', hint: 'Rewrites items that failed, and drops those that never pass.' },
+  { name: 'Coverage', short: 'Cover', hint: 'Removes near duplicates and narrows to the count you asked for.' },
+  { name: 'Response scale', short: 'Scale', hint: 'Chooses the response scale and its anchor labels.' },
+  { name: 'Assembly', short: 'Assemble', hint: 'Puts the questionnaire in order and writes the record.' }
 ];
 
 // Creates a new state array each time the process starts so previous summaries
@@ -247,6 +253,9 @@ function App() {
     window.chenoot.start(input).then(function (outcome) {
       if (outcome.status === 'complete') {
         setResult(outcome);
+        // The first finished run turns the landing page into the returning
+        // home straight away, not only after the application is next opened.
+        setHasHistory(true);
         setScreen('results');
       } else if (outcome.status === 'awaiting-clarification') {
         // The process paused because required information was missing and could not be
@@ -344,6 +353,22 @@ function App() {
     setCanceling(true);
     window.chenoot.cancel();
   }, []);
+
+  // Opening a saved run, from Past runs or from the recent list on the home
+  // screen. A saved questionnaire is loaded into the same structure a newly
+  // completed one uses, so the Results screen does not need to know where it
+  // came from.
+  function openRun(runId) {
+    window.chenoot.loadRun(runId).then(function (outcome) {
+      if (!outcome.ok) {
+        return;
+      }
+      setResult(outcome);
+      setRunInput(outcome.trail.input || null);
+      setHasHistory(true);
+      setScreen('results');
+    });
+  }
 
   let body = null;
 
@@ -477,7 +502,7 @@ function App() {
   else if (screen === 'formats') {
     body = (
       <div className="screen formats">
-        <p className="eyebrow">Reference</p>
+        <ReferenceTabs current="formats" onChange={setScreen} />
         <h1>Response formats</h1>
         <p className="lede">
           Every response format the app can use for a question. The image on each card shows what respondents will see.
@@ -491,8 +516,11 @@ function App() {
   else if (screen === 'landing') {
     body = (
       <LandingScreen
+        returning={hasHistory}
         onEnter={function () { setScreen('input'); }}
         onFormats={function () { setScreen('formats'); }}
+        onHistory={function () { setScreen('history'); }}
+        onOpenRun={openRun}
       />
     );
   }
@@ -500,7 +528,7 @@ function App() {
   else if (screen === 'itemtypes') {
     body = (
       <div className="screen formats">
-        <p className="eyebrow">Reference</p>
+        <ReferenceTabs current="itemtypes" onChange={setScreen} />
         <h1>Item types</h1>
         <p className="lede">
           How survey questions are described. A single question can have several features, including its response format,
@@ -520,20 +548,7 @@ function App() {
 
   else if (screen === 'history') {
     body = (
-      <HistoryScreen
-          onOpen={function (runId) {
-            window.chenoot.loadRun(runId).then(function (outcome) {
-              if (!outcome.ok) {
-                return;
-              }
-              // A saved questionnaire is loaded into the same data structure used for a newly
-              // completed one, so the Results screen does not need to know where it came from.
-              setResult(outcome);
-              setRunInput(outcome.trail.input || null);
-              setScreen('results');
-            });
-          }}
-      />
+      <HistoryScreen onOpen={openRun} />
     );
   }
 
@@ -564,6 +579,8 @@ function App() {
       running={running}
       settingsOpen={settingsOpen}
       appearanceOpen={appearanceOpen}
+      hasResult={Boolean(result)}
+      setupReady={backend.ready}
       onNavigate={function (destination) {
         // Settings opens over the current screen instead of replacing it. Closing
         // Settings returns someone to the same place they were before.

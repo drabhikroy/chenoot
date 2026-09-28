@@ -21,13 +21,15 @@ const ITEMS = [
   // comes before one.
   { id: 'setup', label: 'Setup' },
   { id: 'input', label: 'New' },
-  // This run sits where a person looks for it: between starting one and
-  // browsing the finished ones. Reaching the instrument you just built by going
-  // to Past runs and picking the top row asks somebody to think of their own
-  // work as history before they have read it.
-  { id: 'results', label: 'This run' },
   { id: 'history', label: 'Past runs' }
 ];
+
+// This run sits where a person looks for it, between starting one and browsing
+// the finished ones. It joins the bar only once there is a run to show. A
+// permanent destination that opens on an empty page is one more equally
+// weighted choice in a bar that already had nine, and the time to choose among
+// options grows with how many are offered (Hick, 1952).
+const THIS_RUN = { id: 'results', label: 'This run' };
 
 // Configuration and reference, kept apart from the destinations above. The
 // first two open as layers instead of replacing the screen, and a rule between
@@ -40,21 +42,17 @@ const ITEMS = [
 const CONFIGURATION = [
   { id: 'appearance', label: 'Appearance' },
   { id: 'settings', label: 'Settings' },
-  // Reference material, next to Help because that is what it is. It earns a
-  // destination of its own rather than a topic inside Help because choosing a
-  // response format is a decision people come back to, and burying it three
-  // clicks deep made it something only a person already looking for it would
-  // ever find.
-  { id: 'formats', label: 'Formats' },
-  // The wider vocabulary of item design, beside the response formats it shares
-  // a border with. Two references rather than one because they answer different
-  // questions: which scale to put on an item, and what kind of item to write.
-  { id: 'itemtypes', label: 'Item types' },
+  // Reference material, next to Help because that is what it is. Response
+  // formats and item types answer different questions, which scale to put on
+  // an item and what kind of item to write, so they stay two pages. They share
+  // one destination with tabs across the top, because two neighboring entries
+  // for one kind of visit cost the bar a place without saving anyone a click.
+  { id: 'formats', label: 'Reference', covers: ['formats', 'itemtypes'] },
   { id: 'help', label: 'Help' }
 ];
 
 export function Shell({
-  screen, onNavigate, running, settingsOpen, appearanceOpen, children
+  screen, onNavigate, running, settingsOpen, appearanceOpen, hasResult, setupReady, children
 }) {
   // The results screen is reachable only by finishing or opening a run, so it
   // is shown as a destination once one exists, not sitting in the bar
@@ -64,13 +62,21 @@ export function Shell({
   // so every other destination moved out from under the pointer at exactly the
   // moment somebody might reach for one.
   const items = ITEMS.slice();
+  if (hasResult) {
+    const beforeHistory = items.findIndex(function (item) { return item.id === 'history'; });
+    items.splice(beforeHistory, 0, THIS_RUN);
+  }
   if (running) {
     const afterNew = items.findIndex(function (item) { return item.id === 'input'; }) + 1;
     items.splice(afterNew, 0, { id: 'pipeline', label: 'Building', live: true });
   }
 
   const render = function (item) {
-    let current = screen === item.id;
+    let current = item.covers ? item.covers.indexOf(screen) !== -1 : screen === item.id;
+    // Setup carries a marker until the application can run, so the one thing
+    // standing between a person and their first instrument is visible from any
+    // screen and not only from the form that it blocks.
+    const needsAttention = item.id === 'setup' && setupReady === false;
     if (item.id === 'settings') {
       current = Boolean(settingsOpen);
     } else if (item.id === 'appearance') {
@@ -85,6 +91,9 @@ export function Shell({
       >
         {item.live ? <span className="bar-pip" aria-hidden="true" /> : null}
         {item.label}
+        {needsAttention ? (
+          <span className="bar-attention" role="img" aria-label="not finished" />
+        ) : null}
       </button>
     );
   };

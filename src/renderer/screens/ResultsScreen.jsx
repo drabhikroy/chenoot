@@ -339,28 +339,37 @@ export function ResultsScreen({
             changed later, the explanation may no longer describe what is shown.
             Keeping it behind a control makes it available when needed without
             presenting it as part of the questionnaire itself. */}
+        {/* Explanations and changes are kept apart. They were four links of
+            equal weight, and one of them rewrites every item in the instrument
+            with a model call each. Something that changes the whole instrument
+            is a button, and something that only explains is a link, so the
+            costly one cannot be taken for a help link. */}
         <div className="scale-actions">
-          <button className="link-button" onClick={function () { setWhyOpen(true); }}>
-            Why this scale
-          </button>
-          <button className="link-button" onClick={function () { setApplyOpen(true); }}>
-            Change every item
-          </button>
-          {/* One control for the whole instrument. Reversing the presentation
-              order changes which end of the scale is printed first and nothing
-              else, so it is a toggle rather than a dialog. */}
-          <button className="link-button" onClick={flipEveryScale} disabled={flipping}>
-            {orderFor(null, scale) === ASCENDING
-              ? 'Print scales with the most positive first'
-              : 'Print scales with the most negative first'}
-          </button>
-          {/* This link appears here as well as in Help. Someone considering a
-              different response format may need survey-design guidance at this
-              point, so the information is available without leaving the choice
-              they are making. */}
-          <button className="link-button" onClick={function () { setGuideOpen(true); }}>
-            Which format should I use
-          </button>
+          <div className="scale-actions-group" role="group" aria-label="Change the instrument">
+            <button onClick={function () { setApplyOpen(true); }}>
+              Change every item
+            </button>
+            {/* One control for the whole instrument. Reversing the presentation
+                order changes which end of the scale is printed first and nothing
+                else, so it is a toggle rather than a dialog. */}
+            <button onClick={flipEveryScale} disabled={flipping}>
+              {orderFor(null, scale) === ASCENDING
+                ? 'Print the most positive end first'
+                : 'Print the most negative end first'}
+            </button>
+          </div>
+          <div className="scale-actions-group" role="group" aria-label="Explanations">
+            <button className="link-button" onClick={function () { setWhyOpen(true); }}>
+              Why this scale
+            </button>
+            {/* This link appears here as well as in Help. Someone considering a
+                different response format may need survey-design guidance at this
+                point, so the information is available without leaving the choice
+                they are making. */}
+            <button className="link-button" onClick={function () { setGuideOpen(true); }}>
+              Which format should I use
+            </button>
+          </div>
         </div>
       </div>
 

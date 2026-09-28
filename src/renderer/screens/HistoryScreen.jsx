@@ -119,8 +119,8 @@ export function HistoryScreen({ onOpen }) {
           created, rather than only saying that the list is empty. */}
       {rows && rows.length === 0 ? (
         <p className="field-hint">
-          Nothing to see here. Every instrument built within the app on is kept automatically, including
-          tries that fail partway.
+          No runs yet. Every instrument built in the app is kept here automatically, including
+          attempts that fail partway.
         </p>
       ) : null}
 

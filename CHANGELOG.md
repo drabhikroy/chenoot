@@ -4,6 +4,27 @@ Entries are written as changes land. Dates are the day the version was tagged.
 
 ## [1.1.0] - 2026-09-27
 
+### Interface
+
+- A returning person opens on a home screen with one action, Build an
+  instrument, and their recent runs, instead of the full introduction every
+  time. The introduction is one click away.
+- The navigation bar has seven destinations where it had nine. This run
+  appears only once there is a run to show, and Response formats and Item types
+  share one Reference destination with tabs.
+- Setup carries a marker in the bar until the application can run, and the new
+  instrument form says so at the top, before any time is spent filling it in.
+- The step strip names each step in full, numbered, with a one line
+  description on hover, in place of clipped abbreviations.
+- Required fields are marked more clearly than the optional section, whose
+  heading was the heaviest text on the form.
+- Closing Settings with changes that are not saved asks whether to save them,
+  where it used to discard them silently.
+- On the results screen, the two controls that change the whole instrument are
+  buttons, apart from the two links that only explain.
+- The version number beside the name is no longer cut off.
+- Copyright notices use the symbol, and two interface text errors are fixed.
+
 ### Changed
 
 - Narrowing a dimension to its target count now keeps the items that best
