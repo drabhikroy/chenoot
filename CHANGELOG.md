@@ -2,7 +2,7 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
-## [1.1.0] - 2026-09-27
+## [1.2.0] - Unreleased
 
 ### Interface
 
@@ -24,6 +24,14 @@ Entries are written as changes land. Dates are the day the version was tagged.
   buttons, apart from the two links that only explain.
 - The version number beside the name is no longer cut off.
 - Copyright notices use the symbol, and two interface text errors are fixed.
+
+### Changed
+
+- A new application icon: three rows of five radio buttons with one chosen in
+  each, on a lit tile. The rings are heavier than a radio button on screen so
+  they still read at the size a dock renders.
+
+## [1.1.0] - 2026-09-27
 
 ### Changed
 
