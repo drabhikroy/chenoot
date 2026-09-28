@@ -20,16 +20,13 @@ const ITEMS = [
   // model is changed, which is a rarer visit than New but still the step that
   // comes before one.
   { id: 'setup', label: 'Setup' },
-  { id: 'input', label: 'New' },
-  { id: 'history', label: 'Past runs' }
+  // One destination for the work itself. Writing a brief, watching a run, and
+  // reading the finished instrument all happen in the workspace, which opens
+  // on whichever of those is current. Fewer equally weighted choices in the
+  // bar means quicker choosing (Hick, 1952).
+  { id: 'workspace', label: 'Workspace', covers: ['input', 'pipeline', 'results', 'clarify'] },
+  { id: 'history', label: 'Library' }
 ];
-
-// This run sits where a person looks for it, between starting one and browsing
-// the finished ones. It joins the bar only once there is a run to show. A
-// permanent destination that opens on an empty page is one more equally
-// weighted choice in a bar that already had nine, and the time to choose among
-// options grows with how many are offered (Hick, 1952).
-const THIS_RUN = { id: 'results', label: 'This run' };
 
 // Configuration and reference, kept apart from the destinations above. The
 // first two open as layers instead of replacing the screen, and a rule between
@@ -52,24 +49,17 @@ const CONFIGURATION = [
 ];
 
 export function Shell({
-  screen, onNavigate, running, settingsOpen, appearanceOpen, hasResult, setupReady, children
+  screen, onNavigate, running, settingsOpen, appearanceOpen, setupReady, children
 }) {
-  // The results screen is reachable only by finishing or opening a run, so it
-  // is shown as a destination once one exists, not sitting in the bar
-  // permanently as something that might do nothing.
-  // Inserted after Setup, not at the front. A live tab appearing to the
-  // left of everything pushed the whole bar sideways the moment a run started,
-  // so every other destination moved out from under the pointer at exactly the
-  // moment somebody might reach for one.
-  const items = ITEMS.slice();
-  if (hasResult) {
-    const beforeHistory = items.findIndex(function (item) { return item.id === 'history'; });
-    items.splice(beforeHistory, 0, THIS_RUN);
-  }
-  if (running) {
-    const afterNew = items.findIndex(function (item) { return item.id === 'input'; }) + 1;
-    items.splice(afterNew, 0, { id: 'pipeline', label: 'Building', live: true });
-  }
+  // The live marker sits on the workspace item itself. A new tab appearing to
+  // the left of everything once pushed the whole bar sideways the moment a run
+  // started, so every other destination moved out from under the pointer at
+  // exactly the moment somebody might reach for one.
+  // A run in progress marks the workspace with a live indicator and adds no
+  // destination, so the bar never shifts under the pointer.
+  const items = ITEMS.map(function (item) {
+    return item.id === 'workspace' && running ? Object.assign({}, item, { live: true }) : item;
+  });
 
   const render = function (item) {
     let current = item.covers ? item.covers.indexOf(screen) !== -1 : screen === item.id;

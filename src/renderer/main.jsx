@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { InputScreen } from './screens/InputScreen.jsx';
 import { PipelineScreen } from './screens/PipelineScreen.jsx';
 import { ResultsScreen } from './screens/ResultsScreen.jsx';
+import { Workspace, StepRail, BriefSummary, SheetPlaceholder, SheetInProgress } from './components/Workspace.jsx';
 import { SettingsScreen } from './screens/SettingsScreen.jsx';
 import { HistoryScreen } from './screens/HistoryScreen.jsx';
 import { ClarifyScreen } from './screens/ClarifyScreen.jsx';
@@ -37,6 +38,24 @@ const STEPS = [
   { name: 'Response scale', short: 'Scale', hint: 'Chooses the response scale and its anchor labels.' },
   { name: 'Assembly', short: 'Assemble', hint: 'Puts the questionnaire in order and writes the record.' }
 ];
+
+// Step states for the rail beside a finished instrument. A run finished in
+// this session already has them. A run reopened from the library has only its
+// audit trail, which records how long each step took, so the rail is rebuilt
+// from that.
+function railStates(result, states) {
+  const live = (states || []).some(function (state) { return state.state !== 'pending'; });
+  if (live) {
+    return states;
+  }
+  const steps = (result && result.trail && result.trail.steps) || [];
+  return STEPS.map(function (step, index) {
+    const recorded = steps.find(function (entry) { return entry.number === index + 1; });
+    return recorded
+      ? { state: 'complete', summary: recorded.summary || null, durationMs: recorded.durationMs }
+      : { state: 'pending', summary: null, durationMs: null };
+  });
+}
 
 // Creates a new state array each time the process starts so previous summaries
 // cannot carry over into the next questionnaire.
@@ -373,16 +392,25 @@ function App() {
   let body = null;
 
   if (screen === 'pipeline') {
+    // The run, inside the workspace. The progress screen keeps its clocks,
+    // timeline, activity log, and Stop control on the right, the sheet grows in
+    // the center, and the brief with its steps stays on the left.
     body = (
-      <PipelineScreen
-        steps={STEPS}
-        states={states}
-        stepStartedAt={stepStartedAt}
-        notes={notes}
-        onCancel={cancel}
-        canceling={canceling}
-        elapsedMs={elapsedMs}
-        error={error}
+      <Workspace
+        left={<><BriefSummary input={runInput} /><StepRail states={states} running /></>}
+        center={<SheetInProgress input={runInput} states={states} />}
+        right={
+          <PipelineScreen
+            steps={STEPS}
+            states={states}
+            stepStartedAt={stepStartedAt}
+            notes={notes}
+            onCancel={cancel}
+            canceling={canceling}
+            elapsedMs={elapsedMs}
+            error={error}
+          />
+        }
       />
     );
   }
@@ -411,6 +439,9 @@ function App() {
 
   else if (screen === 'results' && result) {
     body = (
+      <Workspace
+        left={<><BriefSummary input={runInput} /><StepRail states={railStates(result, states)} /></>}
+        center={
       <ResultsScreen
         result={result}
         steps={STEPS}
@@ -437,6 +468,8 @@ function App() {
             });
           }
         }}
+      />
+        }
       />
     );
   }
@@ -554,6 +587,9 @@ function App() {
 
   else {
     body = (
+      <Workspace
+        center={<SheetPlaceholder />}
+        left={
       <InputScreen
         steps={STEPS}
         returning={hasHistory}
@@ -564,6 +600,8 @@ function App() {
         backendDetail={backend.detail}
         settings={settings}
         onOpenSettings={function () { setScreen('setup'); }}
+      />
+        }
       />
     );
   }
@@ -579,7 +617,6 @@ function App() {
       running={running}
       settingsOpen={settingsOpen}
       appearanceOpen={appearanceOpen}
-      hasResult={Boolean(result)}
       setupReady={backend.ready}
       onNavigate={function (destination) {
         // Settings opens over the current screen instead of replacing it. Closing
@@ -590,6 +627,12 @@ function App() {
         }
         if (destination === 'appearance') {
           setAppearanceOpen(true);
+          return;
+        }
+        // The workspace opens on whatever the current work is: a run in
+        // progress, the instrument just finished or reopened, or the brief.
+        if (destination === 'workspace') {
+          setScreen(running ? 'pipeline' : (result ? 'results' : 'input'));
           return;
         }
         setScreen(destination);

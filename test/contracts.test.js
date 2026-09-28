@@ -491,6 +491,10 @@ test('every screen the router can show can be navigated to', function () {
   (shell.match(/onNavigate\('([a-z-]+)'\)/g) || []).forEach(function (call) {
     reachable.add(call.replace(/^onNavigate\('/, '').replace(/'\)$/, ''));
   });
+  // Screens reached through a bar item that covers several of them.
+  (shell.match(/covers: \[([^\]]+)\]/g) || []).forEach(function (list) {
+    (list.match(/'([a-z-]+)'/g) || []).forEach(function (id) { reachable.add(id.replace(/'/g, '')); });
+  });
   // The reference tabs. The two reference pages share one place in the bar and
   // each is reached by its tab, which hands its id to the router.
   const tabs = fs.readFileSync(

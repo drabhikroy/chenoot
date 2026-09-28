@@ -3697,3 +3697,179 @@ details.spec-advanced[open] .spec-section-title { color: var(--color-text-primar
 
 /* The unsaved changes prompt in the settings footer. */
 .settings-unsaved { color: var(--color-text-primary); }
+
+/* ---- Workspace ----------------------------------------------------------
+   Three columns that scroll on their own: the brief and steps, the instrument
+   as a sheet, and details about the work. The bar above stays put. */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  height: calc(100vh - 52px);
+}
+.workspace-three { grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) minmax(300px, 380px); }
+.workspace-left,
+.workspace-center,
+.workspace-right {
+  min-width: 0;
+  overflow-y: auto;
+}
+.workspace-left {
+  background: var(--color-surface-alt);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-3);
+}
+.workspace-right {
+  border-left: 1px solid var(--color-border);
+}
+.workspace-center {
+  padding: var(--space-4) var(--space-4) var(--space-8);
+}
+
+/* The screens placed inside the columns bring their own width and padding for
+   when they filled the window alone. Inside a column they take its width. */
+.workspace-left .screen,
+.workspace-right .screen {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.workspace-right .screen { padding: var(--space-3); }
+.workspace-center .screen { max-width: 820px; padding-top: 0; }
+
+/* The sheet. Respondent-facing text is the thing being made, so the sheet is
+   set on the surface color with a slight lift, and item text uses the serif. */
+.sheet {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  box-shadow: 0 14px 34px -22px rgb(0 0 0 / 35%);
+}
+[data-mode="dark"] .sheet { background: var(--color-surface-alt); box-shadow: none; }
+.sheet-title {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-1);
+  margin: 0 0 var(--space-1);
+}
+.sheet-subtitle,
+.sheet-empty-text { color: var(--color-text-secondary); margin: 0 0 var(--space-3); max-width: 60ch; }
+.sheet-empty { margin-top: var(--space-6); }
+.sheet-empty-title {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-3);
+  margin: 0 0 var(--space-1);
+}
+.sheet-step {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-2) 0;
+}
+.sheet-step-name { margin: 0; font-weight: var(--weight-medium); }
+.sheet-step-summary {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+.sheet-step.flagged .sheet-step-name { color: var(--status-flagged); }
+.sheet-lines { display: grid; gap: 14px; margin-top: var(--space-3); }
+.sheet-lines span {
+  display: block;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--color-surface-alt);
+}
+.sheet-lines span:nth-child(odd) { width: 62%; }
+[data-mode="dark"] .sheet-lines span { background: var(--color-border); }
+
+/* The brief once a run has started, and the steps beneath it. */
+.brief-summary {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.brief-summary-title {
+  font-family: var(--font-display);
+  font-size: var(--text-body-large);
+  margin: 0 0 4px;
+}
+.brief-summary-detail { margin: 0; color: var(--color-text-secondary); font-size: var(--text-caption); }
+.step-rail { list-style: none; margin: 0; padding: 0; }
+.step-rail-item {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  color: var(--color-text-secondary);
+}
+.step-rail-mark {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+}
+.step-rail-item.complete,
+.step-rail-item.flagged,
+.step-rail-item.running { color: var(--color-text-primary); }
+.step-rail-item.complete .step-rail-mark { background: var(--status-complete); border-color: var(--status-complete); }
+.step-rail-item.flagged .step-rail-mark { background: var(--status-flagged); border-color: var(--status-flagged); }
+.step-rail-item.running .step-rail-mark { background: var(--status-running); border-color: var(--status-running); }
+.step-rail-item.running .step-rail-name { font-weight: var(--weight-medium); }
+.step-rail-item.error .step-rail-mark { background: var(--status-error); border-color: var(--status-error); }
+.step-rail-item.skipped .step-rail-mark { border-style: dashed; }
+.step-rail-time { font-size: 12.5px; color: var(--color-text-secondary); }
+
+@media (max-width: 1100px) {
+  .workspace-three { grid-template-columns: minmax(240px, 280px) minmax(0, 1fr); }
+  .workspace-three .workspace-right { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--color-border); }
+  .workspace { height: auto; }
+}
+
+/* The brief form inside the left column. Its introduction and step preview
+   were written for a full screen. Beside the sheet they only push the fields
+   out of view, and the steps now have their own list, so the form starts with
+   its heading. */
+.workspace-left .opening-thesis,
+.workspace-left .rule,
+.workspace-left .opening .eyebrow { display: none; }
+.workspace-left .opening h1,
+.workspace-left .opening .title-display {
+  font-size: var(--text-heading-2);
+  margin-bottom: var(--space-2);
+}
+.workspace-left .opening { margin-bottom: var(--space-2); padding-bottom: 0; border: 0; }
+
+/* Headings on the sheet are set in the serif in sentence case, not in the
+   spaced capitals the section headings elsewhere use. */
+.sheet h1,
+.sheet h2 {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-primary);
+}
+
+/* The workspace fills the window below the bar and its columns scroll, so the
+   window itself does not. */
+.shell:has(.workspace) { height: 100vh; overflow: hidden; }
+.shell:has(.workspace) .shell-body { min-height: 0; overflow: hidden; }
+.workspace { height: calc(100vh - 53px); }
+
+/* The finished instrument sits on the sheet too, so the result reads as the
+   same document that was filling in during the run. Item wording is what
+   respondents will read, so it is set in the serif. */
+.workspace-center > .screen {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-6);
+  box-shadow: 0 14px 34px -22px rgb(0 0 0 / 35%);
+}
+[data-mode="dark"] .workspace-center > .screen { background: var(--color-surface-alt); box-shadow: none; }
+.workspace-center .item-text {
+  font-family: var(--font-display);
+  font-size: var(--text-body-large);
+  line-height: 1.35;
+}
+.workspace-center .screen > .eyebrow:first-child { display: none; }

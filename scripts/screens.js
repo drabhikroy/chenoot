@@ -28,7 +28,7 @@ const SCREENS = [
   { id: 'landing', expect: /questions designed|nine ways to ask|recent runs/i },
   { id: 'input', expect: /build an instrument/i },
   { id: 'setup', expect: /two things to get going/i },
-  { id: 'history', expect: /past runs|nothing has been built|history/i },
+  { id: 'history', expect: /library|past runs|nothing has been built|history/i },
   { id: 'formats', expect: /response formats|two-sided scales/i },
   { id: 'itemtypes', expect: /item types|primary response format/i },
   { id: 'help', expect: /help|walkthrough|how this works/i }
@@ -36,9 +36,9 @@ const SCREENS = [
 
 // The order the bar renders in, checked because it is a decision instead of an
 // accident. Destinations first, then the rule, then configuration and Help.
-// This run is absent on a fresh launch and joins once a run is open, so it is
+// New, the run, and the finished instrument are one Workspace destination, so it is
 // not part of the order checked here.
-const BAR_ORDER = ['Setup', 'New', 'Past runs', 'Appearance', 'Settings', 'Reference', 'Help'];
+const BAR_ORDER = ['Setup', 'Workspace', 'Library', 'Appearance', 'Settings', 'Reference', 'Help'];
 
 // The eight resize handles, each with the edges it is allowed to move. The
 // panel is centered by its backdrop, so setting only a width grew it from the
@@ -172,7 +172,7 @@ async function navigate(client, id) {
     const buttons = Array.from(document.querySelectorAll('.bar-item'));
     const wanted = ${JSON.stringify(id)};
     const labels = {
-      landing: null, input: 'new', setup: 'setup', results: 'this run', history: 'past runs',
+      landing: null, input: 'workspace', setup: 'setup', results: 'workspace', history: 'library',
       formats: 'reference', itemtypes: 'reference', help: 'help',
       settings: 'settings', appearance: 'appearance'
     };
