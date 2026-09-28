@@ -58,8 +58,8 @@ export class ScreenBoundary extends Component {
           </button>
         </div>
         <p className="field-hint">
-          If this keeps happening on the same run, the run itself may be the cause. Past runs
-          can be opened one at a time to find out which.
+          If this keeps happening on the same run, the run itself may be the cause. Runs in the
+          Library can be opened one at a time to find out which.
         </p>
       </div>
     );

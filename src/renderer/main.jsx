@@ -373,7 +373,7 @@ function App() {
     window.chenoot.cancel();
   }, []);
 
-  // Opening a saved run, from Past runs or from the recent list on the home
+  // Opening a saved run, from the Library or from the recent list on the home
   // screen. A saved questionnaire is loaded into the same structure a newly
   // completed one uses, so the Results screen does not need to know where it
   // came from.
@@ -421,17 +421,17 @@ function App() {
   else if (screen === 'results' && !result) {
     body = (
       <div className="screen screen-narrow">
-        <p className="eyebrow">This run</p>
+        <p className="eyebrow">Workspace</p>
         <h1>Nothing built yet</h1>
         <p className="lede">
           What you create in this session appears here once it is finished and stays
-          until you begin another questionnaire. Earlier work is saved under Past runs.
+          until you begin another questionnaire. Earlier work is saved in the Library.
         </p>
         <div className="actions">
           <button className="primary" onClick={function () { setScreen('input'); }}>
             Build an instrument
           </button>
-          <button onClick={function () { setScreen('history'); }}>Past runs</button>
+          <button onClick={function () { setScreen('history'); }}>Library</button>
         </div>
       </div>
     );

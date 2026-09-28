@@ -528,7 +528,7 @@ async function run() {
       return true;
     }())`);
     if (!probeOpened) {
-      failures.push('the probe run did not appear under past runs');
+      failures.push('the probe run did not appear in the library');
     } else {
       await wait(1600);
       const text = await visibleText(client);

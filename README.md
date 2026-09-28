@@ -145,8 +145,8 @@ Building and tagging a release is described in `RELEASING.md`.
 ## Using Chenoot
 
 Chenoot automatically saves every completed run in the application's data
-folder for the current user. You can open the archive from **Past runs** on the
-first screen.
+folder for the current user. You can open the archive from **Library** in the
+navigation bar.
 
 Opening a saved run restores the full results view, the audit trail, and all
 export options. You can return to an older run and export it again later.

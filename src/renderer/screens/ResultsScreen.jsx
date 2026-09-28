@@ -11,7 +11,7 @@ import {
 import { ApplyFormatDialog } from '../components/ApplyFormatDialog.jsx';
 import { FormatReference } from '../components/FormatReference.jsx';
 
-// 'This run' tab.
+// The finished instrument, in the center column of the workspace.
 //
 // This screen matters because it is the last thing someone sees after
 // watching the run progress.
@@ -534,18 +534,18 @@ export function ResultsScreen({
           )
         ) : null}
         <button onClick={onNewRun}>Build another</button>
-        {onHistory ? <button onClick={onHistory}>Past runs</button> : null}
+        {onHistory ? <button onClick={onHistory}>Library</button> : null}
       </div>
       {confirmingRerun ? (
         <p className="field-hint">
           The same setup will run again from the beginning. It will take about as long as before,
-          and the current questionnaire will remain saved in Past runs.
+          and the current questionnaire will remain saved in the Library.
         </p>
       ) : null}
       {/* Stated clearly rather t han making someone discover it after clicking.
           They may have just spent a long time creating the current questionnaire. */}
       <p className="field-hint">
-        This run is saved in Past runs, where you can reopen it at any time.
+        This run is saved in the Library, where you can reopen it at any time.
       </p>
     </div>
   );

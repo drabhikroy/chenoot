@@ -2,20 +2,24 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
-## [1.2.0] - Unreleased
+## [1.2.0] - 2026-09-28
 
 ### Interface
 
+- Writing the brief, watching a run, and reading the finished instrument now
+  share one screen, the Workspace, in three columns. The brief and a plain
+  language list of the steps, with how long each took, sit on the left. The
+  instrument sits in the center as a sheet that adds each step's result as it
+  finishes. The details of the run sit on the right.
+- The navigation bar has seven destinations where it had nine: Setup,
+  Workspace, Library, Appearance, Settings, Reference, and Help. The Library
+  replaces Past runs. Response formats and Item types share Reference, with
+  tabs.
 - A returning person opens on a home screen with one action, Build an
   instrument, and their recent runs, instead of the full introduction every
   time. The introduction is one click away.
-- The navigation bar has seven destinations where it had nine. This run
-  appears only once there is a run to show, and Response formats and Item types
-  share one Reference destination with tabs.
 - Setup carries a marker in the bar until the application can run, and the new
   instrument form says so at the top, before any time is spent filling it in.
-- The step strip names each step in full, numbered, with a one line
-  description on hover, in place of clipped abbreviations.
 - Required fields are marked more clearly than the optional section, whose
   heading was the heaviest text on the form.
 - Closing Settings with changes that are not saved asks whether to save them,
@@ -30,6 +34,10 @@ Entries are written as changes land. Dates are the day the version was tagged.
 - A new application icon: three rows of five radio buttons with one chosen in
   each, on a lit tile. The rings are heavier than a radio button on screen so
   they still read at the size a dock renders.
+- Release builds for Linux run on Ubuntu 24.04 in place of the latest image, so
+  the AppImage keeps running on current distributions when GitHub moves the
+  latest image to Ubuntu 26 on October 19. The release workflow also uses the
+  Node 24 release of the artifact download action.
 
 ## [1.1.0] - 2026-09-27
 

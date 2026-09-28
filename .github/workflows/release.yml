@@ -18,7 +18,7 @@ jobs:
   # The gate runs once, on the cheapest runner, before any platform is built.
   # A tag pushed on a tree that fails its own checks should produce nothing.
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -44,7 +44,7 @@ jobs:
             script: dist:mac
           - os: windows-latest
             script: dist:win
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             script: dist:linux
     runs-on: ${{ matrix.os }}
     steps:
@@ -111,9 +111,9 @@ jobs:
 
   draft:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: artifacts
       - uses: softprops/action-gh-release@v3

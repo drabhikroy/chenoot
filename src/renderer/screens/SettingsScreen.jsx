@@ -428,10 +428,10 @@ export function SettingsScreen({
         <p className="help-para">
           This returns every setting to its original default. Your model selection, connection
           address, item standards, and appearance settings are all reset. Any information saved
-          on the New screen is also cleared.
+          in the Workspace is also cleared.
         </p>
         <p className="help-para">
-          Nothing you have created is removed. Every finished questionnaire stays under Past runs
+          Nothing you have created is removed. Every finished questionnaire stays in the Library
           unless you choose to delete those too. Ollama and any downloaded models also remain on your
           computer and can be removed from Setup if you want to free up space.
         </p>
@@ -454,10 +454,10 @@ export function SettingsScreen({
               'Model choice, address, and API key.',
               'Item standards and grounding options.',
               'Appearance, palette, and the walkthrough.',
-              'The specification currently saved on the New screen.'
+              'The specification currently saved in the Workspace.'
             ],
             keeps: [
-              'Every finished instrument under Past runs, unless asked below.',
+              'Every finished instrument in the Library, unless asked below.',
               'Ollama and the downloaded models, unless asked below.',
               'Anything you have already exported to a file, wherever you saved it.'
             ]

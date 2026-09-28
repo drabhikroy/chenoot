@@ -107,17 +107,17 @@ const CLOSING = [
   },
   {
     title: 'Everything is kept',
-    body: 'What you build in this session sits under This run, and everything from before it ' +
-      'under Past runs. Both keep the full record of how the instrument was put together, ' +
-      'including whether each decision was measured, judged, or recalled without a source.'
+    body: 'What you build stays in the Workspace until you begin another, and everything from ' +
+      'before it is in the Library. Both keep the full record of how the instrument was put ' +
+      'together, including whether each decision was measured, judged, or recalled without a source.'
   },
   {
     // Added when the two reference screens arrived. A tour that stops before
     // the last two destinations leaves somebody to find them by accident.
     title: 'Two references, always open',
-    body: 'Formats explains every response scale the pipeline can attach to an item, with the ' +
-      'research behind each one. Item types covers the wider vocabulary of survey design. ' +
-      'Both are there whether or not a run is going.'
+    body: 'Reference has two tabs. Response formats explains every response scale the pipeline ' +
+      'can attach to an item, with the research behind each one. Item types covers the wider ' +
+      'vocabulary of survey design. Both are there whether or not a run is going.'
   }
 ];
 

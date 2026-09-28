@@ -207,7 +207,7 @@ function Specimen({ item }) {
 
 // Both actions are passed in. The page does not know how the application
 // navigates, only which two places it offers to send someone.
-// How many recent runs the returning home lists before pointing to Past runs.
+// How many recent runs the returning home lists before pointing to the Library.
 const RECENT_LIMIT = 4;
 
 // Counts read as words, with the singular where there is one.
@@ -303,7 +303,7 @@ function ReturningHome({ onEnter, onOpenRun, onHistory, onShowIntro }) {
       <div className="landing-home-links">
         {runs && runs.length > RECENT_LIMIT ? (
           <button className="link-button" onClick={onHistory}>
-            All {runs.length} past runs
+            All {runs.length} runs in the Library
           </button>
         ) : null}
         <button className="link-button" onClick={onShowIntro}>

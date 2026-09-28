@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ConfirmDialog } from '../components/ConfirmDialog.jsx';
 
-// 'Past runs' tab. A completed questionnaire can take up to about forty
+// 'Library' tab. A completed questionnaire can take up to about forty
 // minutes of local model time, so the list is ordered by what someone is most
 // likely to remember: what they were measuring, when they created it, how long
 // it took, and what was produced. Failed attempts appear alongside completed
@@ -63,9 +63,9 @@ export function HistoryScreen({ onOpen }) {
   return (
     <div className="screen">
       <p className="eyebrow">Archive</p>
-      <h1>Past runs</h1>
+      <h1>Library</h1>
 
-      {/* Clear Past runs appears beside the heading rather than at the bottom of
+      {/* Clear Library appears beside the heading rather than at the bottom of
           the list, where it would be easier to click carelessly after scrolling. */}
       {rows && rows.length > 0 ? (
         <div className="actions">

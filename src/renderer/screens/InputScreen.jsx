@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { GraduatedRule } from '../components/GraduatedRule.jsx';
 
-// 'New' tab. Four fields are shown up front. Everything else is available
+// The brief, in the left column of the workspace. Four fields are shown up front. Everything else is available
 // under one expandable section. That created two problems. A field can improve
 // the result without needing to block someone from continuing, and requiring
 // research questions assumed every questionnaire was part of a research study.
