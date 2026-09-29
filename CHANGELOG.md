@@ -2,7 +2,7 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
-## [Unreleased]
+## [1.3.0] - 2026-09-28
 
 ### Interface
 

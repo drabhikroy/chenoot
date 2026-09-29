@@ -73,10 +73,11 @@ For the current release:
 - 64-bit Intel or AMD processors on Windows and Linux, Apple Silicon or Intel
   on macOS
 
-Local use requires Ollama and downloaded models, but you can install them from
-inside Chenoot during setup. An internet connection is needed for the initial
-Ollama and model downloads. After that, the local workflow can run without an
-internet connection.
+Local use requires Ollama and downloaded models. If you already run Ollama,
+Chenoot finds it and lists the models you have pulled. If you do not, you can
+install both from inside Chenoot during setup. An internet connection is needed
+for any Ollama and model downloads. After that, the local workflow can run
+without an internet connection.
 
 To build Chenoot from source, you also need Node.js 22.12.0 or later.
 
@@ -138,7 +139,7 @@ Install Ollama yourself before opening Chenoot on Linux. The setup screen can
 download and manage Ollama on macOS and Windows, but Ollama publishes no Linux
 build on the release endpoint Chenoot downloads from, so that route is not
 offered there. The [Ollama site](https://ollama.com/download) has the Linux
-instructions.
+instructions. Once Ollama is running, the first option in Setup finds it.
 
 Building and tagging a release is described in `RELEASING.md`.
 
@@ -175,11 +176,14 @@ manage them yourself outside the application.
 
 For most users, the in-app setup is the simplest option.
 
-1. Open Chenoot and go to **Settings**.
-2. If Ollama is not installed, use the local setup option to download and
-   install it.
+1. Open Chenoot and go to **Setup**.
+2. If you already run Ollama, choose **Use this Ollama** when Chenoot finds it.
+   If it runs on a port of your own, type the address. Otherwise use the local
+   setup option to download and install it.
 3. Choose a generation model from the options Chenoot shows for your machine and download it.
 4. Choose an embedding model from the options Chenoot shows for your machine and download it.
+5. When both steps are done, Setup shows a check in the bar and a button into
+   the Workspace.
 
 This approach keeps the initial setup in one place and does not require Terminal
 commands.
@@ -188,7 +192,8 @@ commands.
 
 If you prefer to manage Ollama yourself, install
 [Ollama](https://ollama.com), make sure it is running, then pull a generation
-model and an embedding model. For example:
+model and an embedding model. Setup finds it at the usual address and lists
+the models you have pulled, so nothing is downloaded twice. For example:
 
 ```bash
 ollama pull qwen2.5:7b-instruct
