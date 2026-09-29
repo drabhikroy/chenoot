@@ -51,10 +51,10 @@ const CONFIGURATION = [
 export function Shell({
   screen, onNavigate, running, settingsOpen, appearanceOpen, setupReady, children
 }) {
-  // The live marker sits on the workspace item itself. A new tab appearing to
-  // the left of everything once pushed the whole bar sideways the moment a run
-  // started, so every other destination moved out from under the pointer at
-  // exactly the moment somebody might reach for one.
+  // The live marker sits on the workspace item itself. A tab that appeared
+  // during a run would push the rest of the bar sideways, so every other
+  // destination would move out from under the pointer at exactly the moment
+  // somebody might reach for one.
   // A run in progress marks the workspace with a live indicator and adds no
   // destination, so the bar never shifts under the pointer.
   const items = ITEMS.map(function (item) {
@@ -67,6 +67,9 @@ export function Shell({
     // standing between a person and their first instrument is visible from any
     // screen and not only from the form that it blocks.
     const needsAttention = item.id === 'setup' && setupReady === false;
+    // Once setup is done the marker becomes a check, so the item confirms the
+    // work is finished instead of simply going quiet.
+    const setupDone = item.id === 'setup' && setupReady === true;
     if (item.id === 'settings') {
       current = Boolean(settingsOpen);
     } else if (item.id === 'appearance') {
@@ -83,6 +86,9 @@ export function Shell({
         {item.label}
         {needsAttention ? (
           <span className="bar-attention" role="img" aria-label="not finished" />
+        ) : null}
+        {setupDone ? (
+          <span className="bar-done" role="img" aria-label="finished">{'\u2713'}</span>
         ) : null}
       </button>
     );

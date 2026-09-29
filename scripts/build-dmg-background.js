@@ -10,10 +10,9 @@
 //
 // Rendered by Electron from the markup in this file, in the typeface the
 // application uses, so the words can be changed by editing a string and running
-// the script again. A picture made by hand in a drawing program keeps its old
-// wording after the facts change, and this one once told people to remove
-// macOS download protection by hand long after the application was notarized
-// and no longer needed it.
+// the script again. A picture made by hand in a drawing program keeps whatever
+// it says until someone reopens the drawing, and installer text has to change
+// whenever the way the application is signed or installed changes.
 //
 // Two files are written. The first is at the size the window opens at, and the
 // second is at twice that size for Retina displays. electron-builder finds the

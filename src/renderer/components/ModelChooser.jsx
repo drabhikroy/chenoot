@@ -166,8 +166,8 @@ export function ModelChooser({
             <span className="disclosure" aria-hidden="true" />
             What it is good and bad at
           </summary>
-          <p><span className="model-label">Does well</span> {model.strengths}</p>
-          <p><span className="model-label">Struggles</span> {model.weaknesses}</p>
+          <p><span className="model-label verdict verdict-good">Does well</span> {model.strengths}</p>
+          <p><span className="model-label verdict verdict-watch">Struggles</span> {model.weaknesses}</p>
           <p className="model-note">{model.fit.note}</p>
         </details>
 

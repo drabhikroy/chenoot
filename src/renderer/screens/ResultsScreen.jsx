@@ -29,6 +29,35 @@ function labeledAtEndsOnly(scale) {
   return value === false;
 }
 
+// The number of items in the instrument. A record that stored the count uses
+// it, and one that did not is counted from its dimensions, so the figure is
+// never missing from the summary.
+function itemTotal(instrument) {
+  if (Number.isFinite(instrument.itemCount)) {
+    return instrument.itemCount;
+  }
+  return (instrument.dimensions || []).reduce(function (sum, dimension) {
+    return sum + (dimension.items || []).length;
+  }, 0);
+}
+
+// The number of reverse keyed items, counted the same way.
+function reverseTotal(instrument) {
+  if (Number.isFinite(instrument.reverseKeyedCount)) {
+    return instrument.reverseKeyedCount;
+  }
+  return (instrument.dimensions || []).reduce(function (sum, dimension) {
+    return sum + (dimension.items || []).filter(function (item) {
+      return item.direction === 'reverse';
+    }).length;
+  }, 0);
+}
+
+// A count with its noun, singular where there is one.
+function counted(n, one, many) {
+  return n + ' ' + (n === 1 ? one : many);
+}
+
 function formatBuilt(iso) {
   const when = new Date(iso);
   if (Number.isNaN(when.getTime())) {
@@ -250,34 +279,24 @@ export function ResultsScreen({
           was compared with, how much variation was allowed, what was used, and
           when it was done. This record follows the same idea by showing how the
           questionnaire was produced before presenting it. */}
+      {/* The record's details read as one sentence under the title, so the
+          instrument starts near the top of the sheet. The nine steps are not
+          repeated here, since the step list beside the sheet shows them with
+          their timings. */}
       <header className="certificate">
-        <p className="eyebrow">Instrument record</p>
         <h1 className="title-display">{instrument.construct}</h1>
-
-        <dl className="certificate-meta">
-          <div>
-            <dt>Serial</dt>
-            <dd className="value">{result.trail.runId}</dd>
-          </div>
-          <div>
-            <dt>Built</dt>
-            <dd className="value">{formatBuilt(result.trail.completedAt)}</dd>
-          </div>
-          <div>
-            <dt>Model</dt>
-            <dd className="value">{result.trail.settings ? result.trail.settings.model : ''}</dd>
-          </div>
-          <div>
-            <dt>Decisions</dt>
-            <dd className="value">{result.counts.decisions}</dd>
-          </div>
-        </dl>
-
-        <GraduatedRule steps={steps} currentIndex={steps.length} failedIndex={-1} />
-
         <p className="lede">
-          {instrument.itemCount} items across {instrument.dimensions.length} dimensions,
-          {' '}{instrument.reverseKeyedCount} of them reverse keyed.
+          {counted(itemTotal(instrument), 'item', 'items')} across
+          {' '}{counted(instrument.dimensions.length, 'dimension', 'dimensions')},
+          {' '}{reverseTotal(instrument)} of them reverse keyed.
+        </p>
+        <p className="certificate-line">
+          Built {formatBuilt(result.trail.completedAt)}
+          {result.trail.settings && result.trail.settings.model
+            ? <> with <span className="value">{result.trail.settings.model}</span></>
+            : null}
+          . {counted(result.counts.decisions, 'decision', 'decisions')} recorded.
+          {' '}Record <span className="value">{result.trail.runId}</span>.
         </p>
       </header>
 
@@ -339,10 +358,9 @@ export function ResultsScreen({
             changed later, the explanation may no longer describe what is shown.
             Keeping it behind a control makes it available when needed without
             presenting it as part of the questionnaire itself. */}
-        {/* Explanations and changes are kept apart. They were four links of
-            equal weight, and one of them rewrites every item in the instrument
-            with a model call each. Something that changes the whole instrument
-            is a button, and something that only explains is a link, so the
+        {/* Explanations and changes are kept apart. Changing every item costs a
+            model call per item, so anything that changes the whole instrument
+            is a button and anything that only explains is a link, and the
             costly one cannot be taken for a help link. */}
         <div className="scale-actions">
           <div className="scale-actions-group" role="group" aria-label="Change the instrument">
@@ -518,7 +536,7 @@ export function ResultsScreen({
 
       <div className="actions">
         {onReview ? (
-          <button onClick={onReview}>Review what you entered</button>
+          <button onClick={onReview}>Edit the brief</button>
         ) : null}
         {onRerun ? (
           confirmingRerun ? (

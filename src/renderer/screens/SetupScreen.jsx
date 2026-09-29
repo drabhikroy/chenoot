@@ -51,9 +51,103 @@ function Check({ done, children }) {
 // Refresh checks two separate things: whether Ollama is responding on this
 // computer and whether the required models are installed. Either can be ready
 // while the other is not.
+// The first option in step one: an Ollama the person installed themselves.
+//
+// Many people who want a local model already run Ollama, often with models
+// pulled from the terminal. Offering to install a second copy first would
+// leave them with two, so this looks for one before anything is downloaded.
+// It checks the saved address and the standard local port on its own, and a
+// typed address covers an Ollama started on another port.
+function ExistingOllama({ settings, onSettingsChange }) {
+  const [finding, setFinding] = useState(true);
+  const [result, setResult] = useState(null);
+  const [address, setAddress] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  function look(typed) {
+    setFinding(true);
+    window.chenoot.findOllama(typed || '').then(function (outcome) {
+      setResult(outcome);
+      setFinding(false);
+    });
+  }
+  useEffect(function () { look(''); }, []);
+
+  function useFound() {
+    setSaving(true);
+    const next = Object.assign({}, settings, { host: result.host });
+    window.chenoot.saveSettings(next).then(function (outcome) {
+      setSaving(false);
+      if (outcome && outcome.ok) {
+        onSettingsChange(outcome.settings || next);
+      }
+    });
+  }
+
+  return (
+    <div className="setup-option">
+      <h3 className="setup-option-title">Use the Ollama you already have</h3>
+      {finding ? (
+        <p className="field-hint">Looking for Ollama on this computer.</p>
+      ) : result && result.found ? (
+        <>
+          <p className="help-para">
+            Found Ollama at <span className="value">{result.host}</span>
+            {result.models.length > 0
+              ? ', with ' + result.models.length + (result.models.length === 1 ? ' model' : ' models') +
+                ' already downloaded. Your models are listed in the next step, and nothing is downloaded again.'
+              : ', with no models downloaded yet. You can choose one in the next step.'}
+          </p>
+          {result.saved ? null : (
+            <div className="actions">
+              <button className="primary" disabled={saving} onClick={useFound}>
+                {saving ? 'Saving' : 'Use this Ollama'}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="help-para">
+            No Ollama is answering on this computer. If you have installed it, open the
+            Ollama app, or run <span className="value">ollama serve</span> in a terminal, then
+            check again. If it runs on a port of your own, enter the address.
+          </p>
+          <div className="setup-address">
+            <input
+              aria-label="Ollama address"
+              placeholder="localhost:11434"
+              value={address}
+              onChange={function (event) { setAddress(event.target.value); }}
+            />
+            <button onClick={function () { look(address); }}>Check again</button>
+          </div>
+          {result && result.ok === false ? <p className="field-error">{result.detail}</p> : null}
+        </>
+      )}
+    </div>
+  );
+}
+
+// The notice shown once both steps are done, with the way into the Workspace.
+// It appears at the top of the page and again after step two. Only the top
+// copy is announced to screen readers, so the news is not read out twice.
+function SetupDone({ onDone, announce }) {
+  return (
+    <div className="setup-done" role={announce ? 'status' : undefined}>
+      <span className="setup-done-mark" aria-hidden="true">{'\u2713'}</span>
+      <div className="setup-done-text">
+        <p className="setup-done-title">Setup is complete</p>
+        <p className="field-hint">Chenoot can build instruments on this computer now.</p>
+      </div>
+      {onDone ? <button className="primary" onClick={onDone}>Go to the Workspace</button> : null}
+    </div>
+  );
+}
+
 export function SetupScreen({
   backend, settings, progress, busy, pulling, lastAttempt,
-  onPull, onPullModel, onUseModel, onCancelPull, onRefreshBackend
+  onPull, onPullModel, onUseModel, onCancelPull, onRefreshBackend, onDone, onSettingsChange
 }) {
   const [state, setState] = useState(null);
   const [notice, setNotice] = useState(null);
@@ -103,6 +197,11 @@ export function SetupScreen({
         where other programs that connect to Ollama can use them too.
       </p>
 
+      {/* Once both steps are done, the way forward is offered here instead of
+          leaving someone to find the Workspace in the bar on their own. The
+          same notice follows step two, for anyone who worked down the page. */}
+      {runtimeReady && modelsReady ? <SetupDone onDone={onDone} announce /> : null}
+
       {/* ---- Step one ---- */}
       <section className={'setup-step' + (runtimeReady ? ' complete' : ' current')}>
         <div className="setup-step-head">
@@ -119,6 +218,8 @@ export function SetupScreen({
           </p>
         ) : state.supported ? (
           <>
+            <ExistingOllama settings={settings} onSettingsChange={onSettingsChange} />
+            <h3 className="setup-option-title">Or let Chenoot set it up</h3>
             <p className="help-para">
                 Ollama lets models run directly on your machine. A single copy of Ollama is downloaded into this
                 application’s folder and started when needed. Nothing is installed system-wide. If you no longer
@@ -177,6 +278,7 @@ export function SetupScreen({
           // somebody who has to go there needs the way to get there more than
           // somebody who is being offered an alternative.
           <>
+            <ExistingOllama settings={settings} onSettingsChange={onSettingsChange} />
             <p className="help-para">
               This application cannot install Ollama for you on {platformName(state.platform)},
               so you will need to install it yourself. Once it is running, this application finds
@@ -248,6 +350,10 @@ export function SetupScreen({
           <p className="field-hint">Available once the first step is done.</p>
         )}
       </section>
+
+      {/* Someone who finishes step two is at the bottom of the page, so the
+          way into the Workspace is offered here as well as at the top. */}
+      {runtimeReady && modelsReady ? <SetupDone onDone={onDone} /> : null}
 
       {state.managedInstalled ? (
         <section className="setup-manage">

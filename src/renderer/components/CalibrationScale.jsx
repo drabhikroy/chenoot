@@ -72,10 +72,17 @@ export function CalibrationScale({ distribution, removed }) {
         })}
       </div>
 
-      <p className="calibration-caption value">
-        {pairs} pairs &middot; median {median.toFixed(2)} &middot; cutoff {cutoff.toFixed(2)}
-        {rule === 'floor-only' ? ' (floor)' : ''}
-        {removed && removed.length > 0 ? ' \u00B7 ' + removed.length + ' removed' : ' \u00B7 none removed'}
+      {/* Said as a sentence, so the figures read as a finding. Figures joined
+          by dots read as log output, and a cutoff above 1.0 needs the words
+          around it to say that nothing could reach it. */}
+      <p className="calibration-caption">
+        Duplicate check. {pairs} pairs of items compared, with a median similarity of
+        {' '}<span className="value">{median.toFixed(2)}</span>. Pairs above
+        {' '}<span className="value">{cutoff.toFixed(2)}</span>
+        {rule === 'floor-only' ? ', the fixed floor,' : ''} count as near-duplicates.
+        {' '}{removed && removed.length > 0
+          ? removed.length + (removed.length === 1 ? ' item was' : ' items were') + ' removed.'
+          : 'None were removed.'}
       </p>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GROUPS, TYPES, WORKED_EXAMPLES, CITATION } from '../reference/item-types.js';
 import { ItemTypeGlyph } from './ItemTypeGlyph.jsx';
 import { Modal } from './Modal.jsx';
+import { SurveySpecimen } from './SurveySpecimen.jsx';
 
 // The item taxonomy as cards, grouped by the property each label belongs to.
 //
@@ -32,13 +33,13 @@ function Detail({ type, onClose }) {
         {/* Preformatted, because the examples are laid out with spaces and
             radio buttons made out of brackets. Reflowing them as prose would
             destroy the thing they are showing. */}
-        <pre className="type-example">{type.example}</pre>
+        <SurveySpecimen example={type.example} />
 
         {hasNotes ? (
           <div className="format-detail-columns">
             {type.good.length > 0 ? (
               <div>
-                <p className="format-detail-label">Good for</p>
+                <p className="format-detail-label verdict verdict-good">Good for</p>
                 <ul className="ref-list">
                   {type.good.map(function (line) {
                     return <li key={line}>{line}</li>;
@@ -48,7 +49,7 @@ function Detail({ type, onClose }) {
             ) : null}
             {type.watch.length > 0 ? (
               <div>
-                <p className="format-detail-label">Watch for</p>
+                <p className="format-detail-label verdict verdict-watch">Watch for</p>
                 <ul className="ref-list ref-list-caution">
                   {type.watch.map(function (line) {
                     return <li key={line}>{line}</li>;
@@ -112,7 +113,7 @@ export function ItemTypeReference() {
           return (
             <div className="worked" key={example.question}>
               <p className="worked-question">{example.question}</p>
-              <pre className="type-example">{example.layout}</pre>
+              <SurveySpecimen example={example.layout} />
               <dl className="worked-properties">
                 {example.properties.map(function (pair) {
                   return (

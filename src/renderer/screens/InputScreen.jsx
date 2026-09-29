@@ -83,6 +83,12 @@ function SpecField({ name, field, value, onChange, onBlur, touched }) {
           ?
         </button>
       </label>
+      {field.plain ? (
+        <span className="field-plain">
+          {field.plain}
+          {field.example ? <span className="field-example"> For example: {field.example}</span> : null}
+        </span>
+      ) : null}
       {field.choices ? (
         <select id={name} value={value || ''} onFocus={focus} onBlur={blur}
           onChange={function (e) { onChange(name, e.target.value); }}>
@@ -107,7 +113,8 @@ function SpecField({ name, field, value, onChange, onBlur, touched }) {
 }
 
 export function InputScreen({
-  draft, onDraftChange, onStart, steps, returning, backendReady, backendDetail, onOpenSettings
+  draft, onDraftChange, onStart, steps, returning, backendReady, backendDetail, onOpenSettings,
+  onBackToResult
 }) {
   const [definitions, setDefinitions] = useState(null);
   const [estimate, setEstimate] = useState(null);
@@ -211,6 +218,16 @@ export function InputScreen({
         </header>
       )}
 
+      {/* After Edit the brief, the way back to the finished instrument. Leaving
+          the form this way changes nothing, and any edits already typed stay
+          in the form for the next run. */}
+      {onBackToResult ? (
+        <div className="brief-back">
+          <button onClick={onBackToResult}>Back to the finished instrument</button>
+          <span className="field-hint">Nothing changes unless you press Start.</span>
+        </div>
+      ) : null}
+
       {/* A short notice at the top when the pipeline cannot run yet, so nobody
           fills in the whole form before learning that. Preventing a problem is
           better than reporting it afterward (Nielsen and Molich, 1990). The
@@ -232,13 +249,22 @@ export function InputScreen({
           Construct
           <span className="required-mark">needed</span>
         </label>
-        <input id="construct" value={draft.construct || ''} autoFocus
+        {/* The plain explanation stays in view, unlike the hint below, since
+            this is the field people most often confuse with the other two. */}
+        <span className="field-plain">
+          What you want to measure. The idea or quality your questions will be about.
+          <span className="field-example"> For example: student satisfaction with the new math curriculum.</span>
+        </span>
+        {/* No autofocus. A focused field opens as a popup over the page, and
+            one that opened on its own every time the form appeared would cover
+            the form before anyone had asked for it. */}
+        <input id="construct" value={draft.construct || ''}
           onFocus={function () { setHinted('construct'); }}
           onBlur={function () { setHinted(null); markTouched('construct')(); }}
           onChange={function (e) { updateTop('construct', e.target.value); }} />
         {hinted === 'construct' || constructMissing ? (
           <span className="field-hint">
-            What you want to measure, named the way it would appear in a report.
+            Name it the way it would appear in a report.
           </span>
         ) : null}
         {constructMissing ? (

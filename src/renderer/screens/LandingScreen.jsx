@@ -240,13 +240,13 @@ function savedWhen(iso) {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-// The home a returning person sees.
+// Recent runs, shown on the home page once there is anything to show.
 //
-// The full introduction is for someone deciding what this application is.
-// Someone who has already built with it comes back to do one of two things,
-// start another instrument or reopen one, and the first screen should offer
-// exactly those. The introduction stays one click away, not gone.
-function ReturningHome({ onEnter, onOpenRun, onHistory, onShowIntro }) {
+// The home page is the same for everyone: the introduction, with Build an
+// instrument at the top. Someone who has built before also sees their latest
+// few runs just under it, one click each, so coming back to earlier work does
+// not mean going through the Library.
+function RecentRuns({ onOpenRun, onHistory }) {
   const [runs, setRuns] = useState(null);
 
   // The archive is read here and not passed in, so the list is current every
@@ -265,20 +265,9 @@ function ReturningHome({ onEnter, onOpenRun, onHistory, onShowIntro }) {
   // The archive arrives newest first, so the first few are the recent ones.
   const recent = (runs || []).slice(0, RECENT_LIMIT);
   return (
-    <section className="landing-home">
-      <p className="eyebrow">Auditable survey instrument construction</p>
-      <h1 className="landing-home-title">Build a new instrument or reopen one</h1>
-      <div className="landing-actions">
-        <button className="primary landing-primary" onClick={onEnter}>
-          Build an instrument
-        </button>
-      </div>
-
+    <section className="landing-recent">
       <h2 className="landing-home-heading">Recent runs</h2>
       {runs === null ? <p className="field-hint">Reading the archive.</p> : null}
-      {runs && runs.length === 0 ? (
-        <p className="field-hint">Nothing has been built yet.</p>
-      ) : null}
       {recent.length > 0 ? (
         <ul className="recent-runs">
           {/* Each row opens the run it names. Incomplete runs are listed too,
@@ -306,9 +295,6 @@ function ReturningHome({ onEnter, onOpenRun, onHistory, onShowIntro }) {
             All {runs.length} runs in the Library
           </button>
         ) : null}
-        <button className="link-button" onClick={onShowIntro}>
-          How Chenoot works
-        </button>
       </div>
     </section>
   );
@@ -316,7 +302,6 @@ function ReturningHome({ onEnter, onOpenRun, onHistory, onShowIntro }) {
 
 export function LandingScreen({ onEnter, onFormats, returning, onOpenRun, onHistory }) {
   const [step, setStep] = useState({});
-  const [intro, setIntro] = useState(false);
 
   // The sequence runs once. Anyone who prefers reduced motion sees the completed
   // state immediately, with the same information shown without the animation.
@@ -341,21 +326,6 @@ export function LandingScreen({ onEnter, onFormats, returning, onOpenRun, onHist
 
   // The page uses a single column with sections separated by rules. Sections are
   // not placed in cards, which keeps the page reading as one continuous flow.
-  // A returning person gets the home, and can still ask for the introduction,
-  // which then renders exactly as it does on a first launch.
-  if (returning && !intro) {
-    return (
-      <div className="landing">
-        <ReturningHome
-          onEnter={onEnter}
-          onOpenRun={onOpenRun}
-          onHistory={onHistory}
-          onShowIntro={function () { setIntro(true); }}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="landing">
       <section className="landing-hero">
@@ -386,6 +356,8 @@ export function LandingScreen({ onEnter, onFormats, returning, onOpenRun, onHist
           <HeroSketch />
         </div>
       </section>
+
+      {returning ? <RecentRuns onOpenRun={onOpenRun} onHistory={onHistory} /> : null}
 
       {/* The product demonstrates what the page describes. This is not a
           screenshot. It uses the same components as the app to build one item

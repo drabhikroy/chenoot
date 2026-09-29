@@ -4,6 +4,58 @@ import {
 } from '../reference/formats-reference.js';
 import { FormatGlyph } from './FormatGlyph.jsx';
 import { Modal } from './Modal.jsx';
+import { SurveySpecimen } from './SurveySpecimen.jsx';
+import { presentedAnchors, DESCENDING } from '../scale-order.js';
+
+// The answer choices each response format shows in its example, written out
+// in full so the example reads as a real survey item. The reference text
+// states only the two ends, which is enough to describe a scale and not
+// enough to show one. Each list runs from the least of the attribute to the
+// most, the same order the scale catalog uses, and is turned around for
+// display below.
+const SPECIMEN_OPTIONS = {
+  agreement: ['Strongly disagree', 'Disagree', 'Neither agree nor disagree', 'Agree', 'Strongly agree'],
+  satisfaction: ['Very dissatisfied', 'Dissatisfied', 'Neither satisfied nor dissatisfied', 'Satisfied', 'Very satisfied'],
+  evaluation: ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'],
+  frequency: ['Never', 'Once or twice', 'Weekly', 'Several times a week', 'Daily'],
+  extent: ['Not at all', 'A little', 'Somewhat', 'Quite a bit', 'A great deal'],
+  importance: ['Not at all important', 'Slightly important', 'Moderately important', 'Very important', 'Extremely important'],
+  difficulty: ['Very easy', 'Easy', 'Neither easy nor difficult', 'Difficult', 'Very difficult'],
+  confidence: ['Not at all confident', 'Slightly confident', 'Moderately confident', 'Very confident', 'Completely confident'],
+  likelihood: ['Very unlikely', 'Unlikely', 'Neither likely nor unlikely', 'Likely', 'Very likely'],
+  comparison: ['Much less', 'A little less', 'About the same', 'A little more', 'Much more'],
+  endorsement: ['Yes', 'No'],
+  numeric: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+};
+
+// The question part of an example, which is everything up to the first
+// question mark, or the first sentence of a statement.
+function stemOf(example) {
+  const text = String(example || '');
+  const question = text.indexOf('?');
+  if (question !== -1) {
+    return text.slice(0, question + 1);
+  }
+  const stop = text.indexOf('. ');
+  return stop === -1 ? text : text.slice(0, stop + 1);
+}
+
+function specimenFor(note) {
+  const options = SPECIMEN_OPTIONS[note.family];
+  if (!options) {
+    return null;
+  }
+  if (note.family === 'endorsement') {
+    return { kind: 'radio', stem: stemOf(note.example), options, otherIndex: -1 };
+  }
+  // Shown the way Chenoot prints a scale by default, with the most of the
+  // attribute at the top and the least at the bottom, so reading up the list
+  // goes from less to more. The chosen answer is the one just above the
+  // middle of the scale, whichever way it is shown.
+  const shown = presentedAnchors(options, DESCENDING);
+  const chosen = options.length - 1 - (Math.floor(options.length / 2) + 1);
+  return { kind: 'scale', stem: stemOf(note.example), options: shown, chosen };
+}
 
 // Reference for choosing a response format, as cards and not as prose.
 // Somebody at this screen is comparing formats, and comparison across twelve
@@ -52,11 +104,13 @@ function FormatDetail({ note, onClose }) {
           {note.purpose} {note.madeOf}
         </p>
 
-        <p className="ref-example value">{note.example}</p>
+        {specimenFor(note)
+          ? <SurveySpecimen parsed={specimenFor(note)} />
+          : <p className="ref-example value">{note.example}</p>}
 
         <div className="format-detail-columns">
           <div>
-            <p className="format-detail-label">Good for</p>
+            <p className="format-detail-label verdict verdict-good">Good for</p>
             <ul className="ref-list">
               {note.strengths.map(function (line) {
                 return <li key={line}>{line}</li>;
@@ -64,7 +118,7 @@ function FormatDetail({ note, onClose }) {
             </ul>
           </div>
           <div>
-            <p className="format-detail-label">Watch for</p>
+            <p className="format-detail-label verdict verdict-watch">Watch for</p>
             <ul className="ref-list ref-list-caution">
               {note.cautions.map(function (line) {
                 return <li key={line}>{line}</li>;

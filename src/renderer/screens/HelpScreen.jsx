@@ -17,18 +17,21 @@ import { BUILD_NUMBER } from '../build-number.js';
 const REQUIRED = [
   {
     name: 'Construct',
-    body: 'The attribute being measured, named as you would name it in a report. Every ' +
-      'dimension, item, and audit entry is written against this name.'
+    body: 'What you want to measure. The idea or quality your questions will be about, such ' +
+      'as student satisfaction with the new math curriculum. Name it the way you would in a ' +
+      'report, because every dimension, question, and entry in the record uses this name.'
   },
   {
     name: 'Target population',
-    body: 'Who the findings describe. This sets vocabulary and reading level, and decides ' +
-      'which concepts are meaningful to ask about at all.'
+    body: 'Who you are asking. The group of people your results will describe, such as ' +
+      'first-year undergraduates taking basic algebra. It sets the vocabulary and reading ' +
+      'level of the questions, and which topics make sense to ask about.'
   },
   {
     name: 'Survey purpose',
-    body: 'What the survey is for, in a sentence or two. Purpose decides which concepts belong ' +
-      'in the instrument, so without it every later decision about what to include is arbitrary.'
+    body: 'Why you are asking. What you will do with the answers once you have them, such as ' +
+      'deciding whether to keep the new curriculum next year. It decides which topics belong ' +
+      'in the questionnaire, so without it there is no way to judge what to leave out.'
   }
 ];
 
@@ -41,7 +44,7 @@ const STEPS = [
   ['Generation', 'Drafts roughly three times the target count, per dimension, so later steps have something to discard.'],
   ['Critique', 'Checks every item. Reading grade, length, double-barreled items, absolutes, and negation are all measured in code. Leading and socially desirable wording are judged by the model.'],
   ['Revision', 'Rewrites what failed, up to three rounds per item, then drops what will not converge and records why.'],
-  ['Coverage', 'Removes near-duplicates using embeddings, restores items if a dimension would fall below target, and narrows to the requested count.'],
+  ['Coverage', 'Removes near-duplicates using an embedding model, restores items if a dimension would fall below target, and narrows each dimension to its share of the requested count, keeping the items closest to the dimension. Without an embedding model it still narrows to the requested count, but cannot check for duplicates.'],
   ['Response scale', 'Decides whether the construct is unipolar or bipolar, picks a scale from a catalog of twenty, and takes the anchor labels from that catalog, not generating them.'],
   ['Assembly', 'Compiles the instrument, works out an administration order that does not present dimensions as blocks, and renders the audit trail.']
 ];
@@ -54,6 +57,7 @@ const TOPICS = [
   { id: 'optional', label: 'What is optional', hint: 'The fourteen that sharpen it' },
   { id: 'models', label: 'Getting a model running', hint: 'Setup, and doing it yourself' },
   { id: 'pipeline', label: 'What happens when you start', hint: 'The nine steps in order' },
+  { id: 'workspace', label: 'The Workspace', hint: 'Where an instrument is made' },
   { id: 'output', label: 'What you get', hint: 'Instrument, audit trail, exports' },
   { id: 'paused', label: 'If it stops and asks', hint: 'Why, and what to do' },
   { id: 'license', label: 'License and credits', hint: 'Terms, fonts, and the name' }
@@ -146,10 +150,13 @@ export function HelpScreen({ onWalkthrough }) {
                 each one, and you do not need to know anything about either beforehand.
               </p>
               <p className="help-para">
-                If Ollama is already installed, Setup finds it and uses it, not adding a
-                second copy. On macOS and Windows, if it is not installed, the application can
-                fetch one into its own folder and start it when needed. Nothing is installed
-                system wide, and removing it later is as easy as clicking a button.
+                The first option in Setup looks for an Ollama already running on this computer,
+                at the usual address or at one you type, and lists the models you have already
+                pulled, so nothing is downloaded twice. On macOS and Windows, if Ollama is not
+                installed, the application can fetch one into its own folder and start it when
+                needed. Nothing is installed system wide, and removing it later is one click.
+                When both steps are done, Setup shows a check in the navigation bar and a button
+                into the Workspace.
               </p>
               {/* Said here as well as in Setup. Somebody reading Help before they
                   ever open Setup would otherwise be told the application handles
@@ -214,6 +221,35 @@ export function HelpScreen({ onWalkthrough }) {
             </ol>
           ) : null}
 
+          {/* The Workspace in plain terms. Its layout, the resizable columns,
+              the fields that open while typing, and the way between a finished
+              instrument and its brief all show up without explanation on
+              screen, so they are named here once for anyone looking. */}
+          {topic === 'workspace' ? (
+            <>
+              <p className="help-para">
+                The Workspace holds the instrument you are working on. Your brief sits in the
+                left column, the instrument fills in on the sheet in the middle as the run goes,
+                and the details of the run sit in the right column while it is running.
+              </p>
+              <p className="help-para">
+                Drag the inner edge of either side column to make it wider or narrower, or
+                focus the edge and use the arrow keys. Double click an edge to put it back.
+                The widths are kept for next time.
+              </p>
+              <p className="help-para">
+                A text field in the brief opens in the middle of the window while you type in
+                it, over a dimmed page, so a long answer is easy to read. Click outside it or
+                press Escape to put it back.
+              </p>
+              <p className="help-para">
+                Once an instrument is finished, Edit the brief brings its brief back into the
+                form so you can change it and run again. Back to the finished instrument returns
+                to it without changing anything. Every finished instrument is kept in the
+                Library, and your most recent ones are listed on the home page.
+              </p>
+            </>
+          ) : null}
           {topic === 'output' ? (
             <>
               <p className="help-para">
@@ -224,9 +260,9 @@ export function HelpScreen({ onWalkthrough }) {
               </p>
               <p className="help-para">
                 Export to Word, PDF, JSON, CSV, or plain text, or straight into Qualtrics,
-                REDCap, Google Forms, or any platform with a bulk paste box. The results screen
-                offers four layouts, including one showing each item above the scale it will be
-                answered on.
+                REDCap, Google Forms, or any platform with a bulk paste box. The finished
+                instrument offers four layouts, including one showing each item above the scale
+                it will be answered on.
               </p>
               <p className="help-para">
                 The popups on this screen and elsewhere can be resized from any edge or corner.

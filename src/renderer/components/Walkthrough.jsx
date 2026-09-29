@@ -15,10 +15,19 @@ import { useState } from 'react';
 // Steps everyone sees, before the branch.
 const OPENING = [
   {
+    title: 'One workspace',
+    body: 'The Workspace holds everything about the instrument you are making. Your brief sits ' +
+      'on the left, the instrument fills in on the sheet in the middle as the run goes, and ' +
+      'the details of the run sit on the right. Drag the edge of either side column to make ' +
+      'it wider or narrower, and double click the edge to put it back.'
+  },
+  {
     title: 'Three fields to start',
     body: 'Construct, target population, and purpose. Those are the only things the pipeline ' +
       'will not proceed without, because their absence changes what gets measured and not ' +
-      'only how well.'
+      'only how well. Put simply, what you are measuring, who you are asking, and why. A ' +
+      'field opens in the middle of the window while you type in it, so a long answer is ' +
+      'easy to read, and goes back into the column when you click outside it or press Escape.'
   },
   {
     title: 'Everything else is optional',
@@ -43,8 +52,8 @@ const BRANCH = {
     },
     {
       id: 'terminal',
-      label: 'I manage models myself',
-      hint: 'Already using Ollama, or prefer a terminal'
+      label: 'I already have Ollama',
+      hint: 'Use the Ollama and models already on this computer'
     }
   ]
 };
@@ -73,10 +82,11 @@ const BRANCHES = {
   ],
   terminal: [
     {
-      title: 'Point Ollama at it',
-      body: 'Install Ollama, pull a writing model and an embedding model, and this application ' +
-        'will find them. Two commands: ollama pull qwen2.5:7b-instruct, then ollama pull ' +
-        'nomic-embed-text.'
+      title: 'Setup looks for it first',
+      body: 'The first option in Setup checks for an Ollama already running on this computer, ' +
+        'at the usual address or one you type, and lists the models you have already pulled, ' +
+        'so nothing is downloaded twice. If you have no models yet, two commands cover it: ' +
+        'ollama pull qwen2.5:7b-instruct, then ollama pull nomic-embed-text.'
     },
     {
       title: 'Settings holds the addresses',
@@ -109,7 +119,10 @@ const CLOSING = [
     title: 'Everything is kept',
     body: 'What you build stays in the Workspace until you begin another, and everything from ' +
       'before it is in the Library. Both keep the full record of how the instrument was put ' +
-      'together, including whether each decision was measured, judged, or recalled without a source.'
+      'together, including whether each decision was measured, judged, or recalled without a ' +
+      'source. Edit the brief brings a finished instrument\u2019s brief back into the form, so a ' +
+      'change is one edit and another run, and Back to the finished instrument returns to it ' +
+      'untouched. Your most recent runs are also listed on the home page.'
   },
   {
     // Added when the two reference screens arrived. A tour that stops before

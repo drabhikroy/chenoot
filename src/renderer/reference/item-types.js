@@ -304,7 +304,7 @@ export const TYPES = [
     body:
       'Counts, ranges, time periods, or other natural units. Ordered like a vague-quantifier ' +
       'scale and anchored to something measurable.',
-    example: 'How many times during the past month?\n( ) None ( ) 1-2 ( ) 3-5 ( ) 6-10 ( ) More than 10',
+    example: 'How many times during the past month?\n( ) More than 10 ( ) 6-10 ( ) 3-5 ( ) 1-2 ( ) None',
     good: ['Means the same thing to every respondent, unlike often or rarely.'],
     watch: [
       'Not the same as an open numeric item. This asks for a band, and that asks for a value.',
@@ -338,7 +338,7 @@ export const TYPES = [
       'direction and intensity together.',
     example:
       'How satisfied or dissatisfied are you?\nVery satisfied / Somewhat satisfied / ' +
-      'Neither / Somewhat dissatisfied / Very dissatisfied',
+      'Neither satisfied nor dissatisfied / Somewhat dissatisfied / Very dissatisfied',
     good: ['The right shape for anything a respondent can be for or against.'],
     watch: [
       'Whether to offer the middle is a real decision, not a default. It changes who lands ' +
@@ -357,7 +357,7 @@ export const TYPES = [
       'measurement, asked in two steps.',
     example:
       'Are you satisfied, dissatisfied, or neither?\n' +
-      'If satisfied, how satisfied? Slightly / Somewhat / Very',
+      'If satisfied, how satisfied? Very / Somewhat / Slightly',
     good: [
       'Each question is simpler than the combined one, which suits telephone administration ' +
         'and long scales.'
@@ -641,7 +641,7 @@ export const WORKED_EXAMPLES = [
   {
     question: 'How satisfied or dissatisfied are you with the service?',
     layout:
-      '( ) Very satisfied\n( ) Somewhat satisfied\n( ) Neither\n' +
+      '( ) Very satisfied\n( ) Somewhat satisfied\n( ) Neither satisfied nor dissatisfied\n' +
       '( ) Somewhat dissatisfied\n( ) Very dissatisfied',
     properties: [
       ['Primary response format', 'Closed-ended ordinal'],

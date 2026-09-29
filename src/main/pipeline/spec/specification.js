@@ -21,10 +21,17 @@ const IMPROVING = 'improving';
 // Each entry states what the field is for, not only what it is called,
 // because the interface asks for these in a person's own working language and
 // the prompt needs to explain why an absent one matters.
+//
+// The required fields also carry a plain explanation with an example, shown
+// under the label on the form. Construct, population, and purpose are easy to
+// mix up for anyone who has not designed a survey before, so each says in
+// everyday words which one question it answers: what, who, or why.
 const FIELDS = {
   purpose: {
     label: 'Survey purpose',
     level: REQUIRED,
+    plain: 'Why you are asking. What you will do with the answers once you have them.',
+    example: 'To decide whether to keep the new math curriculum next year.',
     asks: 'What this survey is for, in one or two sentences.',
     why: 'Purpose determines which concepts belong in the instrument at all. Without it every ' +
       'later decision about what to include is arbitrary.'
@@ -48,6 +55,8 @@ const FIELDS = {
   targetPopulation: {
     label: 'Target population',
     level: REQUIRED,
+    plain: 'Who you are asking. The group of people your results will describe.',
+    example: 'First-year undergraduates taking basic algebra.',
     asks: 'The population the findings are meant to describe.',
     why: 'Population sets vocabulary, reading level, and which concepts are meaningful.'
   },

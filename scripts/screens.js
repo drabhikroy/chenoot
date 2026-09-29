@@ -182,8 +182,10 @@ async function navigate(client, id) {
       home.click();
       return true;
     }
+    // Only the words of a button count. Setup gains a check mark once it is
+    // complete, and the mark is part of the button's text.
     const target = buttons.find(function (button) {
-      return button.textContent.trim().toLowerCase() === labels[wanted];
+      return button.textContent.replace(/[^A-Za-z ]/g, '').trim().toLowerCase() === labels[wanted];
     });
     if (!target) { return false; }
     target.click();

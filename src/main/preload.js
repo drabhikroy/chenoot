@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('chenoot', {
   specificationFields: function () { return ipcRenderer.invoke('spec:fields'); },
   readabilityMeasures: function () { return ipcRenderer.invoke('readability:measures'); },
   runtimeStatus: function () { return ipcRenderer.invoke('runtime:status'); },
+  findOllama: function (address) { return ipcRenderer.invoke('runtime:find', address); },
   runtimeInstall: function () { return ipcRenderer.invoke('runtime:install'); },
   runtimeStart: function () { return ipcRenderer.invoke('runtime:start'); },
   runtimeRemove: function (options) { return ipcRenderer.invoke('runtime:remove', options); },

@@ -155,10 +155,9 @@ export function SettingsScreen({
     });
   }
 
-  // Close, Escape, and a click outside the panel all come through here.
-  // Closing used to discard unsaved edits without a word, and people expect a
-  // settings panel to keep what they typed, so edits that are not saved are
-  // raised before the panel goes.
+  // Close, Escape, and a click outside the panel all come through here. People
+  // expect a settings panel to keep what they typed, so edits that are not
+  // saved are raised before the panel goes.
   function requestClose() {
     if (dirty && saveState !== 'working') {
       setConfirming(true);

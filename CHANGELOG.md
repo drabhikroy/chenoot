@@ -2,6 +2,48 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
+## [Unreleased]
+
+### Interface
+
+- Setup looks for an Ollama already running on this computer before offering
+  to install one, checks the saved address and the standard local port on its
+  own, accepts an address typed for another port, and lists the models already
+  pulled so nothing is downloaded twice.
+- Setup shows a check in the navigation bar once it is complete, and a notice
+  with a button into the Workspace at both the top of the Setup screen and
+  the end of step two.
+- The side columns of the Workspace can be widened or narrowed by dragging
+  their inner edge, with the keyboard arrows, or reset by double clicking. The
+  widths are kept between sessions.
+- A text field in the brief opens in the middle of the window while it is
+  being edited, over a dimmed and blurred page with the field's name above it,
+  and goes back into the column on a click outside it or Escape.
+- Construct, target population, and survey purpose each carry a plain
+  explanation and an example under the label, saying which question each one
+  answers: what you are measuring, who you are asking, and why.
+- After Edit the brief, Back to the finished instrument returns to it without
+  changing anything.
+- The home page is the introduction for everyone, and the Chenoot name in the
+  bar always leads there. Recent runs are listed just under its opening.
+- Examples under Response formats and Item types are shown as survey items,
+  in the same look as the specimens on the home page. Ordered scales run from
+  the least at the bottom to the most at the top, the same way Chenoot prints
+  a scale by default.
+- Help describes the Workspace, the new Setup, the plain meaning of the three
+  required fields, and what the coverage step does without an embedding
+  model.
+- Edit the brief loads a finished instrument's brief back into the form,
+  including for a run reopened from the Library.
+- The finished instrument reads as one document: a title, a one line summary,
+  and one line of record details, with section headings in sentence case. The
+  similarity check under each dimension is explained in a sentence.
+- Labels on the introduction read in sentence case.
+- Good for and Watch for, and Does well and Struggles for each model, are told
+  apart by a marked heading instead of a colored bar beside the cautions.
+- The walkthrough covers the Workspace, the resizable columns, the fields that
+  open out, finding an existing Ollama, and editing the brief.
+
 ## [1.2.0] - 2026-09-28
 
 ### Interface

@@ -383,6 +383,47 @@ function registerHandlers(getWindow) {
   // What would be read, before anything is read. The consent screen renders
   // from this never from its own copy of the list.
   // ---- Managed runtime --------------------------------------------------
+  // Looks for an Ollama that is already running on this computer, installed by
+  // the person themselves, before offering to install a second copy. The
+  // saved address is tried first, then the standard local port, then any
+  // address the person types. Only addresses on this machine are accepted,
+  // since the whole point is a model that runs here.
+  ipcMain.handle('runtime:find', async function (event, typed) {
+    const saved = settingsStore.load().host;
+    const candidates = [saved, 'http://localhost:11434', 'http://127.0.0.1:11434'];
+    if (typeof typed === 'string' && typed.trim()) {
+      let address = typed.trim();
+      if (!/^https?:\/\//i.test(address)) {
+        address = 'http://' + address;
+      }
+      let local = false;
+      try {
+        const parsed = new URL(address);
+        local = ['localhost', '127.0.0.1', '::1', '[::1]'].indexOf(parsed.hostname) !== -1;
+      } catch (error) {
+        return { ok: false, detail: 'That does not look like an address, such as localhost:11434.' };
+      }
+      if (!local) {
+        return { ok: false, detail: 'Only an Ollama on this computer can be used here.' };
+      }
+      candidates.unshift(address.replace(/\/$/, ''));
+    }
+    for (const host of candidates) {
+      try {
+        const response = await fetch(host + '/api/tags', { signal: AbortSignal.timeout(2500) });
+        if (!response.ok) {
+          continue;
+        }
+        const body = await response.json();
+        const models = (body.models || []).map(function (model) { return model.name; }).filter(Boolean);
+        return { ok: true, found: true, host, saved: host === saved, models };
+      } catch (error) {
+        // Nothing answering at this address. Try the next one.
+      }
+    }
+    return { ok: true, found: false, models: [] };
+  });
+
   ipcMain.handle('runtime:status', async function () {
     const settings = settingsStore.load();
     try {

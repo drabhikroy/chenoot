@@ -2137,9 +2137,37 @@ rect.tg-ink { fill: var(--color-text-secondary); stroke: none; opacity: 0.55; }
 }
 .ref-list { margin: 0; padding-left: var(--space-3); }
 .ref-list li { margin-bottom: 6px; line-height: 1.5; }
-/* Cautions are marked by an edge, not by a color alone, so the distinction
-   from the list above survives a palette without hue. */
-.ref-list-caution { border-left: 2px solid var(--status-flagged); padding-left: var(--space-3); }
+/* Strengths and cautions are told apart by their headings, which carry a mark
+   of their own shape as well as a color, so the difference survives a palette
+   without hue. The lists under them are plain. */
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: var(--weight-medium);
+}
+.verdict::before {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font: 700 11px/1 var(--font-body);
+}
+.verdict-good { color: var(--status-complete); }
+.verdict-good::before {
+  content: "\2713";
+  color: var(--color-background);
+  background: var(--status-complete);
+}
+.verdict-watch { color: var(--status-flagged); }
+.verdict-watch::before {
+  content: "!";
+  color: var(--color-background);
+  background: var(--status-flagged);
+  border-radius: 3px;
+}
 .ref-cites {
   margin: var(--space-2) 0 0;
   font: 400 var(--text-caption)/1.4 var(--font-data);
@@ -3538,9 +3566,8 @@ a:hover { text-decoration-color: var(--color-text-primary); }
 
 /* ---- 1.2 interface pass ------------------------------------------------- */
 
-/* The wordmark and version keep their width. Shrinking the pair together cut
-   the version to "1.1.(" on a window that had room for all of it, and the bar
-   now holds fewer destinations, so the navigation has space to give instead. */
+/* The wordmark and version keep their width, so the version always shows in
+   full. The navigation gives up space first. */
 .bar-mark { flex: 0 0 auto; }
 
 /* A small mark beside Setup while the application cannot run. The word on
@@ -3662,8 +3689,7 @@ a:hover { text-decoration-color: var(--color-text-primary); }
 .rule-number { color: var(--color-text-secondary); }
 
 /* Required fields are the thing to notice on this form, so their marker is
-   the stronger cue. It was ten pixel gray capitals, quieter than the optional
-   section heading below it. */
+   the stronger cue, stronger than the heading of the optional section. */
 .required-mark {
   padding: 2px 6px;
   border: 1px solid var(--color-border-strong);
@@ -3673,9 +3699,8 @@ a:hover { text-decoration-color: var(--color-text-primary); }
   color: var(--color-text-primary);
 }
 
-/* The optional section reads as optional. Its heading was set larger than any
-   field label and in spaced capitals, which gave the one thing nobody has to
-   fill in the most weight on the page. */
+/* The optional section reads as optional, quieter than the field labels
+   above it, since it is the one part nobody has to fill in. */
 details.spec-advanced > summary {
   letter-spacing: 0;
   text-transform: none;
@@ -3821,16 +3846,10 @@ details.spec-advanced[open] .spec-section-title { color: var(--color-text-primar
 .step-rail-item.skipped .step-rail-mark { border-style: dashed; }
 .step-rail-time { font-size: 12.5px; color: var(--color-text-secondary); }
 
-@media (max-width: 1100px) {
-  .workspace-three { grid-template-columns: minmax(240px, 280px) minmax(0, 1fr); }
-  .workspace-three .workspace-right { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--color-border); }
-  .workspace { height: auto; }
-}
 
 /* The brief form inside the left column. Its introduction and step preview
-   were written for a full screen. Beside the sheet they only push the fields
-   out of view, and the steps now have their own list, so the form starts with
-   its heading. */
+   suit a full screen. Beside the sheet the steps have their own list, so the
+   form starts with its heading and the fields stay in view. */
 .workspace-left .opening-thesis,
 .workspace-left .rule,
 .workspace-left .opening .eyebrow { display: none; }
@@ -3857,8 +3876,8 @@ details.spec-advanced[open] .spec-section-title { color: var(--color-text-primar
 .workspace { height: calc(100vh - 53px); }
 
 /* The finished instrument sits on the sheet too, so the result reads as the
-   same document that was filling in during the run. Item wording is what
-   respondents will read, so it is set in the serif. */
+   same document that fills in during a run. Item wording is what respondents
+   will read, so it is set in the serif. */
 .workspace-center > .screen {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -3873,3 +3892,236 @@ details.spec-advanced[open] .spec-section-title { color: var(--color-text-primar
   line-height: 1.35;
 }
 .workspace-center .screen > .eyebrow:first-child { display: none; }
+
+/* Handles on the inner edges of the side columns. The visible line is one
+   pixel, and the area that answers the pointer is wider so it is easy to
+   catch. */
+.workspace-handle {
+  position: relative;
+  width: 0;
+  cursor: col-resize;
+  z-index: 5;
+}
+.workspace-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  width: 10px;
+}
+.workspace-handle:hover::after,
+.workspace-handle:focus-visible::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background: var(--status-running);
+}
+.workspace-handle:focus-visible { outline: none; }
+body.workspace-resizing { cursor: col-resize; user-select: none; }
+
+/* A brief field while it is being edited. It opens in the middle of the
+   window at reading width, over a dimmed and blurred page, and a spacer of its
+   own height holds its place in the column. */
+.field.has-floating::before {
+  content: "";
+  display: block;
+  height: var(--float-space, 0);
+}
+.field.has-floating > label { order: -1; }
+.field-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgb(0 0 0 / 50%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.field-backdrop-label {
+  position: fixed;
+  top: calc(16vh - 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, 90vw);
+  margin: 0;
+  font: var(--weight-medium) var(--text-body-large)/1.3 var(--font-body);
+  color: #fff;
+}
+.field-backdrop-hint {
+  position: fixed;
+  bottom: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: var(--text-caption);
+  color: rgb(255 255 255 / 80%);
+}
+.field-floating {
+  position: fixed;
+  top: 16vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, 90vw) !important;
+  z-index: 60;
+  font-size: var(--text-body-large);
+  box-shadow: 0 24px 60px -18px rgb(0 0 0 / 70%), 0 0 0 1px var(--color-border-strong);
+}
+textarea.field-floating { height: min(46vh, 420px); }
+
+/* The check beside Setup once the application can run. */
+.bar-done {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--status-complete);
+}
+
+/* Setup: the two ways to complete step one, and the notice once both steps are
+   done. */
+.setup-option { margin: 0 0 var(--space-3); }
+.setup-option-title {
+  margin: var(--space-3) 0 var(--space-1);
+  font: var(--weight-medium) var(--text-body)/1.3 var(--font-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+}
+.setup-address { display: flex; gap: var(--space-1); max-width: 460px; }
+.setup-address input { flex: 1; }
+.setup-done {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--status-complete);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-alt);
+}
+.setup-done-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--status-complete);
+  color: var(--color-background);
+  font-weight: 700;
+}
+.setup-done-text { flex: 1; }
+.setup-done-title { margin: 0; font-weight: var(--weight-medium); }
+.brief-summary-edit { margin-top: var(--space-2); }
+
+/* ---- The instrument on the sheet ----------------------------------------
+   Section headings, dimension names, and the panels for the record and export
+   read in sentence case at body size. Spaced capitals in the data face are
+   kept for nothing on the sheet, so the title and the items lead the eye. */
+.workspace-center h2,
+.workspace-center .dimension-head h2 {
+  font-family: var(--font-body);
+  font-size: var(--text-body-large);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+  border: 0;
+  padding: 0;
+  margin: var(--space-6) 0 var(--space-2);
+}
+.workspace-center .dimension-head h2 { margin: var(--space-2) 0 var(--space-1); }
+.workspace-center details.advanced summary {
+  font-size: var(--text-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+}
+.workspace-center details.advanced summary .spec-section-title {
+  font-size: var(--text-body-large);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.workspace-center .spec-section-count,
+.workspace-center .dimension-count {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.workspace-center .certificate { margin-bottom: var(--space-4); }
+.workspace-center .certificate h1 { margin-bottom: var(--space-2); }
+.workspace-center .certificate .lede { margin: 0 0 var(--space-1); font-size: var(--text-body-large); }
+.certificate-line {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+.certificate-line .value { color: var(--color-text-primary); }
+/* The distribution of item similarity is evidence about duplicates, useful
+   on request and not needed to read the instrument, so it sits quieter under
+   the items it describes. */
+.workspace-center .calibration { opacity: 0.8; margin-top: var(--space-3); }
+
+/* ---- The introduction ----------------------------------------------------
+   The same quieting as the sheet. Labels on the introduction read in sentence
+   case in the body face, so the headline and the worked example lead and the
+   labels support them. The line above the headline fits on one line on a
+   laptop screen. */
+.landing .eyebrow,
+.preview-label,
+.specimen-label,
+.preview-properties dt {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.landing .eyebrow { color: var(--color-text-secondary); max-width: none; }
+.preview-label,
+.specimen-label { color: var(--color-text-secondary); font-weight: var(--weight-medium); }
+.preview-properties dd { font-family: var(--font-body); }
+.landing-section-head,
+.landing-close { margin-top: var(--space-8); }
+
+/* The entrance animation on a screen moves it with a transform, and a
+   transformed parent traps a floating field inside the column it sits in.
+   The brief column appears without it so its fields can float free. */
+.workspace-left .screen { animation: none; }
+
+/* A reference example shown as a survey item. It uses the specimen styles of
+   the introduction, set inside a panel so it reads as a sample page. */
+.reference-specimen {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-alt);
+}
+.reference-specimen .specimen-scale { flex-wrap: wrap; }
+.specimen-box {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 3px;
+}
+.specimen-box.chosen { background: var(--status-running); border-color: var(--status-running); }
+.specimen-field-small { width: 44px; }
+
+/* The plain explanation under the label of a required field, with its
+   example in a quieter tone. */
+.field-plain {
+  font-size: var(--text-caption);
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+.field-example { color: var(--color-text-secondary); }
+.brief-back { display: flex; flex-direction: column; gap: 6px; margin: 0 0 var(--space-3); }
+.brief-back button { align-self: flex-start; }
+
+/* Recent runs on the home page, under the introduction's opening. */
+.landing-recent { max-width: 760px; margin: var(--space-4) 0 var(--space-2); }

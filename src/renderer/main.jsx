@@ -389,6 +389,21 @@ function App() {
     });
   }
 
+  // Editing the brief of a finished instrument. The brief it was built from is
+  // loaded back into the form, including for a run reopened from the Library,
+  // so a change is one edit and another Start, not retyping from memory. The
+  // finished instrument stays in the Library either way.
+  function editBrief() {
+    if (runInput) {
+      updateDraft({
+        construct: runInput.construct || '',
+        itemCount: runInput.itemCount || 20,
+        specification: Object.assign({}, runInput.specification || {})
+      });
+    }
+    setScreen('input');
+  }
+
   let body = null;
 
   if (screen === 'pipeline') {
@@ -440,7 +455,7 @@ function App() {
   else if (screen === 'results' && result) {
     body = (
       <Workspace
-        left={<><BriefSummary input={runInput} /><StepRail states={railStates(result, states)} /></>}
+        left={<><BriefSummary input={runInput} onEdit={editBrief} /><StepRail states={railStates(result, states)} /></>}
         center={
       <ResultsScreen
         result={result}
@@ -455,7 +470,7 @@ function App() {
         onLayout={settings ? function (next) {
           saveSettings(Object.assign({}, settings, { resultsLayout: next }));
         } : function () {}}
-        onReview={function () { setScreen('input'); }}
+        onReview={editBrief}
         onRerun={runInput ? function () { start(runInput); } : null}
         // Adjustments to a finished instrument are made in the main process,
         // which holds the run. The screen hands back the rewritten instrument
@@ -509,6 +524,8 @@ function App() {
       <SetupScreen
         backend={backend}
         settings={settings}
+        onDone={function () { setScreen('input'); }}
+        onSettingsChange={function (next) { setSettings(next); refreshBackend(); }}
         progress={pullProgress}
         busy={pulling === 'ollama'}
         pulling={pulling}
@@ -600,6 +617,7 @@ function App() {
         backendDetail={backend.detail}
         settings={settings}
         onOpenSettings={function () { setScreen('setup'); }}
+        onBackToResult={result ? function () { setScreen('results'); } : null}
       />
         }
       />
