@@ -49,7 +49,19 @@ function save(record) {
     coverage: record.coverage || null,
     trail: record.trail
   };
-  fs.writeFileSync(filePath(payload.runId), JSON.stringify(payload), 'utf8');
+  // Written to a temporary file and then renamed over the run. A run is saved
+  // again after every edit, and a write cut short by a crash or a full disk
+  // would otherwise leave half a file where the whole run used to be. A rename
+  // within one folder replaces the old file in a single step.
+  const target = filePath(payload.runId);
+  const temporary = target + '.' + process.pid + '.tmp';
+  fs.writeFileSync(temporary, JSON.stringify(payload), 'utf8');
+  try {
+    fs.renameSync(temporary, target);
+  } catch (error) {
+    fs.rmSync(temporary, { force: true });
+    throw error;
+  }
   return payload.runId;
 }
 
@@ -61,6 +73,16 @@ function remove(runId) {
   fs.unlinkSync(filePath(runId));
 }
 
+// Whether a run is still in the archive. An identifier that is not a run
+// identifier is not in the archive by definition.
+function exists(runId) {
+  try {
+    return fs.existsSync(filePath(runId));
+  } catch (error) {
+    return false;
+  }
+}
+
 // Every stored run, deleted together.
 //
 // Removing them one at a time is fine for a mistake and no use to somebody
@@ -68,12 +90,15 @@ function remove(runId) {
 // the next run expects to write into it. A file that fails to unlink is counted
 // as remaining rather than aborting the rest, so one locked file does not leave
 // the history half cleared with no report of what happened.
+//
+// The files are read from the directory and not from the listing, which is
+// capped, so every run is removed however many there are.
 function removeAll() {
-  const before = list();
+  const before = storedIds();
   let removed = 0;
-  before.forEach(function (entry) {
+  before.forEach(function (runId) {
     try {
-      remove(entry.runId);
+      remove(runId);
       removed += 1;
     } catch (error) {
       // Counted by omission.
@@ -82,23 +107,38 @@ function removeAll() {
   return { removed, remaining: before.length - removed };
 }
 
-// Summary rows for the history screen. Only what the list displays is returned,
-// because sending every full trail across the bridge to render a list of dates
-// would be several megabytes for no reason.
-function list() {
+// The identifier of every stored run, newest first. An identifier is the time
+// the run began in base 36, so for identifiers of the same length the
+// alphabetical order is the order they were made in. Files whose names are not
+// run identifiers are left out, since nothing here wrote them.
+function storedIds() {
   let names;
   try {
-    names = fs.readdirSync(runsPath()).filter(function (name) {
-      return name.endsWith('.json');
-    });
+    names = fs.readdirSync(runsPath());
   } catch (error) {
     return [];
   }
+  return names
+    .filter(function (name) { return /^run-[a-z0-9]+\.json$/.test(name); })
+    .map(function (name) { return name.slice(0, -'.json'.length); })
+    .sort(function (a, b) {
+      return b.length - a.length || (a < b ? 1 : a > b ? -1 : 0);
+    });
+}
 
+// Summary rows for the history screen. Only what the list displays is returned,
+// because sending every full trail across the bridge to render a list of dates
+// would be several megabytes for no reason.
+//
+// When there are more runs than the listing holds, it keeps the newest. The
+// directory returns names in no promised order, so taking the first few
+// hundred as they come would leave the newest runs out of the Library and the
+// home page once the archive passed that size.
+function list() {
   const rows = [];
-  names.slice(0, LISTING_LIMIT).forEach(function (name) {
+  storedIds().slice(0, LISTING_LIMIT).forEach(function (runId) {
     try {
-      const record = JSON.parse(fs.readFileSync(path.join(runsPath(), name), 'utf8'));
+      const record = JSON.parse(fs.readFileSync(filePath(runId), 'utf8'));
       const trail = record.trail || {};
       const input = trail.input || {};
       rows.push({
@@ -259,6 +299,6 @@ function estimate(requestedItems, context) {
 }
 
 module.exports = {
-  save, load, remove, removeAll, list, estimate, estimateFrom, speedFactor, runsPath,
+  save, load, remove, removeAll, exists, list, estimate, estimateFrom, speedFactor, runsPath,
   FALLBACK_FIXED_SECONDS, FALLBACK_SECONDS_PER_ITEM
 };

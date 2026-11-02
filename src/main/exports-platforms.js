@@ -29,6 +29,12 @@
 const { CATALOG } = require('./pipeline/scales/catalog');
 const direction = require('./pipeline/scales/direction');
 
+// Kept here rather than imported, because the main export module requires this
+// one and a cycle between them would hand one of them an empty module.
+function guardFormula(text) {
+  return /^[=+\-@\t\r]/.test(text) ? "'" + text : text;
+}
+
 // The anchors an item is answered on. An item carrying its own format uses that
 // format's anchors; everything else uses the instrument's.
 // The anchors for one item, in the order they are printed.
@@ -251,8 +257,11 @@ const REDCAP_COLUMNS = [
   'Field Annotation'
 ];
 
+// Quoted the same way as the main CSV export, including the guard against
+// cells a spreadsheet would run as formulas, since a data dictionary is often
+// opened in a spreadsheet before it is uploaded.
 function csvField(value) {
-  const text = value === null || value === undefined ? '' : String(value);
+  const text = guardFormula(value === null || value === undefined ? '' : String(value));
   if (/[",\r\n]/.test(text)) {
     return '"' + text.replace(/"/g, '""') + '"';
   }

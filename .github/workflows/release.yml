@@ -11,8 +11,11 @@ on:
     tags:
       - 'v*'
 
+# Read only by default. The verify and build jobs install packages from npm and
+# run their scripts, and a write token in reach of those scripts could alter the
+# repository or its releases. Only the job that creates the draft can write.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   # The gate runs once, on the cheapest runner, before any platform is built.
@@ -112,6 +115,8 @@ jobs:
   draft:
     needs: build
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v7
         with:

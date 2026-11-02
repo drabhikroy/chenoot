@@ -363,6 +363,16 @@ export function SetupScreen({
             you use it. Models are stored separately and remain on your machine, where other
             compatible programs can use them too if permitted.
           </p>
+          {/* Removing models deletes the whole Ollama model folder on this
+              computer, which other programs that use Ollama share. Settings
+              says so beside the same choice, and this says it here too, before
+              the button that does it. */}
+          {removing ? (
+            <p className="help-para field-error">
+              Removing the models deletes every model Ollama holds on this computer, including
+              ones other programs use. Remove only the runtime to keep them.
+            </p>
+          ) : null}
           <div className="actions">
             {removing ? (
               <span className="confirm-pair">

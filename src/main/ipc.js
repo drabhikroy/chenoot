@@ -28,6 +28,31 @@ const draft = require('./draft');
 // while producing two audit trails nobody asked for.
 let activeRun = null;
 let lastCompletedRun = null;
+
+// Writes the open instrument back to its saved run after a change. Changing an
+// item's format, changing every item, and reversing the scale order all edit
+// the instrument in memory. Without this the Library would keep the version
+// from before the change, and the edit would be gone the next time the run was
+// opened.
+// A failed write is reported with the change, which itself still stands.
+//
+// Only a run still in the archive is written. A run deleted from the Library
+// while it was open stays deleted, and an edit to it changes only what is on
+// screen.
+function persistOpenRun() {
+  if (!lastCompletedRun || !lastCompletedRun.instrument || !lastCompletedRun.trail) {
+    return null;
+  }
+  if (!runs.exists(lastCompletedRun.trail.runId)) {
+    return null;
+  }
+  try {
+    runs.save(lastCompletedRun);
+    return null;
+  } catch (error) {
+    return 'The change was made but could not be saved to the Library: ' + error.message;
+  }
+}
 // One pull at a time, for the same reason as one run at a time: two concurrent
 // downloads of multi-gigabyte models compete for the same connection and finish
 // later than either would alone.
@@ -67,6 +92,13 @@ function countsFor(trail) {
   };
 }
 
+// The item counts a run accepts. The form holds the same limits, and they are
+// checked here as well because the form is not the only thing that can send a
+// run. A count outside them, or one that is not a whole number, is refused
+// rather than quietly turned into some other count.
+const MINIMUM_ITEMS = 4;
+const MAXIMUM_ITEMS = 120;
+
 function registerHandlers(getWindow) {
   // Forwards orchestrator events to the renderer. Guarded on the window still
   // existing, since a run continues after a window closes and would otherwise
@@ -86,6 +118,20 @@ function registerHandlers(getWindow) {
     if (activeRun) {
       return { status: 'busy' };
     }
+    if (!rawInput || typeof rawInput !== 'object') {
+      return { status: 'invalid', message: 'The run request was empty.' };
+    }
+    if (typeof rawInput.construct !== 'string') {
+      return { status: 'invalid', message: 'A construct name is required.' };
+    }
+    const requested = rawInput.itemCount === undefined ? 20 : Number(rawInput.itemCount);
+    if (!Number.isInteger(requested) || requested < MINIMUM_ITEMS || requested > MAXIMUM_ITEMS) {
+      return {
+        status: 'invalid',
+        message: 'The item count has to be a whole number from ' + MINIMUM_ITEMS + ' to ' +
+          MAXIMUM_ITEMS + '.'
+      };
+    }
 
     const settings = settingsStore.load();
     // Settings that affect the pipeline are folded into the run input here, so
@@ -95,7 +141,7 @@ function registerHandlers(getWindow) {
       construct: String(rawInput.construct || '').trim(),
       population: String(rawInput.population || '').trim(),
       purpose: String(rawInput.purpose || '').trim(),
-      itemCount: Number(rawInput.itemCount) || 20,
+      itemCount: requested,
       relatedConstructs: Array.isArray(rawInput.relatedConstructs) ? rawInput.relatedConstructs : [],
       specification: (rawInput.specification && typeof rawInput.specification === 'object')
         ? rawInput.specification
@@ -362,26 +408,6 @@ function registerHandlers(getWindow) {
     }
   });
 
-  // PDF is printed from the live results view, never composed separately.
-  // The person has already read that layout and approved it by getting this
-  // far, and a second implementation would be a second thing to keep correct.
-  //
-  // The renderer opens the audit panel and applies a printing class before
-  // calling this, so what lands on paper is the whole document and not a
-  // screenshot of a collapsed one.
-  // The specification field definitions, including which are required. The
-  // input screen renders from these and holds no copy of its own, so a
-  // field added to the model appears in the interface without a second edit.
-  // The working specification survives a failed run, a quit, and a crash. It is
-  // saved on every edit and not on submit, since the case it exists for
-  // is the one where submit never happens.
-  // Every format one item could take. Sent to the renderer so the picker is
-  // built from the catalog. The interface keeps no list of its own.
-  // The readability measures, with the prose that explains what each one does
-  // and where it should not be trusted. Sent to the renderer so the settings
-  // screen renders from the definitions, not from a copy.
-  // What would be read, before anything is read. The consent screen renders
-  // from this never from its own copy of the list.
   // ---- Managed runtime --------------------------------------------------
   // Looks for an Ollama that is already running on this computer, installed by
   // the person themselves, before offering to install a second copy. The
@@ -504,6 +530,8 @@ function registerHandlers(getWindow) {
     return updates.checkRuntime(settings.runtimeVersion || null);
   });
 
+  // What would be read, before anything is read. The consent screen renders
+  // from this and never from its own copy of the list.
   ipcMain.handle('machine:disclosure', async function () {
     return { reads: machine.DISCLOSURE };
   });
@@ -566,6 +594,9 @@ function registerHandlers(getWindow) {
     };
   });
 
+  // The readability measures, with the prose that explains what each one does
+  // and where it should not be trusted. Sent to the renderer so the settings
+  // screen renders from the definitions, not from a copy.
   ipcMain.handle('readability:measures', async function () {
     const readability = require('./pipeline/rubric/readability');
     return {
@@ -590,6 +621,8 @@ function registerHandlers(getWindow) {
     return { platforms: exporters.PLATFORM_INFO };
   });
 
+  // Every format one item could take. Sent to the renderer so the picker is
+  // built from the catalog. The interface keeps no list of its own.
   ipcMain.handle('item:formats', async function () {
     return { formats: regenerate.availableFormats() };
   });
@@ -654,8 +687,10 @@ function registerHandlers(getWindow) {
         });
       }
 
+      const saveProblem = persistOpenRun();
       return {
         ok: true,
+        saveProblem,
         item: outcome.item,
         regenerated: outcome.regenerated,
         reason: outcome.reason,
@@ -753,7 +788,8 @@ function registerHandlers(getWindow) {
       });
     }
 
-    return { ok: true, changed, rewritten, failures, total: targets.length };
+    const saveProblem = changed > 0 ? persistOpenRun() : null;
+    return { ok: true, saveProblem, changed, rewritten, failures, total: targets.length };
   });
 
   ipcMain.handle('runs:remove-all', async function () {
@@ -869,9 +905,13 @@ function registerHandlers(getWindow) {
       });
     }
 
-    return { ok: true, order, changed, instrument };
+    const saveProblem = changed > 0 ? persistOpenRun() : null;
+    return { ok: true, saveProblem, order, changed, instrument };
   });
 
+  // The working specification survives a failed run, a quit, and a crash. It is
+  // saved on every edit and not on submit, since the case it exists for
+  // is the one where submit never happens.
   ipcMain.handle('spec:draft-get', async function () {
     try {
       return { ok: true, draft: draft.load() };
@@ -889,6 +929,9 @@ function registerHandlers(getWindow) {
     }
   });
 
+  // The specification field definitions, including which are required. The
+  // input screen renders from these and holds no copy of its own, so a
+  // field added to the model appears in the interface without a second edit.
   ipcMain.handle('spec:fields', async function () {
     return { fields: specification.FIELDS, required: specification.REQUIRED_FIELDS };
   });
@@ -955,6 +998,13 @@ function registerHandlers(getWindow) {
     }
   });
 
+  // PDF is printed from the live results view, never composed separately.
+  // The person has already read that layout and approved it by getting this
+  // far, and a second implementation would be a second thing to keep correct.
+  //
+  // The renderer opens the audit panel and applies a printing class before
+  // calling this, so what lands on paper is the whole document and not a
+  // screenshot of a collapsed one.
   ipcMain.handle('export:pdf', async function () {
     if (!lastCompletedRun || !lastCompletedRun.instrument) {
       return { ok: false, detail: 'There is no finished run to export.' };

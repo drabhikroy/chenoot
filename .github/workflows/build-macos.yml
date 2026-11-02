@@ -3,6 +3,11 @@ name: Build macOS
 on:
   workflow_dispatch:
 
+# This workflow only builds and uploads an artifact, so it needs no write
+# access to the repository.
+permissions:
+  contents: read
+
 jobs:
   build-mac:
     runs-on: macos-14

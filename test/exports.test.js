@@ -206,3 +206,32 @@ test('the advanced format writer is still available under its own name', functio
   assert.match(out.fileName, /\.txt$/);
   assert.match(out.contents, /\[\[AdvancedFormat\]\]/);
 });
+
+test('cells a spreadsheet would run as formulas are written as text', function () {
+  const instrument = {
+    construct: 'Workplace autonomy',
+    dimensions: [{
+      name: '=cmd|" /C calc"!A0',
+      definition: '',
+      items: [
+        { id: 'd1-01', text: '=HYPERLINK("http://example.com","open")', direction: 'positive' },
+        { id: 'd1-02', text: '@SUM(1,1)', direction: 'reverse' },
+        { id: 'd1-03', text: '+1 is how I rate my shift', direction: 'positive' },
+        { id: 'd1-04', text: 'I like my job, mostly.', direction: 'positive' }
+      ]
+    }],
+    administrationOrder: ['d1-01', 'd1-02', 'd1-03', 'd1-04'],
+    scale: { scaleType: '0', points: 5, scaleLabels: ['a', 'b'] }
+  };
+  const lines = exporters.toCsv({ instrument }).contents.split('\n').slice(1);
+  lines.forEach(function (line) {
+    // No unquoted or quoted cell may begin with a formula character.
+    line.match(/("([^"]|"")*"|[^,]*)/g).filter(Boolean).forEach(function (cell) {
+      const bare = cell.replace(/^"/, '');
+      assert.ok(!/^[=+\-@]/.test(bare), 'cell runs as a formula: ' + cell);
+    });
+  });
+  assert.ok(lines[3].indexOf('"I like my job, mostly."') !== -1, 'ordinary text is untouched');
+  assert.strictEqual(exporters.guardFormula('-2 hours'), "'-2 hours");
+  assert.strictEqual(exporters.guardFormula('Two hours'), 'Two hours');
+});

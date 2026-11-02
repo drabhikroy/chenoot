@@ -284,6 +284,12 @@ function App() {
         setScreen('clarify');
       } else if (outcome.status === 'error') {
         setError(outcome.message);
+      } else if (outcome.status === 'invalid' || outcome.status === 'busy') {
+        // Refused before any step ran. Shown the same way as a failure, so the
+        // screen does not sit on a run that is never going to start.
+        setError(outcome.status === 'busy'
+          ? 'Another run is already in progress. Wait for it to finish, or stop it first.'
+          : outcome.message);
       } else if (outcome.status === 'canceled') {
         setScreen('input');
       }

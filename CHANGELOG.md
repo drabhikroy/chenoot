@@ -2,6 +2,32 @@
 
 Entries are written as changes land. Dates are the day the version was tagged.
 
+## [Unreleased]
+
+### Fixed
+
+- Changing an item's format, changing every item, or reversing the scale order
+  on a finished instrument is now saved with the run. These changes were kept
+  only on screen, so reopening the run from the Library showed it as it was
+  before.
+- Cells in the CSV and REDCap exports that begin with a character a
+  spreadsheet reads as a formula are written as text.
+- With more than five hundred saved runs, the Library and the home page list
+  the newest, and deleting every past run removes all of them.
+- A run request with an item count outside 4 to 120 is refused by the
+  application itself as well as by the form.
+- Setup warns before the button that removes the models that removing them
+  also removes them for other programs that use Ollama.
+- Runs are saved by writing a temporary file and renaming it, so a save cut
+  short cannot leave a damaged run behind.
+
+### Changed
+
+- Electron is updated to 43.8.6, which includes fixes for published security
+  advisories in earlier 43 releases.
+- The release workflow gives write access only to the job that creates the
+  draft release.
+
 ## [1.3.0] - 2026-09-28
 
 ### Interface

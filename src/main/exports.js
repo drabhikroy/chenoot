@@ -8,8 +8,18 @@
 // Fields are quoted whenever they contain a delimiter, a quote, or a line
 // break, and embedded quotes are doubled. Survey items regularly contain
 // commas, so this is load bearing, not defensive.
+//
+// A field that starts with a character a spreadsheet reads as the start of a
+// formula gets an apostrophe in front, the guard OWASP gives for CSV files.
+// Item wording and dimension names come from the model, and a spreadsheet
+// opening this file would otherwise run whatever formula one of them began
+// with. The apostrophe shows only as a leading mark on that one cell.
+function guardFormula(text) {
+  return /^[=+\-@\t\r]/.test(text) ? "'" + text : text;
+}
+
 function csvField(value) {
-  const text = value === null || value === undefined ? '' : String(value);
+  const text = guardFormula(value === null || value === undefined ? '' : String(value));
   if (/[",\r\n]/.test(text)) {
     return '"' + text.replace(/"/g, '""') + '"';
   }
@@ -158,6 +168,6 @@ async function writeBinary(format, run) {
 }
 
 module.exports = {
-  write, writeBinary, toJson, toCsv, toText, csvField, safeName,
+  write, writeBinary, toJson, toCsv, toText, csvField, guardFormula, safeName,
   WRITERS, PLANNED, PRINTED, BINARY, PLATFORM_INFO
 };
